@@ -32,16 +32,18 @@ export default function Layout({ children, currentPageName }) {
   }
 
   return (
-    <div dir="rtl" className="min-h-screen bg-gray-50">
+    <div dir="rtl" className="min-h-screen bg-white">
       <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;700;800;900&display=swap');
+        
         :root {
           --color-primary: #E85A24;
           --color-primary-dark: #D14A1A;
           --color-secondary: #6B2D4A;
-          --color-background: #FFFAF8;
+          --color-background: #FFFFFF;
         }
         * {
-          font-family: 'Heebo', 'Inter', sans-serif;
+          font-family: 'Heebo', sans-serif;
         }
         .swipe-hint {
           animation: swipeHint 2s ease-in-out infinite;
@@ -53,29 +55,33 @@ export default function Layout({ children, currentPageName }) {
       `}</style>
       
       {!isBuilderFlow && (
-        <header className="bg-white border-b border-gray-100 sticky top-0 z-50">
-          <div className="max-w-7xl mx-auto px-4">
-            <div className="flex items-center justify-between h-16">
+        <header className="bg-white sticky top-0 z-50 shadow-sm">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6">
+            <div className="flex items-center justify-between h-20">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-[#E85A24] rounded-full flex items-center justify-center">
-                  <span className="text-white font-bold text-lg">ע</span>
+                <div className="relative w-12 h-12 flex items-center justify-center">
+                  <svg viewBox="0 0 100 100" className="w-full h-full">
+                    <path d="M50 10 Q80 25, 80 50 T50 90 Q20 75, 20 50 T50 10" 
+                          fill="none" stroke="#E85A24" strokeWidth="12" strokeLinecap="round"/>
+                    <circle cx="50" cy="50" r="18" fill="#E85A24"/>
+                  </svg>
                 </div>
-                <div>
-                  <span className="font-bold text-[#E85A24] text-xl">עתיד</span>
-                  <span className="text-[#6B2D4A] text-sm block -mt-1">סקרים</span>
+                <div className="flex flex-col leading-none">
+                  <span className="font-black text-[#6B2D4A] text-2xl tracking-tight">עתיד</span>
+                  <span className="text-[#E85A24] text-xs font-bold tracking-wide mt-0.5">רשת חינוך</span>
                 </div>
               </div>
               
-              <nav className="hidden md:flex items-center gap-6">
-                <Link to={createPageUrl('Home')} className="text-gray-600 hover:text-[#E85A24] transition-colors flex items-center gap-2">
+              <nav className="hidden md:flex items-center gap-3">
+                <Link to={createPageUrl('Home')} className="px-5 py-2.5 rounded-full text-[#6B2D4A] hover:bg-gray-50 transition-all font-medium flex items-center gap-2">
                   <Home className="w-4 h-4" />
                   בית
                 </Link>
-                <Link to={createPageUrl('SurveyManagement')} className="text-gray-600 hover:text-[#E85A24] transition-colors flex items-center gap-2">
+                <Link to={createPageUrl('SurveyManagement')} className="px-5 py-2.5 rounded-full text-[#6B2D4A] hover:bg-gray-50 transition-all font-medium flex items-center gap-2">
                   <FileText className="w-4 h-4" />
                   הסקרים שלי
                 </Link>
-                <Link to={createPageUrl('ResultsOverview')} className="text-gray-600 hover:text-[#E85A24] transition-colors flex items-center gap-2">
+                <Link to={createPageUrl('ResultsOverview')} className="px-5 py-2.5 rounded-full text-[#6B2D4A] hover:bg-gray-50 transition-all font-medium flex items-center gap-2">
                   <BarChart3 className="w-4 h-4" />
                   תוצאות
                 </Link>
@@ -85,24 +91,24 @@ export default function Layout({ children, currentPageName }) {
         </header>
       )}
       
-      <main className={isBuilderFlow ? '' : 'pb-20 md:pb-0'}>
+      <main className={isBuilderFlow ? '' : 'pb-24 md:pb-0'}>
         {children}
       </main>
       
       {!isBuilderFlow && (
-        <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-50">
-          <div className="flex items-center justify-around h-16">
-            <Link to={createPageUrl('Home')} className="flex flex-col items-center gap-1 text-gray-500 hover:text-[#E85A24]">
-              <Home className="w-5 h-5" />
-              <span className="text-xs">בית</span>
+        <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 z-50 shadow-[0_-4px_12px_rgba(0,0,0,0.05)]">
+          <div className="flex items-center justify-around h-20 px-2">
+            <Link to={createPageUrl('Home')} className="flex flex-col items-center justify-center gap-1.5 text-gray-400 hover:text-[#E85A24] transition-colors min-w-[72px]">
+              <Home className="w-6 h-6" />
+              <span className="text-xs font-medium">בית</span>
             </Link>
-            <Link to={createPageUrl('SurveyManagement')} className="flex flex-col items-center gap-1 text-gray-500 hover:text-[#E85A24]">
-              <FileText className="w-5 h-5" />
-              <span className="text-xs">סקרים</span>
+            <Link to={createPageUrl('SurveyManagement')} className="flex flex-col items-center justify-center gap-1.5 text-gray-400 hover:text-[#E85A24] transition-colors min-w-[72px]">
+              <FileText className="w-6 h-6" />
+              <span className="text-xs font-medium">סקרים</span>
             </Link>
-            <Link to={createPageUrl('ResultsOverview')} className="flex flex-col items-center gap-1 text-gray-500 hover:text-[#E85A24]">
-              <BarChart3 className="w-5 h-5" />
-              <span className="text-xs">תוצאות</span>
+            <Link to={createPageUrl('ResultsOverview')} className="flex flex-col items-center justify-center gap-1.5 text-gray-400 hover:text-[#E85A24] transition-colors min-w-[72px]">
+              <BarChart3 className="w-6 h-6" />
+              <span className="text-xs font-medium">תוצאות</span>
             </Link>
           </div>
         </nav>
