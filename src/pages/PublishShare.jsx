@@ -11,13 +11,12 @@ import {
   MessageCircle, Mail, Loader2, ExternalLink, Lock
 } from 'lucide-react';
 import { toast } from 'sonner';
-import QRCode from 'react-qr-code';
-
-// Simple QR Code component using canvas
+// Simple QR Code component using external API
 function SimpleQRCode({ value, size = 200 }) {
+  const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=${size}x${size}&data=${encodeURIComponent(value)}`;
   return (
     <div className="bg-white p-4 rounded-xl inline-block">
-      <QRCode value={value} size={size} />
+      <img src={qrUrl} alt="QR Code" width={size} height={size} />
     </div>
   );
 }
