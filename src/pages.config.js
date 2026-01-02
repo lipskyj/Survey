@@ -8,6 +8,9 @@ import EvaluationGoal from './pages/EvaluationGoal';
 import SuccessDefinition from './pages/SuccessDefinition';
 import ProfileSummary from './pages/ProfileSummary';
 import GenerateSurvey from './pages/GenerateSurvey';
+import SurveyEditor from './pages/SurveyEditor';
+import EditQuestion from './pages/EditQuestion';
+import AddQuestion from './pages/AddQuestion';
 import __Layout from './Layout.jsx';
 
 
@@ -22,6 +25,9 @@ export const PAGES = {
     "SuccessDefinition": SuccessDefinition,
     "ProfileSummary": ProfileSummary,
     "GenerateSurvey": GenerateSurvey,
+    "SurveyEditor": SurveyEditor,
+    "EditQuestion": EditQuestion,
+    "AddQuestion": AddQuestion,
 }
 
 export const pagesConfig = {
