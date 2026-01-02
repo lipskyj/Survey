@@ -58,17 +58,23 @@ export default function Layout({ children, currentPageName }) {
         <header className="bg-white sticky top-0 z-50 shadow-sm">
           <div className="max-w-7xl mx-auto px-4 sm:px-6">
             <div className="flex items-center justify-between h-20">
-              <div className="flex items-center gap-3">
-                <div className="relative w-12 h-12 flex items-center justify-center">
+              <div className="flex items-center gap-2 sm:gap-3">
+                <div className="relative w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center">
                   <svg viewBox="0 0 100 100" className="w-full h-full">
-                    <path d="M50 10 Q80 25, 80 50 T50 90 Q20 75, 20 50 T50 10" 
-                          fill="none" stroke="#E85A24" strokeWidth="12" strokeLinecap="round"/>
-                    <circle cx="50" cy="50" r="18" fill="#E85A24"/>
+                    {/* Main circular spiral */}
+                    <path d="M 30 50 A 20 20 0 1 1 70 50" 
+                          fill="none" stroke="#E85A24" strokeWidth="14" strokeLinecap="round"/>
+                    <path d="M 70 50 L 80 50" 
+                          fill="none" stroke="#E85A24" strokeWidth="14" strokeLinecap="round"/>
+                    <path d="M 50 30 L 50 20" 
+                          fill="none" stroke="#E85A24" strokeWidth="14" strokeLinecap="round"/>
+                    {/* Inner circle */}
+                    <circle cx="50" cy="50" r="12" fill="#E85A24"/>
                   </svg>
                 </div>
                 <div className="flex flex-col leading-none">
-                  <span className="font-black text-[#6B2D4A] text-2xl tracking-tight">עתיד</span>
-                  <span className="text-[#E85A24] text-xs font-bold tracking-wide mt-0.5">רשת חינוך</span>
+                  <span className="font-black text-[#6B2D4A] text-xl sm:text-2xl tracking-tight">עתיד</span>
+                  <span className="text-[#E85A24] text-[10px] sm:text-xs font-bold tracking-wide">רשת חינוך</span>
                 </div>
               </div>
               
