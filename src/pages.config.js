@@ -11,6 +11,10 @@ import GenerateSurvey from './pages/GenerateSurvey';
 import SurveyEditor from './pages/SurveyEditor';
 import EditQuestion from './pages/EditQuestion';
 import AddQuestion from './pages/AddQuestion';
+import PublishShare from './pages/PublishShare';
+import RespondIntro from './pages/RespondIntro';
+import RespondQuestion from './pages/RespondQuestion';
+import RespondComplete from './pages/RespondComplete';
 import __Layout from './Layout.jsx';
 
 
@@ -28,6 +32,10 @@ export const PAGES = {
     "SurveyEditor": SurveyEditor,
     "EditQuestion": EditQuestion,
     "AddQuestion": AddQuestion,
+    "PublishShare": PublishShare,
+    "RespondIntro": RespondIntro,
+    "RespondQuestion": RespondQuestion,
+    "RespondComplete": RespondComplete,
 }
 
 export const pagesConfig = {
