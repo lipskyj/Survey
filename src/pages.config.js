@@ -18,6 +18,8 @@ import RespondComplete from './pages/RespondComplete';
 import SurveyManagement from './pages/SurveyManagement';
 import ResultsOverview from './pages/ResultsOverview';
 import ResultsByQuestion from './pages/ResultsByQuestion';
+import AIInsights from './pages/AIInsights';
+import ExportData from './pages/ExportData';
 import __Layout from './Layout.jsx';
 
 
@@ -42,6 +44,8 @@ export const PAGES = {
     "SurveyManagement": SurveyManagement,
     "ResultsOverview": ResultsOverview,
     "ResultsByQuestion": ResultsByQuestion,
+    "AIInsights": AIInsights,
+    "ExportData": ExportData,
 }
 
 export const pagesConfig = {
