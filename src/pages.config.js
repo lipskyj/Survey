@@ -15,6 +15,9 @@ import PublishShare from './pages/PublishShare';
 import RespondIntro from './pages/RespondIntro';
 import RespondQuestion from './pages/RespondQuestion';
 import RespondComplete from './pages/RespondComplete';
+import SurveyManagement from './pages/SurveyManagement';
+import ResultsOverview from './pages/ResultsOverview';
+import ResultsByQuestion from './pages/ResultsByQuestion';
 import __Layout from './Layout.jsx';
 
 
@@ -36,6 +39,9 @@ export const PAGES = {
     "RespondIntro": RespondIntro,
     "RespondQuestion": RespondQuestion,
     "RespondComplete": RespondComplete,
+    "SurveyManagement": SurveyManagement,
+    "ResultsOverview": ResultsOverview,
+    "ResultsByQuestion": ResultsByQuestion,
 }
 
 export const pagesConfig = {
