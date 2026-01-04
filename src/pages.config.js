@@ -1,51 +1,51 @@
-import Home from './pages/Home';
+import AIInsights from './pages/AIInsights';
 import ActivityDescription from './pages/ActivityDescription';
-import Audience from './pages/Audience';
-import GradeRange from './pages/GradeRange';
-import EventType from './pages/EventType';
-import ContentFocus from './pages/ContentFocus';
-import EvaluationGoal from './pages/EvaluationGoal';
-import SuccessDefinition from './pages/SuccessDefinition';
-import ProfileSummary from './pages/ProfileSummary';
-import GenerateSurvey from './pages/GenerateSurvey';
-import SurveyEditor from './pages/SurveyEditor';
-import EditQuestion from './pages/EditQuestion';
 import AddQuestion from './pages/AddQuestion';
+import Audience from './pages/Audience';
+import ContentFocus from './pages/ContentFocus';
+import EditQuestion from './pages/EditQuestion';
+import EvaluationGoal from './pages/EvaluationGoal';
+import EventType from './pages/EventType';
+import ExportData from './pages/ExportData';
+import GenerateSurvey from './pages/GenerateSurvey';
+import GradeRange from './pages/GradeRange';
+import Home from './pages/Home';
+import ProfileSummary from './pages/ProfileSummary';
 import PublishShare from './pages/PublishShare';
+import RespondComplete from './pages/RespondComplete';
 import RespondIntro from './pages/RespondIntro';
 import RespondQuestion from './pages/RespondQuestion';
-import RespondComplete from './pages/RespondComplete';
-import SurveyManagement from './pages/SurveyManagement';
-import ResultsOverview from './pages/ResultsOverview';
 import ResultsByQuestion from './pages/ResultsByQuestion';
-import AIInsights from './pages/AIInsights';
-import ExportData from './pages/ExportData';
+import ResultsOverview from './pages/ResultsOverview';
+import SuccessDefinition from './pages/SuccessDefinition';
+import SurveyEditor from './pages/SurveyEditor';
+import SurveyManagement from './pages/SurveyManagement';
 import __Layout from './Layout.jsx';
 
 
 export const PAGES = {
-    "Home": Home,
+    "AIInsights": AIInsights,
     "ActivityDescription": ActivityDescription,
-    "Audience": Audience,
-    "GradeRange": GradeRange,
-    "EventType": EventType,
-    "ContentFocus": ContentFocus,
-    "EvaluationGoal": EvaluationGoal,
-    "SuccessDefinition": SuccessDefinition,
-    "ProfileSummary": ProfileSummary,
-    "GenerateSurvey": GenerateSurvey,
-    "SurveyEditor": SurveyEditor,
-    "EditQuestion": EditQuestion,
     "AddQuestion": AddQuestion,
+    "Audience": Audience,
+    "ContentFocus": ContentFocus,
+    "EditQuestion": EditQuestion,
+    "EvaluationGoal": EvaluationGoal,
+    "EventType": EventType,
+    "ExportData": ExportData,
+    "GenerateSurvey": GenerateSurvey,
+    "GradeRange": GradeRange,
+    "Home": Home,
+    "ProfileSummary": ProfileSummary,
     "PublishShare": PublishShare,
+    "RespondComplete": RespondComplete,
     "RespondIntro": RespondIntro,
     "RespondQuestion": RespondQuestion,
-    "RespondComplete": RespondComplete,
-    "SurveyManagement": SurveyManagement,
-    "ResultsOverview": ResultsOverview,
     "ResultsByQuestion": ResultsByQuestion,
-    "AIInsights": AIInsights,
-    "ExportData": ExportData,
+    "ResultsOverview": ResultsOverview,
+    "SuccessDefinition": SuccessDefinition,
+    "SurveyEditor": SurveyEditor,
+    "SurveyManagement": SurveyManagement,
 }
 
 export const pagesConfig = {

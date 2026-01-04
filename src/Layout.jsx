@@ -59,37 +59,17 @@ export default function Layout({ children, currentPageName }) {
           <div className="max-w-7xl mx-auto px-4 sm:px-6">
             <div className="flex items-center justify-between h-20">
               <div className="flex items-center gap-2 sm:gap-3">
-                <div className="relative w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center">
-                  <svg viewBox="0 0 100 100" className="w-full h-full">
-                    {/* Main circular spiral */}
-                    <path d="M 30 50 A 20 20 0 1 1 70 50" 
-                          fill="none" stroke="#E85A24" strokeWidth="14" strokeLinecap="round"/>
-                    <path d="M 70 50 L 80 50" 
-                          fill="none" stroke="#E85A24" strokeWidth="14" strokeLinecap="round"/>
-                    <path d="M 50 30 L 50 20" 
-                          fill="none" stroke="#E85A24" strokeWidth="14" strokeLinecap="round"/>
-                    {/* Inner circle */}
-                    <circle cx="50" cy="50" r="12" fill="#E85A24"/>
-                  </svg>
-                </div>
-                <div className="flex flex-col leading-none">
-                  <span className="font-black text-[#6B2D4A] text-xl sm:text-2xl tracking-tight">עתיד</span>
-                  <span className="text-[#E85A24] text-[10px] sm:text-xs font-bold tracking-wide">רשת חינוך</span>
-                </div>
+                <img 
+                  src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/695a5f05dbd82ab5fc602da8/ca3e3ae45_2024.png" 
+                  alt="עתיד רשת חינוך"
+                  className="h-12 sm:h-14 w-auto"
+                />
               </div>
               
               <nav className="hidden md:flex items-center gap-3">
                 <Link to={createPageUrl('Home')} className="px-5 py-2.5 rounded-full text-[#6B2D4A] hover:bg-gray-50 transition-all font-medium flex items-center gap-2">
                   <Home className="w-4 h-4" />
                   בית
-                </Link>
-                <Link to={createPageUrl('SurveyManagement')} className="px-5 py-2.5 rounded-full text-[#6B2D4A] hover:bg-gray-50 transition-all font-medium flex items-center gap-2">
-                  <FileText className="w-4 h-4" />
-                  הסקרים שלי
-                </Link>
-                <Link to={createPageUrl('ResultsOverview')} className="px-5 py-2.5 rounded-full text-[#6B2D4A] hover:bg-gray-50 transition-all font-medium flex items-center gap-2">
-                  <BarChart3 className="w-4 h-4" />
-                  תוצאות
                 </Link>
               </nav>
             </div>
@@ -103,18 +83,10 @@ export default function Layout({ children, currentPageName }) {
       
       {!isBuilderFlow && (
         <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 z-50 shadow-[0_-4px_12px_rgba(0,0,0,0.05)]">
-          <div className="flex items-center justify-around h-20 px-2">
+          <div className="flex items-center justify-center h-20 px-2">
             <Link to={createPageUrl('Home')} className="flex flex-col items-center justify-center gap-1.5 text-gray-400 hover:text-[#E85A24] transition-colors min-w-[72px]">
               <Home className="w-6 h-6" />
               <span className="text-xs font-medium">בית</span>
-            </Link>
-            <Link to={createPageUrl('SurveyManagement')} className="flex flex-col items-center justify-center gap-1.5 text-gray-400 hover:text-[#E85A24] transition-colors min-w-[72px]">
-              <FileText className="w-6 h-6" />
-              <span className="text-xs font-medium">סקרים</span>
-            </Link>
-            <Link to={createPageUrl('ResultsOverview')} className="flex flex-col items-center justify-center gap-1.5 text-gray-400 hover:text-[#E85A24] transition-colors min-w-[72px]">
-              <BarChart3 className="w-6 h-6" />
-              <span className="text-xs font-medium">תוצאות</span>
             </Link>
           </div>
         </nav>
