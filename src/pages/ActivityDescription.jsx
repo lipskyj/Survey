@@ -44,6 +44,9 @@ export default function ActivityDescription() {
     setIsLoading(true);
     try {
       let id = surveyId;
+      const params = new URLSearchParams(window.location.search);
+      const returnTo = params.get('returnTo');
+      
       if (!surveyId) {
         const newSurvey = await base44.entities.Survey.create({
           activity_description: description,
@@ -61,7 +64,12 @@ export default function ActivityDescription() {
           last_autosave: new Date().toISOString()
         });
       }
-      navigate(createPageUrl('Audience') + `?surveyId=${id}`);
+      
+      if (returnTo) {
+        navigate(createPageUrl(returnTo) + `?surveyId=${id}`);
+      } else {
+        navigate(createPageUrl('Audience') + `?surveyId=${id}`);
+      }
     } catch (error) {
       toast.error('שגיאה בשמירה');
     }

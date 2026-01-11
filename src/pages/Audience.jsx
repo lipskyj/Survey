@@ -41,7 +41,13 @@ export default function Audience() {
         current_step: 'A3',
         last_autosave: new Date().toISOString()
       });
-      navigate(createPageUrl('GradeRange') + `?surveyId=${surveyId}`);
+      const params = new URLSearchParams(window.location.search);
+      const returnTo = params.get('returnTo');
+      if (returnTo) {
+        navigate(createPageUrl(returnTo) + `?surveyId=${surveyId}`);
+      } else {
+        navigate(createPageUrl('GradeRange') + `?surveyId=${surveyId}`);
+      }
     } catch (error) {
       toast.error('שגיאה בשמירה');
     }
@@ -49,7 +55,13 @@ export default function Audience() {
   };
 
   const handleBack = () => {
-    navigate(createPageUrl('ActivityDescription') + `?surveyId=${surveyId}`);
+    const params = new URLSearchParams(window.location.search);
+    const returnTo = params.get('returnTo');
+    if (returnTo) {
+      navigate(createPageUrl(returnTo) + `?surveyId=${surveyId}`);
+    } else {
+      navigate(createPageUrl('ActivityDescription') + `?surveyId=${surveyId}`);
+    }
   };
 
   const handleSaveDraft = async () => {
