@@ -60,18 +60,13 @@ export default function ProfileSummary() {
   }, []);
 
   const getGradeLabel = () => {
-    if (!survey?.grade_range) return 'לא נבחר';
-    if (survey.grade_range.type === 'custom') {
-      return `כיתות ${survey.grade_range.from_grade}'-${survey.grade_range.to_grade}'`;
-    }
-    const presets = {
-      elementary_low: 'כיתות א׳-ב׳',
-      elementary_mid: 'כיתות ג׳-ד׳',
-      elementary_high: 'כיתות ה׳-ו׳',
+    if (!survey?.grade_range?.selected_grades?.length) return 'לא נבחר';
+    const gradeLabels = {
       middle: 'חטיבת ביניים',
-      high: 'תיכון'
+      high: 'תיכון',
+      college: 'מכללה'
     };
-    return presets[survey.grade_range.preset] || 'לא נבחר';
+    return survey.grade_range.selected_grades.map(g => gradeLabels[g] || g).join(', ');
   };
 
   const summaryItems = survey ? [
