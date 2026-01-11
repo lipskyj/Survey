@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { motion } from 'framer-motion';
 import { 
   Plus, FileText, MoreVertical, Copy, ExternalLink, 
-  BarChart3, XCircle, Loader2, Trash2 
+  BarChart3, XCircle, Loader2, Trash2, Share2 
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -167,7 +167,7 @@ export default function SurveyManagement() {
                             onClick={() => copyLink(survey)}
                             className="text-gray-500"
                           >
-                            <Copy className="w-4 h-4" />
+                            <Share2 className="w-4 h-4" />
                           </Button>
                           <Link to={createPageUrl('ResultsOverview') + `?surveyId=${survey.id}`}>
                             <Button

@@ -103,7 +103,9 @@ export default function ProfileSummary() {
     { 
       icon: Sparkles, 
       label: 'מטרת ההערכה', 
-      value: LABELS.evaluation_goal[survey.evaluation_goal] || 'לא נבחר',
+      value: Array.isArray(survey.evaluation_goal) 
+        ? survey.evaluation_goal.map(g => LABELS.evaluation_goal[g]).filter(Boolean).join(', ') || 'לא נבחר'
+        : LABELS.evaluation_goal[survey.evaluation_goal] || 'לא נבחר',
       step: 'EvaluationGoal'
     },
     { 
@@ -166,7 +168,7 @@ export default function ProfileSummary() {
                       </div>
                     </div>
                     <Link 
-                      to={createPageUrl(item.step) + `?surveyId=${surveyId}`}
+                      to={createPageUrl(item.step) + `?surveyId=${surveyId}&returnTo=ProfileSummary`}
                       className="text-[#E85A24] hover:bg-orange-50 p-2 rounded-lg transition-colors"
                     >
                       <Edit2 className="w-4 h-4" />
