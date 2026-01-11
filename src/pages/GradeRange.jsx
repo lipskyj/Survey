@@ -50,7 +50,7 @@ export default function GradeRange() {
         current_step: 'A4',
         last_autosave: new Date().toISOString()
       });
-      navigate(createPageUrl('EventType') + `?surveyId=${surveyId}`);
+      navigate(createPageUrl('SurveyType') + `?surveyId=${surveyId}`);
     } catch (error) {
       toast.error('שגיאה בשמירה');
     }
@@ -78,7 +78,7 @@ export default function GradeRange() {
   return (
     <StepWrapper
       currentStep={3}
-      totalSteps={7}
+      totalSteps={10}
       stepLabel="שכבות גיל"
       title="לאיזה שכבות גיל מיועדת הפעילות?"
       subtitle="ניתן לבחור יותר מאפשרות אחת"
