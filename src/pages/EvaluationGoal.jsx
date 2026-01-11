@@ -75,7 +75,13 @@ export default function EvaluationGoal() {
         current_step: 'A10',
         last_autosave: new Date().toISOString()
       });
-      navigate(createPageUrl('SuccessDefinition') + `?surveyId=${surveyId}`);
+      const params = new URLSearchParams(window.location.search);
+      const returnTo = params.get('returnTo');
+      if (returnTo) {
+        navigate(createPageUrl(returnTo) + `?surveyId=${surveyId}`);
+      } else {
+        navigate(createPageUrl('SuccessDefinition') + `?surveyId=${surveyId}`);
+      }
     } catch (error) {
       toast.error('שגיאה בשמירה');
     }
@@ -83,7 +89,13 @@ export default function EvaluationGoal() {
   };
 
   const handleBack = () => {
-    navigate(createPageUrl('MeasurementTargets') + `?surveyId=${surveyId}`);
+    const params = new URLSearchParams(window.location.search);
+    const returnTo = params.get('returnTo');
+    if (returnTo) {
+      navigate(createPageUrl(returnTo) + `?surveyId=${surveyId}`);
+    } else {
+      navigate(createPageUrl('MeasurementTargets') + `?surveyId=${surveyId}`);
+    }
   };
 
   const handleSaveDraft = async () => {

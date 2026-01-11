@@ -41,7 +41,13 @@ export default function EventType() {
         current_step: 'A8',
         last_autosave: new Date().toISOString()
       });
-      navigate(createPageUrl('ContentFocus') + `?surveyId=${surveyId}`);
+      const params = new URLSearchParams(window.location.search);
+      const returnTo = params.get('returnTo');
+      if (returnTo) {
+        navigate(createPageUrl(returnTo) + `?surveyId=${surveyId}`);
+      } else {
+        navigate(createPageUrl('ContentFocus') + `?surveyId=${surveyId}`);
+      }
     } catch (error) {
       toast.error('שגיאה בשמירה');
     }
@@ -49,7 +55,13 @@ export default function EventType() {
   };
 
   const handleBack = () => {
-    navigate(createPageUrl('BackgroundQuestions') + `?surveyId=${surveyId}`);
+    const params = new URLSearchParams(window.location.search);
+    const returnTo = params.get('returnTo');
+    if (returnTo) {
+      navigate(createPageUrl(returnTo) + `?surveyId=${surveyId}`);
+    } else {
+      navigate(createPageUrl('BackgroundQuestions') + `?surveyId=${surveyId}`);
+    }
   };
 
   const handleSaveDraft = async () => {

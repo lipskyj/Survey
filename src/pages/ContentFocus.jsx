@@ -80,7 +80,13 @@ export default function ContentFocus() {
         current_step: 'A9',
         last_autosave: new Date().toISOString()
       });
-      navigate(createPageUrl('MeasurementTargets') + `?surveyId=${surveyId}`);
+      const params = new URLSearchParams(window.location.search);
+      const returnTo = params.get('returnTo');
+      if (returnTo) {
+        navigate(createPageUrl(returnTo) + `?surveyId=${surveyId}`);
+      } else {
+        navigate(createPageUrl('MeasurementTargets') + `?surveyId=${surveyId}`);
+      }
     } catch (error) {
       toast.error('שגיאה בשמירה');
     }
@@ -88,7 +94,13 @@ export default function ContentFocus() {
   };
 
   const handleBack = () => {
-    navigate(createPageUrl('EventType') + `?surveyId=${surveyId}`);
+    const params = new URLSearchParams(window.location.search);
+    const returnTo = params.get('returnTo');
+    if (returnTo) {
+      navigate(createPageUrl(returnTo) + `?surveyId=${surveyId}`);
+    } else {
+      navigate(createPageUrl('EventType') + `?surveyId=${surveyId}`);
+    }
   };
 
   const handleSaveDraft = async () => {

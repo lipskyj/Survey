@@ -109,7 +109,13 @@ export default function SuccessDefinition() {
   };
 
   const handleBack = () => {
-    navigate(createPageUrl('EvaluationGoal') + `?surveyId=${surveyId}`);
+    const params = new URLSearchParams(window.location.search);
+    const returnTo = params.get('returnTo');
+    if (returnTo) {
+      navigate(createPageUrl(returnTo) + `?surveyId=${surveyId}`);
+    } else {
+      navigate(createPageUrl('EvaluationGoal') + `?surveyId=${surveyId}`);
+    }
   };
 
   const handleSaveDraft = async () => {
