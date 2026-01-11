@@ -82,14 +82,17 @@ export default function BackgroundQuestions() {
       case 'teachers':
         return [
           { key: 'include_subject', label: 'שאלת מקצוע', description: 'מה המקצוע שהמורה מלמד/ת' },
+          { key: 'include_gender', label: 'שאלת מגדר', description: 'מגדר המורה' },
         ];
       case 'parents':
         return [
           { key: 'include_class', label: 'שאלת כיתה', description: 'באיזו כיתה הילד/ה' },
+          { key: 'include_gender', label: 'שאלת מגדר', description: 'מגדר ההורה' },
         ];
       case 'management':
         return [
           { key: 'include_role', label: 'שאלת תפקיד', description: 'מה התפקיד בהנהלה' },
+          { key: 'include_gender', label: 'שאלת מגדר', description: 'מגדר' },
         ];
       default:
         return [];
