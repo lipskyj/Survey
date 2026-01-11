@@ -14,7 +14,6 @@ export default function SuccessDefinition() {
   const navigate = useNavigate();
   const [selectedIdeas, setSelectedIdeas] = useState([]);
   const [customText, setCustomText] = useState('');
-  const [showCustom, setShowCustom] = useState(false);
   const [surveyId, setSurveyId] = useState(null);
   const [survey, setSurvey] = useState(null);
   const [suggestedIdeas, setSuggestedIdeas] = useState([]);
@@ -31,12 +30,8 @@ export default function SuccessDefinition() {
         if (surveys.length > 0) {
           setSurvey(surveys[0]);
           if (surveys[0].success_definition) {
-            if (surveys[0].success_definition.type === 'custom') {
-              setCustomText(surveys[0].success_definition.custom_text || '');
-              setShowCustom(true);
-            } else {
-              setSelectedIdeas(surveys[0].success_definition.selected_ideas || []);
-            }
+            setCustomText(surveys[0].success_definition.custom_text || '');
+            setSelectedIdeas(surveys[0].success_definition.selected_ideas || []);
           }
           generateSuggestions(surveys[0]);
         }
@@ -95,9 +90,11 @@ export default function SuccessDefinition() {
   const handleNext = async () => {
     setIsLoading(true);
     try {
-      const successDef = showCustom 
-        ? { type: 'custom', custom_text: customText }
-        : { type: 'suggested', selected_ideas: selectedIdeas };
+      const successDef = {
+        type: (selectedIdeas.length > 0 && customText.trim()) ? 'combined' : (customText.trim() ? 'custom' : 'suggested'),
+        selected_ideas: selectedIdeas,
+        custom_text: customText.trim()
+      };
       
       await base44.entities.Survey.update(surveyId, {
         success_definition: successDef,
@@ -117,9 +114,11 @@ export default function SuccessDefinition() {
 
   const handleSaveDraft = async () => {
     try {
-      const successDef = showCustom 
-        ? { type: 'custom', custom_text: customText }
-        : { type: 'suggested', selected_ideas: selectedIdeas };
+      const successDef = {
+        type: (selectedIdeas.length > 0 && customText.trim()) ? 'combined' : (customText.trim() ? 'custom' : 'suggested'),
+        selected_ideas: selectedIdeas,
+        custom_text: customText.trim()
+      };
       
       await base44.entities.Survey.update(surveyId, {
         success_definition: successDef,
@@ -131,7 +130,7 @@ export default function SuccessDefinition() {
     }
   };
 
-  const isValid = showCustom ? customText.trim().length > 0 : selectedIdeas.length > 0;
+  const isValid = selectedIdeas.length > 0 || customText.trim().length > 0;
 
   return (
     <StepWrapper
@@ -139,7 +138,7 @@ export default function SuccessDefinition() {
       totalSteps={10}
       stepLabel="הגדרת הצלחה"
       title="מתי תדע שהפעילות הצליחה?"
-      subtitle="בחר מהרעיונות או כתוב הגדרה משלך"
+      subtitle="בחר מהרעיונות והוסף הגדרה משלך"
       onNext={handleNext}
       onBack={handleBack}
       onSaveDraft={handleSaveDraft}
@@ -148,80 +147,63 @@ export default function SuccessDefinition() {
       nextLabel="לסיכום"
     >
       <div className="space-y-6">
-        {/* Toggle between modes */}
-        <div className="flex gap-2 mb-6">
-          <Button
-            variant={!showCustom ? "default" : "outline"}
-            onClick={() => setShowCustom(false)}
-            className={!showCustom ? "bg-[#E85A24] hover:bg-[#D14A1A]" : ""}
-          >
-            <Sparkles className="w-4 h-4 ml-2" />
-            בחירה מרעיונות
-          </Button>
-          <Button
-            variant={showCustom ? "default" : "outline"}
-            onClick={() => setShowCustom(true)}
-            className={showCustom ? "bg-[#E85A24] hover:bg-[#D14A1A]" : ""}
-          >
-            <PenLine className="w-4 h-4 ml-2" />
-            כתיבה חופשית
-          </Button>
+        {/* Suggested Ideas */}
+        <div>
+          <div className="flex items-center gap-2 mb-3">
+            <Sparkles className="w-5 h-5 text-[#E85A24]" />
+            <h4 className="font-semibold text-gray-800">בחר מהרעיונות</h4>
+          </div>
+          
+          {isGenerating ? (
+            <div className="flex items-center justify-center py-8">
+              <Loader2 className="w-8 h-8 text-[#E85A24] animate-spin" />
+              <span className="mr-3 text-gray-500">מייצר רעיונות...</span>
+            </div>
+          ) : (
+            <div className="flex flex-wrap gap-2">
+              {suggestedIdeas.map((idea, index) => (
+                <DraggableChip
+                  key={index}
+                  label={idea}
+                  isSelected={selectedIdeas.includes(idea)}
+                  onToggle={() => toggleIdea(idea)}
+                />
+              ))}
+            </div>
+          )}
         </div>
 
-        <AnimatePresence mode="wait">
-          {!showCustom ? (
-            <motion.div
-              key="suggestions"
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-            >
-              {isGenerating ? (
-                <div className="flex items-center justify-center py-12">
-                  <Loader2 className="w-8 h-8 text-[#E85A24] animate-spin" />
-                  <span className="mr-3 text-gray-500">מייצר רעיונות...</span>
-                </div>
-              ) : (
-                <div className="flex flex-wrap gap-2">
-                  {suggestedIdeas.map((idea, index) => (
-                    <DraggableChip
-                      key={index}
-                      label={idea}
-                      isSelected={selectedIdeas.includes(idea)}
-                      onToggle={() => toggleIdea(idea)}
-                    />
-                  ))}
-                </div>
-              )}
-              
-              {selectedIdeas.length > 0 && (
-                <div className="mt-6 p-4 bg-orange-50 rounded-xl">
-                  <p className="text-sm text-gray-600 mb-2">הגדרות הצלחה שנבחרו:</p>
-                  <ul className="list-disc list-inside text-[#6B2D4A]">
-                    {selectedIdeas.map((idea, idx) => (
-                      <li key={idx}>{idea}</li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-            </motion.div>
-          ) : (
-            <motion.div
-              key="custom"
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-            >
-              <Textarea
-                value={customText}
-                onChange={(e) => setCustomText(e.target.value)}
-                placeholder="תאר במילים שלך מתי תדע שהפעילות הצליחה..."
-                className="min-h-[150px] text-lg p-4 border-2 border-gray-200 rounded-xl focus:border-[#E85A24] resize-none"
-                dir="rtl"
-              />
-            </motion.div>
-          )}
-        </AnimatePresence>
+        {/* Custom Input */}
+        <div>
+          <div className="flex items-center gap-2 mb-3">
+            <PenLine className="w-5 h-5 text-[#E85A24]" />
+            <h4 className="font-semibold text-gray-800">הוסף הגדרה משלך</h4>
+          </div>
+          <Textarea
+            value={customText}
+            onChange={(e) => setCustomText(e.target.value)}
+            placeholder="תאר במילים שלך מתי תדע שהפעילות הצליחה..."
+            className="min-h-[100px] text-lg p-4 border-2 border-gray-200 rounded-xl focus:border-[#E85A24] resize-none"
+            dir="rtl"
+          />
+        </div>
+        
+        {/* Summary */}
+        {(selectedIdeas.length > 0 || customText.trim()) && (
+          <motion.div 
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="p-4 bg-orange-50 rounded-xl"
+          >
+            <p className="text-sm text-gray-600 mb-2">מדדי הצלחה שנבחרו:</p>
+            <ul className="list-disc list-inside text-[#6B2D4A] space-y-1">
+              {selectedIdeas.map((idea, idx) => (
+                <li key={idx}>{idea}</li>
+              ))}
+              {customText.trim() && <li>{customText}</li>}
+            </ul>
+          </motion.div>
+        )}
       </div>
     </StepWrapper>
   );
