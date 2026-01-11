@@ -38,7 +38,7 @@ export default function EventType() {
     try {
       await base44.entities.Survey.update(surveyId, {
         event_type: selected,
-        current_step: 'A5',
+        current_step: 'A8',
         last_autosave: new Date().toISOString()
       });
       navigate(createPageUrl('ContentFocus') + `?surveyId=${surveyId}`);
@@ -49,7 +49,7 @@ export default function EventType() {
   };
 
   const handleBack = () => {
-    navigate(createPageUrl('GradeRange') + `?surveyId=${surveyId}`);
+    navigate(createPageUrl('MeasurementTargets') + `?surveyId=${surveyId}`);
   };
 
   const handleSaveDraft = async () => {
@@ -66,8 +66,8 @@ export default function EventType() {
 
   return (
     <StepWrapper
-      currentStep={4}
-      totalSteps={7}
+      currentStep={7}
+      totalSteps={10}
       stepLabel="סוג הפעילות"
       title="מהו אופי הפעילות?"
       subtitle="בחר את סוג האירוע או התוכנית"

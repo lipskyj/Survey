@@ -58,7 +58,7 @@ export default function EvaluationGoal() {
     try {
       await base44.entities.Survey.update(surveyId, {
         evaluation_goal: selected,
-        current_step: 'A7',
+        current_step: 'A10',
         last_autosave: new Date().toISOString()
       });
       navigate(createPageUrl('SuccessDefinition') + `?surveyId=${surveyId}`);
@@ -86,8 +86,8 @@ export default function EvaluationGoal() {
 
   return (
     <StepWrapper
-      currentStep={6}
-      totalSteps={7}
+      currentStep={9}
+      totalSteps={10}
       stepLabel="מטרת ההערכה"
       title="מה המטרה המרכזית של הסקר?"
       subtitle="בחר את המטרה העיקרית"

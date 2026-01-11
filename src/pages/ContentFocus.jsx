@@ -77,7 +77,7 @@ export default function ContentFocus() {
     try {
       await base44.entities.Survey.update(surveyId, {
         content_focus: selected,
-        current_step: 'A6',
+        current_step: 'A9',
         last_autosave: new Date().toISOString()
       });
       navigate(createPageUrl('EvaluationGoal') + `?surveyId=${surveyId}`);
@@ -107,8 +107,8 @@ export default function ContentFocus() {
 
   return (
     <StepWrapper
-      currentStep={5}
-      totalSteps={7}
+      currentStep={8}
+      totalSteps={10}
       stepLabel="תחומי מיקוד"
       title="מה עיקר המיקוד של הפעילות?"
       subtitle="בחר 1-3 תחומים מרכזיים"
