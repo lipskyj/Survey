@@ -67,17 +67,37 @@ export default function GenerateSurvey() {
       // Step 3: Generate scale questions
       setGenerationStep(3);
       
+      const audienceGuidelines = survey.audience === 'students' 
+        ? `חשוב מאוד - הנחיות שפה לתלמידים:
+- השתמש בגוף שני (את/ה) ולא בגוף ראשון (אני)
+- אל תשתמש בשפה מקצועית כמו "פדגוגי", "הקנייה", "טיפוח ערכים"
+- במקום "עד כמה התרשמתי מהתוכן הפדגוגי" שאל "עד כמה התכנים היו מעניינים עבורך"
+- במקום "עד כמה תרמתי לטיפוח ערכים" שאל "עד כמה נתרמת מהפעילות"
+- במקום "עד כמה רכשתי מיומנויות" שאל "עד כמה למדת דברים חדשים"
+- השתמש בשפה פשוטה וידידותית`
+        : '';
+
+      const measurementTargets = survey.measurement_targets || {};
+      const valuesToMeasure = measurementTargets.selected_values?.join(', ') || '';
+      const knowledgeToMeasure = measurementTargets.selected_knowledge?.join(', ') || '';
+      const skillsToMeasure = measurementTargets.selected_skills?.join(', ') || '';
+
       const scaleQuestionsPrompt = `צור 5-7 שאלות סקר בסולם 1-5 עבור פעילות חינוכית.
 פרטי הפעילות:
 - תיאור: ${survey.activity_description}
 - קהל יעד: ${survey.audience}
 - תחומי מיקוד: ${contentFocuses.join(', ')}
 - תחומי KIT למדידה: ${kitDomains.join(', ')}
+${valuesToMeasure ? `- ערכים למדידה: ${valuesToMeasure}` : ''}
+${knowledgeToMeasure ? `- ידע למדידה: ${knowledgeToMeasure}` : ''}
+${skillsToMeasure ? `- מיומנויות למדידה: ${skillsToMeasure}` : ''}
+
+${audienceGuidelines}
 
 כל שאלה צריכה:
 1. להיות קצרה וברורה
-2. מתאימה לקהל היעד
-3. להתייחס לאחד מתחומי ה-KIT
+2. מתאימה לקהל היעד - בשפה פשוטה ובגוף שני
+3. להתייחס לאחד מתחומי ה-KIT או לערכים/ידע/מיומנויות שנבחרו
 
 החזר JSON עם מערך שאלות.`;
 
@@ -103,6 +123,10 @@ export default function GenerateSurvey() {
       // Step 4: Generate open questions
       setGenerationStep(4);
 
+      const openAudienceGuidelines = survey.audience === 'students'
+        ? 'השתמש בגוף שני (את/ה) ושפה פשוטה וידידותית. לדוגמה: "מה הכי אהבת בפעילות?" במקום "מה היה המרכיב המוצלח ביותר?"'
+        : '';
+
       const openQuestionsPrompt = `צור 2 שאלות פתוחות עבור סקר משוב על פעילות חינוכית.
 פרטי הפעילות:
 - תיאור: ${survey.activity_description}
@@ -111,7 +135,8 @@ export default function GenerateSurvey() {
 
 שאלה אחת צריכה להיות על מה היה טוב/מוצלח.
 שאלה שנייה על מה ניתן לשפר.
-${survey.event_type === 'ongoing_program' ? 'התייחס לתהליך המתמשך ולא רק לאירוע בודד.' : ''}`;
+${survey.event_type === 'ongoing_program' ? 'התייחס לתהליך המתמשך ולא רק לאירוע בודד.' : ''}
+${openAudienceGuidelines}`;
 
       const openResponse = await base44.integrations.Core.InvokeLLM({
         prompt: openQuestionsPrompt,
