@@ -5,9 +5,7 @@ import { base44 } from '@/api/base44Client';
 import StepWrapper from '@/components/builder/StepWrapper';
 import ChoiceCard from '@/components/builder/ChoiceCard';
 import { toast } from 'sonner';
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 
 import { Checkbox } from "@/components/ui/checkbox";
 
