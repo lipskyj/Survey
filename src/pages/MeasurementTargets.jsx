@@ -113,10 +113,10 @@ ${surveyData.activity_file_url ? 'יש קובץ מצורף עם מידע נוס�
           selected_knowledge: selectedKnowledge,
           selected_skills: selectedSkills
         },
-        current_step: 'A6',
+        current_step: 'A9',
         last_autosave: new Date().toISOString()
       });
-      navigate(createPageUrl('EventType') + `?surveyId=${surveyId}`);
+      navigate(createPageUrl('EvaluationGoal') + `?surveyId=${surveyId}`);
     } catch (error) {
       toast.error('שגיאה בשמירה');
     }
@@ -124,7 +124,7 @@ ${surveyData.activity_file_url ? 'יש קובץ מצורף עם מידע נוס�
   };
 
   const handleBack = () => {
-    navigate(createPageUrl('BackgroundQuestions') + `?surveyId=${surveyId}`);
+    navigate(createPageUrl('ContentFocus') + `?surveyId=${surveyId}`);
   };
 
   const handleSaveDraft = async () => {
@@ -225,7 +225,7 @@ ${surveyData.activity_file_url ? 'יש קובץ מצורף עם מידע נוס�
 
   return (
     <StepWrapper
-      currentStep={6}
+      currentStep={9}
       totalSteps={10}
       stepLabel="מה נמדוד"
       title="ערכים, ידע ומיומנויות למדידה"

@@ -49,7 +49,7 @@ export default function EventType() {
   };
 
   const handleBack = () => {
-    navigate(createPageUrl('MeasurementTargets') + `?surveyId=${surveyId}`);
+    navigate(createPageUrl('BackgroundQuestions') + `?surveyId=${surveyId}`);
   };
 
   const handleSaveDraft = async () => {

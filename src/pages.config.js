@@ -2,6 +2,7 @@ import AIInsights from './pages/AIInsights';
 import ActivityDescription from './pages/ActivityDescription';
 import AddQuestion from './pages/AddQuestion';
 import Audience from './pages/Audience';
+import BackgroundQuestions from './pages/BackgroundQuestions';
 import ContentFocus from './pages/ContentFocus';
 import EditQuestion from './pages/EditQuestion';
 import EvaluationGoal from './pages/EvaluationGoal';
@@ -10,6 +11,7 @@ import ExportData from './pages/ExportData';
 import GenerateSurvey from './pages/GenerateSurvey';
 import GradeRange from './pages/GradeRange';
 import Home from './pages/Home';
+import MeasurementTargets from './pages/MeasurementTargets';
 import ProfileSummary from './pages/ProfileSummary';
 import PublishShare from './pages/PublishShare';
 import RespondComplete from './pages/RespondComplete';
@@ -21,8 +23,6 @@ import SuccessDefinition from './pages/SuccessDefinition';
 import SurveyEditor from './pages/SurveyEditor';
 import SurveyManagement from './pages/SurveyManagement';
 import SurveyType from './pages/SurveyType';
-import BackgroundQuestions from './pages/BackgroundQuestions';
-import MeasurementTargets from './pages/MeasurementTargets';
 import __Layout from './Layout.jsx';
 
 
@@ -31,6 +31,7 @@ export const PAGES = {
     "ActivityDescription": ActivityDescription,
     "AddQuestion": AddQuestion,
     "Audience": Audience,
+    "BackgroundQuestions": BackgroundQuestions,
     "ContentFocus": ContentFocus,
     "EditQuestion": EditQuestion,
     "EvaluationGoal": EvaluationGoal,
@@ -39,6 +40,7 @@ export const PAGES = {
     "GenerateSurvey": GenerateSurvey,
     "GradeRange": GradeRange,
     "Home": Home,
+    "MeasurementTargets": MeasurementTargets,
     "ProfileSummary": ProfileSummary,
     "PublishShare": PublishShare,
     "RespondComplete": RespondComplete,
@@ -50,8 +52,6 @@ export const PAGES = {
     "SurveyEditor": SurveyEditor,
     "SurveyManagement": SurveyManagement,
     "SurveyType": SurveyType,
-    "BackgroundQuestions": BackgroundQuestions,
-    "MeasurementTargets": MeasurementTargets,
 }
 
 export const pagesConfig = {

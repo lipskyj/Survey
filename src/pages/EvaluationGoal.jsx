@@ -69,7 +69,7 @@ export default function EvaluationGoal() {
   };
 
   const handleBack = () => {
-    navigate(createPageUrl('ContentFocus') + `?surveyId=${surveyId}`);
+    navigate(createPageUrl('MeasurementTargets') + `?surveyId=${surveyId}`);
   };
 
   const handleSaveDraft = async () => {

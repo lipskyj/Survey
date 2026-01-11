@@ -42,7 +42,7 @@ export default function BackgroundQuestions() {
         current_step: 'A5',
         last_autosave: new Date().toISOString()
       });
-      navigate(createPageUrl('MeasurementTargets') + `?surveyId=${surveyId}`);
+      navigate(createPageUrl('EventType') + `?surveyId=${surveyId}`);
     } catch (error) {
       toast.error('שגיאה בשמירה');
     }

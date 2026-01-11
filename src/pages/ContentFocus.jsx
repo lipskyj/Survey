@@ -80,7 +80,7 @@ export default function ContentFocus() {
         current_step: 'A9',
         last_autosave: new Date().toISOString()
       });
-      navigate(createPageUrl('EvaluationGoal') + `?surveyId=${surveyId}`);
+      navigate(createPageUrl('MeasurementTargets') + `?surveyId=${surveyId}`);
     } catch (error) {
       toast.error('שגיאה בשמירה');
     }
