@@ -226,7 +226,7 @@ ${surveyData.activity_file_url ? 'יש קובץ מצורף עם מידע נוס�
   return (
     <StepWrapper
       currentStep={9}
-      totalSteps={10}
+      totalSteps={11}
       stepLabel="מה נמדוד"
       title="ערכים, ידע ומיומנויות למדידה"
       subtitle="בחר מהרשימה או הוסף פריטים משלך"

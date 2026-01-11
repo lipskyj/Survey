@@ -67,7 +67,7 @@ export default function Audience() {
   return (
     <StepWrapper
       currentStep={2}
-      totalSteps={10}
+      totalSteps={11}
       stepLabel="קהל היעד"
       title="ממי נאסוף את המשוב?"
       subtitle="בחר את קהל היעד המרכזי לסקר"

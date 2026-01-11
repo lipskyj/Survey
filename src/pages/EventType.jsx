@@ -67,7 +67,7 @@ export default function EventType() {
   return (
     <StepWrapper
       currentStep={7}
-      totalSteps={10}
+      totalSteps={11}
       stepLabel="סוג הפעילות"
       title="מהו אופי הפעילות?"
       subtitle="בחר את סוג האירוע או התוכנית"

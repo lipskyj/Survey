@@ -134,8 +134,8 @@ export default function SuccessDefinition() {
 
   return (
     <StepWrapper
-      currentStep={10}
-      totalSteps={10}
+      currentStep={11}
+      totalSteps={11}
       stepLabel="הגדרת הצלחה"
       title="מתי תדע שהפעילות הצליחה?"
       subtitle="בחר מהרעיונות והוסף הגדרה משלך"

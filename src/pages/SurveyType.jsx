@@ -59,7 +59,7 @@ export default function SurveyType() {
   return (
     <StepWrapper
       currentStep={4}
-      totalSteps={10}
+      totalSteps={11}
       stepLabel="סוג השאלון"
       title="האם השאלון יהיה אנונימי או שמי?"
       subtitle="בחר את סוג השאלון המתאים לך"

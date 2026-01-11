@@ -101,7 +101,7 @@ export default function BackgroundQuestions() {
   return (
     <StepWrapper
       currentStep={5}
-      totalSteps={10}
+      totalSteps={11}
       stepLabel="שאלות רקע"
       title="שאלות רקע אופציונליות"
       subtitle="בחר אילו שאלות רקע להוסיף לשאלון"

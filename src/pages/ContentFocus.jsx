@@ -108,7 +108,7 @@ export default function ContentFocus() {
   return (
     <StepWrapper
       currentStep={8}
-      totalSteps={10}
+      totalSteps={11}
       stepLabel="תחומי מיקוד"
       title="מה עיקר המיקוד של הפעילות?"
       subtitle="בחר 1-3 תחומים מרכזיים"

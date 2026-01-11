@@ -78,7 +78,7 @@ export default function GradeRange() {
   return (
     <StepWrapper
       currentStep={3}
-      totalSteps={10}
+      totalSteps={11}
       stepLabel="שכבות גיל"
       title="לאיזה שכבות גיל מיועדת הפעילות?"
       subtitle="ניתן לבחור יותר מאפשרות אחת"

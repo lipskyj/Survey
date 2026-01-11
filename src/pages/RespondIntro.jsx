@@ -36,8 +36,8 @@ export default function RespondIntro() {
           setSurvey(surveys[0]);
         } else {
           setSurvey(surveys[0]);
-          // Generate session ID for anonymous tracking
-          const newSessionId = `sess_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+          // Generate unique session ID for each response (allows multiple responses from same device)
+          const newSessionId = `resp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}_${Math.random().toString(36).substr(2, 4)}`;
           setSessionId(newSessionId);
         }
       } catch (err) {
