@@ -3,9 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
 import StepWrapper from '@/components/builder/StepWrapper';
-import ChoiceCard from '@/components/builder/ChoiceCard';
 import { toast } from 'sonner';
-import { TrendingUp, Target, MessageSquare, ClipboardCheck } from 'lucide-react';
+import { TrendingUp, Target, MessageSquare, ClipboardCheck, Check } from 'lucide-react';
+import { Checkbox } from "@/components/ui/checkbox";
 
 const EVALUATION_GOALS = [
   { 
@@ -36,7 +36,7 @@ const EVALUATION_GOALS = [
 
 export default function EvaluationGoal() {
   const navigate = useNavigate();
-  const [selected, setSelected] = useState('');
+  const [selected, setSelected] = useState([]);
   const [surveyId, setSurveyId] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -47,11 +47,25 @@ export default function EvaluationGoal() {
       setSurveyId(id);
       base44.entities.Survey.filter({ id }).then(surveys => {
         if (surveys.length > 0 && surveys[0].evaluation_goal) {
-          setSelected(surveys[0].evaluation_goal);
+          // Handle both old string format and new array format
+          const goals = surveys[0].evaluation_goal;
+          if (Array.isArray(goals)) {
+            setSelected(goals);
+          } else if (typeof goals === 'string') {
+            setSelected([goals]);
+          }
         }
       });
     }
   }, []);
+
+  const toggleGoal = (value) => {
+    setSelected(prev => 
+      prev.includes(value) 
+        ? prev.filter(v => v !== value)
+        : [...prev, value]
+    );
+  };
 
   const handleNext = async () => {
     setIsLoading(true);
@@ -86,29 +100,47 @@ export default function EvaluationGoal() {
 
   return (
     <StepWrapper
-      currentStep={9}
-      totalSteps={10}
-      stepLabel="מטרת ההערכה"
-      title="מה המטרה המרכזית של הסקר?"
-      subtitle="בחר את המטרה העיקרית"
+      currentStep={10}
+      totalSteps={11}
+      stepLabel="מטרות הסקר"
+      title="מה המטרות של הסקר?"
+      subtitle="ניתן לבחור יותר ממטרה אחת"
       onNext={handleNext}
       onBack={handleBack}
       onSaveDraft={handleSaveDraft}
-      isNextDisabled={!selected}
+      isNextDisabled={selected.length === 0}
       isLoading={isLoading}
     >
       <div className="space-y-3">
-        {EVALUATION_GOALS.map((goal) => (
-          <ChoiceCard
-            key={goal.value}
-            value={goal.value}
-            label={goal.label}
-            description={goal.description}
-            icon={goal.icon}
-            isSelected={selected === goal.value}
-            onClick={setSelected}
-          />
-        ))}
+        {EVALUATION_GOALS.map((goal) => {
+          const Icon = goal.icon;
+          const isSelected = selected.includes(goal.value);
+          return (
+            <label 
+              key={goal.value}
+              className={`flex items-center gap-4 p-4 rounded-xl cursor-pointer transition-all ${
+                isSelected 
+                  ? 'bg-[#E85A24]/10 border-2 border-[#E85A24]' 
+                  : 'bg-white border-2 border-gray-200 hover:border-gray-300'
+              }`}
+            >
+              <Checkbox
+                checked={isSelected}
+                onCheckedChange={() => toggleGoal(goal.value)}
+                className="w-5 h-5"
+              />
+              <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
+                isSelected ? 'bg-[#E85A24]/10 text-[#E85A24]' : 'bg-gray-100 text-gray-500'
+              }`}>
+                <Icon className="w-5 h-5" />
+              </div>
+              <div className="flex-1">
+                <span className="font-medium text-gray-800">{goal.label}</span>
+                <p className="text-sm text-gray-500">{goal.description}</p>
+              </div>
+            </label>
+          );
+        })}
       </div>
     </StepWrapper>
   );
