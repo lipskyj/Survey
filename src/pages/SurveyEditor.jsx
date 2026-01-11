@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
+import { Switch } from "@/components/ui/switch";
 
 const QUESTION_TYPE_LABELS = {
   scale_5: 'סולם 1-5',
@@ -86,6 +87,14 @@ export default function SurveyEditor() {
         await base44.entities.SurveyQuestion.update(newOrder[i].id, { order_index: i });
       }
     },
+    onSuccess: () => {
+      queryClient.invalidateQueries(['survey-questions', surveyId]);
+    }
+  });
+
+  const toggleRequiredMutation = useMutation({
+    mutationFn: ({ questionId, isRequired }) => 
+      base44.entities.SurveyQuestion.update(questionId, { is_required: isRequired }),
     onSuccess: () => {
       queryClient.invalidateQueries(['survey-questions', surveyId]);
     }
@@ -226,15 +235,22 @@ export default function SurveyEditor() {
                                   <span className="text-xs text-gray-500">
                                     {QUESTION_TYPE_LABELS[question.question_type]}
                                   </span>
-                                  {question.kit_domain && question.kit_domain !== 'none' && (
-                                    <span className="text-xs text-gray-400">
-                                      • {KIT_DOMAIN_LABELS[question.kit_domain]}
-                                    </span>
-                                  )}
                                 </div>
                                 <p className="text-gray-800 font-medium">
                                   {question.prompt_hebrew}
                                 </p>
+                                <div className="flex items-center gap-2 mt-2">
+                                  <Switch
+                                    checked={question.is_required !== false}
+                                    onCheckedChange={(checked) => 
+                                      toggleRequiredMutation.mutate({ questionId: question.id, isRequired: checked })
+                                    }
+                                    className="scale-75"
+                                  />
+                                  <span className="text-xs text-gray-500">
+                                    {question.is_required !== false ? 'חובה' : 'אופציונלי'}
+                                  </span>
+                                </div>
                               </div>
 
                               <div className="flex gap-1">

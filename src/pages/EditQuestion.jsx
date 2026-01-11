@@ -150,25 +150,6 @@ export default function EditQuestion() {
               </Select>
             </div>
 
-            <div>
-              <Label className="text-gray-700">תחום KIT</Label>
-              <Select
-                value={formData.kit_domain}
-                onValueChange={(value) => setFormData({ ...formData, kit_domain: value })}
-              >
-                <SelectTrigger className="mt-2">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {KIT_DOMAINS.map((domain) => (
-                    <SelectItem key={domain.value} value={domain.value}>
-                      {domain.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
             {(formData.question_type === 'scale_5' || formData.question_type === 'scale_7') && (
               <div className="space-y-3">
                 <Label className="text-gray-700">תוויות הסולם</Label>
@@ -199,13 +180,7 @@ export default function EditQuestion() {
               </div>
             )}
 
-            <div className="flex items-center justify-between">
-              <Label className="text-gray-700">שאלת חובה</Label>
-              <Switch
-                checked={formData.is_required}
-                onCheckedChange={(checked) => setFormData({ ...formData, is_required: checked })}
-              />
-            </div>
+
           </CardContent>
         </Card>
 
