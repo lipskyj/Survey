@@ -27,9 +27,11 @@ export default function GenerateSurvey() {
   const [isComplete, setIsComplete] = useState(false);
   const [scalePrompt, setScalePrompt] = useState('');
   const [openPrompt, setOpenPrompt] = useState('');
-  const [isEditingPrompt, setIsEditingPrompt] = useState(false);
+  const [isEditingScalePrompt, setIsEditingScalePrompt] = useState(false);
+  const [isEditingOpenPrompt, setIsEditingOpenPrompt] = useState(false);
   const [promptReady, setPromptReady] = useState(false);
   const [defaultScalePrompt, setDefaultScalePrompt] = useState('');
+  const [defaultOpenPrompt, setDefaultOpenPrompt] = useState('');
 
   const generationSteps = [
     'מנתח את הפעילות...',
@@ -263,6 +265,7 @@ ${survey.event_type === 'ongoing_program' ? '• התייחס לתהליך המ�
     setScalePrompt(newScalePrompt);
     setOpenPrompt(newOpenPrompt);
     setDefaultScalePrompt(newScalePrompt);
+    setDefaultOpenPrompt(newOpenPrompt);
     setPromptReady(true);
   };
 
@@ -510,16 +513,16 @@ ${survey.activity_description}
                 בדוק ועדכן את הפרומפט לפי הצורך לפני יצירת השאלון
               </p>
 
-              {/* Prompt Display Card */}
-              <Card className="text-right mb-6 border-2 border-gray-200">
+              {/* Scale Questions Prompt Card */}
+              <Card className="text-right mb-4 border-2 border-gray-200">
                 <CardHeader className="pb-2">
                   <div className="flex items-center justify-between">
                     <CardTitle className="text-base text-[#6B2D4A] flex items-center gap-2">
                       <Sparkles className="w-5 h-5 text-[#E85A24]" />
-                      הפרומפט שיישלח ל-AI (שאלות דירוג)
+                      פרומפט לשאלות דירוג (10 היגדים)
                     </CardTitle>
                     <div className="flex gap-2">
-                      {isEditingPrompt && (
+                      {isEditingScalePrompt && (
                         <Button
                           variant="ghost"
                           size="sm"
@@ -536,17 +539,17 @@ ${survey.activity_description}
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => setIsEditingPrompt(!isEditingPrompt)}
+                        onClick={() => setIsEditingScalePrompt(!isEditingScalePrompt)}
                         className="text-[#E85A24] hover:text-[#D14A1A]"
                       >
                         <Edit2 className="w-4 h-4 ml-1" />
-                        {isEditingPrompt ? 'סיום עריכה' : 'עריכה'}
+                        {isEditingScalePrompt ? 'סיום עריכה' : 'עריכה'}
                       </Button>
                     </div>
                   </div>
                 </CardHeader>
                 <CardContent>
-                  {isEditingPrompt ? (
+                  {isEditingScalePrompt ? (
                     <Textarea
                       value={scalePrompt}
                       onChange={(e) => setScalePrompt(e.target.value)}
@@ -554,8 +557,59 @@ ${survey.activity_description}
                       dir="rtl"
                     />
                   ) : (
-                    <pre className="text-xs text-gray-700 whitespace-pre-wrap font-sans leading-relaxed max-h-64 overflow-y-auto bg-gray-50 p-4 rounded-lg border">
+                    <pre className="text-xs text-gray-700 whitespace-pre-wrap font-sans leading-relaxed max-h-48 overflow-y-auto bg-gray-50 p-4 rounded-lg border">
                       {scalePrompt}
+                    </pre>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* Open Questions Prompt Card */}
+              <Card className="text-right mb-6 border-2 border-gray-200">
+                <CardHeader className="pb-2">
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="text-base text-[#6B2D4A] flex items-center gap-2">
+                      <Sparkles className="w-5 h-5 text-[#E85A24]" />
+                      פרומפט לשאלות פתוחות (4 שאלות)
+                    </CardTitle>
+                    <div className="flex gap-2">
+                      {isEditingOpenPrompt && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => {
+                            setOpenPrompt(defaultOpenPrompt);
+                            toast.success('הפרומפט אופס לברירת המחדל');
+                          }}
+                          className="text-gray-500 hover:text-gray-700"
+                        >
+                          <RotateCcw className="w-4 h-4 ml-1" />
+                          איפוס
+                        </Button>
+                      )}
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setIsEditingOpenPrompt(!isEditingOpenPrompt)}
+                        className="text-[#E85A24] hover:text-[#D14A1A]"
+                      >
+                        <Edit2 className="w-4 h-4 ml-1" />
+                        {isEditingOpenPrompt ? 'סיום עריכה' : 'עריכה'}
+                      </Button>
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  {isEditingOpenPrompt ? (
+                    <Textarea
+                      value={openPrompt}
+                      onChange={(e) => setOpenPrompt(e.target.value)}
+                      className="min-h-[200px] text-sm font-mono leading-relaxed"
+                      dir="rtl"
+                    />
+                  ) : (
+                    <pre className="text-xs text-gray-700 whitespace-pre-wrap font-sans leading-relaxed max-h-48 overflow-y-auto bg-gray-50 p-4 rounded-lg border">
+                      {openPrompt}
                     </pre>
                   )}
                 </CardContent>
