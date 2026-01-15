@@ -23,6 +23,7 @@ import SuccessDefinition from './pages/SuccessDefinition';
 import SurveyEditor from './pages/SurveyEditor';
 import SurveyManagement from './pages/SurveyManagement';
 import SurveyType from './pages/SurveyType';
+import AdminPrompts from './pages/AdminPrompts';
 import __Layout from './Layout.jsx';
 
 
@@ -52,6 +53,7 @@ export const PAGES = {
     "SurveyEditor": SurveyEditor,
     "SurveyManagement": SurveyManagement,
     "SurveyType": SurveyType,
+    "AdminPrompts": AdminPrompts,
 }
 
 export const pagesConfig = {

@@ -7,14 +7,16 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
 import { motion } from 'framer-motion';
-import { ChevronRight, ChevronLeft, Plus, Sparkles, Loader2 } from 'lucide-react';
+import { ChevronRight, ChevronLeft, Plus, Sparkles, Loader2, X } from 'lucide-react';
 import { toast } from 'sonner';
 import ChoiceCard from '@/components/builder/ChoiceCard';
+import { Input } from "@/components/ui/input";
 
 const QUESTION_TYPES = [
   { value: 'scale_5', label: 'סולם 1-5', description: 'שאלת הסכמה בסולם' },
   { value: 'open_text', label: 'שאלה פתוחה', description: 'תשובה חופשית בטקסט' },
-  { value: 'single_choice', label: 'בחירה יחידה', description: 'בחירה מרשימת אפשרויות' },
+  { value: 'single_choice', label: 'בחירה יחידה', description: 'בחירה של אפשרות אחת מרשימה' },
+  { value: 'multi_choice', label: 'בחירה מרובה', description: 'בחירה של מספר אפשרויות מרשימה' },
 ];
 
 const KIT_DOMAINS = [
@@ -35,8 +37,10 @@ export default function AddQuestion() {
   const [formData, setFormData] = useState({
     question_type: '',
     kit_domain: '',
-    prompt_hebrew: ''
+    prompt_hebrew: '',
+    choices: []
   });
+  const [newChoice, setNewChoice] = useState('');
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -72,9 +76,35 @@ export default function AddQuestion() {
     setIsGenerating(false);
   };
 
+  const addChoice = () => {
+    if (!newChoice.trim()) return;
+    const newChoiceObj = {
+      value: `choice_${formData.choices.length + 1}`,
+      label: newChoice.trim()
+    };
+    setFormData({
+      ...formData,
+      choices: [...formData.choices, newChoiceObj]
+    });
+    setNewChoice('');
+  };
+
+  const removeChoice = (index) => {
+    setFormData({
+      ...formData,
+      choices: formData.choices.filter((_, i) => i !== index)
+    });
+  };
+
   const handleSave = async () => {
     if (!formData.prompt_hebrew.trim()) {
       toast.error('יש להזין את נוסח השאלה');
+      return;
+    }
+
+    // Validate choices for choice questions
+    if ((formData.question_type === 'single_choice' || formData.question_type === 'multi_choice') && formData.choices.length < 2) {
+      toast.error('יש להוסיף לפחות 2 אפשרויות בחירה');
       return;
     }
 
@@ -92,6 +122,9 @@ export default function AddQuestion() {
         is_required: true,
         scale_labels: formData.question_type.includes('scale') 
           ? { low: 'לא מסכים כלל', high: 'מסכים לחלוטין' }
+          : undefined,
+        choices: (formData.question_type === 'single_choice' || formData.question_type === 'multi_choice') 
+          ? formData.choices 
           : undefined,
         is_generated: false
       });
@@ -186,6 +219,56 @@ export default function AddQuestion() {
                 />
               </CardContent>
             </Card>
+
+            {/* Choices Section for choice questions */}
+            {(formData.question_type === 'single_choice' || formData.question_type === 'multi_choice') && (
+              <Card className="bg-white border-0 shadow-sm mb-4">
+                <CardContent className="p-4">
+                  <Label className="text-sm font-medium text-gray-700 mb-3 block">
+                    אפשרויות בחירה {formData.question_type === 'multi_choice' && '(ניתן לבחור יותר מאחת)'}
+                  </Label>
+                  
+                  {/* Existing choices */}
+                  <div className="space-y-2 mb-3">
+                    {formData.choices.map((choice, index) => (
+                      <div key={index} className="flex items-center gap-2 bg-gray-50 p-2 rounded-lg">
+                        <span className="flex-1 text-sm">{choice.label}</span>
+                        <button
+                          onClick={() => removeChoice(index)}
+                          className="text-gray-400 hover:text-red-500"
+                        >
+                          <X className="w-4 h-4" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                  
+                  {/* Add new choice */}
+                  <div className="flex gap-2">
+                    <Input
+                      value={newChoice}
+                      onChange={(e) => setNewChoice(e.target.value)}
+                      placeholder="הוסף אפשרות..."
+                      className="flex-1"
+                      dir="rtl"
+                      onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addChoice())}
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={addChoice}
+                      disabled={!newChoice.trim()}
+                    >
+                      <Plus className="w-4 h-4" />
+                    </Button>
+                  </div>
+                  
+                  {formData.choices.length < 2 && (
+                    <p className="text-xs text-amber-600 mt-2">יש להוסיף לפחות 2 אפשרויות</p>
+                  )}
+                </CardContent>
+              </Card>
+            )}
             
             <Button
               variant="outline"
@@ -205,7 +288,7 @@ export default function AddQuestion() {
 
             <Button
               onClick={handleSave}
-              disabled={!formData.prompt_hebrew.trim() || isLoading}
+              disabled={!formData.prompt_hebrew.trim() || isLoading || ((formData.question_type === 'single_choice' || formData.question_type === 'multi_choice') && formData.choices.length < 2)}
               className="w-full py-6 bg-[#E85A24] hover:bg-[#D14A1A] text-white text-lg"
             >
               {isLoading ? (

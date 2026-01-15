@@ -239,6 +239,18 @@ export default function SurveyEditor() {
                                 <p className="text-gray-800 font-medium">
                                   {question.prompt_hebrew}
                                 </p>
+                                
+                                {/* Show choices for choice questions */}
+                                {(question.question_type === 'single_choice' || question.question_type === 'multi_choice' || question.question_type === 'bottom_line') && question.choices && (
+                                  <div className="mt-2 flex flex-wrap gap-1">
+                                    {question.choices.map((choice, i) => (
+                                      <span key={i} className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded">
+                                        {choice.label}
+                                      </span>
+                                    ))}
+                                  </div>
+                                )}
+                                
                                 <div className="flex items-center gap-2 mt-2">
                                   <Switch
                                     checked={question.is_required !== false}
