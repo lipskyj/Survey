@@ -384,6 +384,19 @@ ${survey.event_type === 'ongoing_program' ? '• התייחס לתהליך המ�
       // Background questions (if configured)
       const bgQuestions = survey.background_questions || {};
       
+      // Add name question if survey is not anonymous
+      if (survey.is_anonymous === false) {
+        questionsToCreate.push({
+          survey_id: surveyId,
+          order_index: orderIndex++,
+          question_type: 'open_text',
+          kit_domain: 'none',
+          prompt_hebrew: 'מה שמך?',
+          is_required: true,
+          is_generated: true
+        });
+      }
+      
       if (bgQuestions.include_class) {
         questionsToCreate.push({
           survey_id: surveyId,
