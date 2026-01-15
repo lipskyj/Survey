@@ -34,11 +34,14 @@ export default function GenerateSurveyMultiple() {
     const loadData = async () => {
       const params = new URLSearchParams(window.location.search);
       const id = params.get('surveyId');
+      let loadedSurvey = null;
+      
       if (id) {
         setSurveyId(id);
         const surveys = await base44.entities.Survey.filter({ id });
         if (surveys.length > 0) {
           setSurvey(surveys[0]);
+          loadedSurvey = surveys[0];
         }
       }
       
@@ -46,7 +49,7 @@ export default function GenerateSurveyMultiple() {
       const prompts = await base44.entities.AdminPrompt.filter({ is_active: true });
       setActivePrompts(prompts);
       
-      if (prompts.length > 0 && surveys.length > 0) {
+      if (prompts.length > 0 && loadedSurvey) {
         generateAll();
       }
     };
