@@ -143,15 +143,25 @@ export default function QuestionLogicGuidelines() {
 
   return (
     <div className="space-y-4">
-      <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 border-2 border-blue-200">
+      <Card className="bg-gradient-to-br from-purple-50 to-indigo-50 border-2 border-purple-300">
         <CardHeader>
-          <CardTitle className="text-xl text-blue-900">
-            🧠 מיפוי לוגי של שאלות מקדימות
+          <CardTitle className="text-xl text-purple-900">
+            🔒 מטריצת החלטה פנימית - Design Doc
           </CardTitle>
         </CardHeader>
-        <CardContent>
-          <p className="text-sm text-blue-800">
-            הנחיות מפורטות לסוגי שאלות מותרות ואסורות בכל שלב של בניית השאלון
+        <CardContent className="space-y-3">
+          <p className="text-sm text-purple-800 font-medium">
+            המסמך הזה הוא אמת מערכתית - לא חלק גלוי מהפרומפט
+          </p>
+          <div className="bg-white border-2 border-purple-200 rounded-lg p-3 text-sm">
+            <p className="text-purple-900">
+              <strong>המשתמש בוחר</strong> → פרמטרים נכנסים למערכת<br/>
+              <strong>הפרומפט שופט</strong> → מפעיל מסננים לפי מטריצה<br/>
+              <strong>הלוגיקה לא מבקשת רשות</strong> → סינון אוטומטי
+            </p>
+          </div>
+          <p className="text-xs text-gray-600">
+            הכללים למטה מיושמים בפרומפט ככלל-על אחד: "Apply the internal decision matrix"
           </p>
         </CardContent>
       </Card>
