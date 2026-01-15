@@ -476,36 +476,38 @@ export default function AdminPrompts() {
         {/* Default Prompts Section */}
         <div className="space-y-4">
           <h2 className="font-bold text-lg text-[#6B2D4A]">פרומפטים סטנדרטיים (ברירת מחדל)</h2>
+          <p className="text-sm text-gray-600 bg-yellow-50 border border-yellow-200 p-3 rounded-lg">
+            ⚠️ <strong>חשוב:</strong> פרומפטים אלו משמשים רק כאשר אין פרומפטים פעילים. כאשר יש פרומפט פעיל, המערכת משתמשת בו במקום.
+          </p>
+          
           <Card className="border-2 border-gray-200 bg-gray-50">
             <CardHeader className="pb-2">
               <div className="flex items-center justify-between">
-                <CardTitle className="text-base">פרומפט דירוג - עברית</CardTitle>
+                <CardTitle className="text-base">פרומפט דירוג - עברית (ברירת מחדל)</CardTitle>
                 <Button variant="ghost" size="sm" onClick={() => copyToClipboard(DEFAULT_SCALE_PROMPT_HE)}>
-                  <Copy className="w-4 h-4 ml-1" /> העתק
+                  <Copy className="w-4 h-4 ml-1" /> העתק הכל
                 </Button>
               </div>
             </CardHeader>
             <CardContent>
-              <pre className="text-xs text-gray-600 whitespace-pre-wrap font-sans leading-relaxed max-h-32 overflow-y-auto bg-white p-3 rounded-lg border">
-                {DEFAULT_SCALE_PROMPT_HE.slice(0, 400)}...
+              <pre className="text-xs text-gray-600 whitespace-pre-wrap font-sans leading-relaxed max-h-96 overflow-y-auto bg-white p-3 rounded-lg border">
+                {DEFAULT_SCALE_PROMPT_HE}
               </pre>
             </CardContent>
           </Card>
-          
-
 
           <Card className="border-2 border-gray-200 bg-gray-50">
             <CardHeader className="pb-2">
               <div className="flex items-center justify-between">
-                <CardTitle className="text-base">פרומפט שאלות פתוחות - עברית</CardTitle>
+                <CardTitle className="text-base">פרומפט שאלות פתוחות - עברית (ברירת מחדל)</CardTitle>
                 <Button variant="ghost" size="sm" onClick={() => copyToClipboard(DEFAULT_OPEN_PROMPT_HE)}>
-                  <Copy className="w-4 h-4 ml-1" /> העתק
+                  <Copy className="w-4 h-4 ml-1" /> העתק הכל
                 </Button>
               </div>
             </CardHeader>
             <CardContent>
-              <pre className="text-xs text-gray-600 whitespace-pre-wrap font-sans leading-relaxed max-h-32 overflow-y-auto bg-white p-3 rounded-lg border">
-                {DEFAULT_OPEN_PROMPT_HE.slice(0, 400)}...
+              <pre className="text-xs text-gray-600 whitespace-pre-wrap font-sans leading-relaxed max-h-96 overflow-y-auto bg-white p-3 rounded-lg border">
+                {DEFAULT_OPEN_PROMPT_HE}
               </pre>
             </CardContent>
           </Card>
