@@ -282,18 +282,23 @@ export default function AdminPrompts() {
   const createPromptMutation = useMutation({
     mutationFn: (data) => base44.entities.AdminPrompt.create(data),
     onSuccess: () => {
-      queryClient.invalidateQueries(['admin-prompts']);
+      queryClient.invalidateQueries({ queryKey: ['admin-prompts'] });
       setShowNewForm(false);
       setNewPromptName('');
       setNewPromptText('');
+      setNewPromptLanguage('both');
       toast.success('הפרומפט נשמר');
+    },
+    onError: (error) => {
+      console.error('Create prompt error:', error);
+      toast.error('שגיאה בשמירת הפרומפט');
     }
   });
 
   const updatePromptMutation = useMutation({
     mutationFn: ({ id, data }) => base44.entities.AdminPrompt.update(id, data),
     onSuccess: () => {
-      queryClient.invalidateQueries(['admin-prompts']);
+      queryClient.invalidateQueries({ queryKey: ['admin-prompts'] });
       setEditingPrompt(null);
       toast.success('הפרומפט עודכן');
     }
@@ -302,7 +307,7 @@ export default function AdminPrompts() {
   const deletePromptMutation = useMutation({
     mutationFn: (id) => base44.entities.AdminPrompt.delete(id),
     onSuccess: () => {
-      queryClient.invalidateQueries(['admin-prompts']);
+      queryClient.invalidateQueries({ queryKey: ['admin-prompts'] });
       toast.success('הפרומפט נמחק');
     }
   });
@@ -319,7 +324,7 @@ export default function AdminPrompts() {
       await base44.entities.AdminPrompt.update(promptId, { is_active: true });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries(['admin-prompts']);
+      queryClient.invalidateQueries({ queryKey: ['admin-prompts'] });
       toast.success('הפרומפט הופעל');
     }
   });
@@ -333,7 +338,7 @@ export default function AdminPrompts() {
       }
     },
     onSuccess: () => {
-      queryClient.invalidateQueries(['admin-prompts']);
+      queryClient.invalidateQueries({ queryKey: ['admin-prompts'] });
       toast.success('כל הפרומפטים כבויים - משתמש בברירת מחדל');
     }
   });
@@ -551,16 +556,68 @@ export default function AdminPrompts() {
           </Card>
         )}
 
+        {/* Default Prompts Section */}
+        <div className="space-y-4">
+          <h2 className="font-bold text-lg text-[#6B2D4A]">פרומפטים סטנדרטיים (ברירת מחדל)</h2>
+          <Card className="border-2 border-gray-200 bg-gray-50">
+            <CardHeader className="pb-2">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-base">פרומפט דירוג - עברית</CardTitle>
+                <Button variant="ghost" size="sm" onClick={() => copyToClipboard(DEFAULT_SCALE_PROMPT_HE)}>
+                  <Copy className="w-4 h-4 ml-1" /> העתק
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <pre className="text-xs text-gray-600 whitespace-pre-wrap font-sans leading-relaxed max-h-32 overflow-y-auto bg-white p-3 rounded-lg border">
+                {DEFAULT_SCALE_PROMPT_HE.slice(0, 400)}...
+              </pre>
+            </CardContent>
+          </Card>
+          
+          <Card className="border-2 border-gray-200 bg-gray-50">
+            <CardHeader className="pb-2">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-base">פרומפט דירוג - ערבית</CardTitle>
+                <Button variant="ghost" size="sm" onClick={() => copyToClipboard(DEFAULT_SCALE_PROMPT_AR)}>
+                  <Copy className="w-4 h-4 ml-1" /> העתק
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <pre className="text-xs text-gray-600 whitespace-pre-wrap font-sans leading-relaxed max-h-32 overflow-y-auto bg-white p-3 rounded-lg border" dir="rtl">
+                {DEFAULT_SCALE_PROMPT_AR.slice(0, 400)}...
+              </pre>
+            </CardContent>
+          </Card>
+
+          <Card className="border-2 border-gray-200 bg-gray-50">
+            <CardHeader className="pb-2">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-base">פרומפט שאלות פתוחות - עברית</CardTitle>
+                <Button variant="ghost" size="sm" onClick={() => copyToClipboard(DEFAULT_OPEN_PROMPT_HE)}>
+                  <Copy className="w-4 h-4 ml-1" /> העתק
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <pre className="text-xs text-gray-600 whitespace-pre-wrap font-sans leading-relaxed max-h-32 overflow-y-auto bg-white p-3 rounded-lg border">
+                {DEFAULT_OPEN_PROMPT_HE.slice(0, 400)}...
+              </pre>
+            </CardContent>
+          </Card>
+        </div>
+
         {/* Saved Prompts List */}
         <div className="space-y-4">
-          <h2 className="font-bold text-lg text-[#6B2D4A]">פרומפטים שמורים ({prompts.length})</h2>
+          <h2 className="font-bold text-lg text-[#6B2D4A]">פרומפטים מותאמים ({prompts.length})</h2>
           
           {prompts.length === 0 && !promptsLoading && (
             <Card className="bg-gray-50 border-gray-200">
               <CardContent className="p-8 text-center">
                 <Sparkles className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-                <p className="text-gray-500">אין פרומפטים שמורים</p>
-                <p className="text-sm text-gray-400">כשאין פרומפט פעיל, המערכת משתמשת בפרומפטים הסטנדרטיים</p>
+                <p className="text-gray-500">אין פרומפטים מותאמים</p>
+                <p className="text-sm text-gray-400">כשאין פרומפט פעיל, המערכת משתמשת בפרומפטים הסטנדרטיים למעלה</p>
               </CardContent>
             </Card>
           )}
