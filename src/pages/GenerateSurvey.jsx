@@ -4,8 +4,9 @@ import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
 import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from 'framer-motion';
-import { Sparkles, Loader2, CheckCircle, FileText } from 'lucide-react';
+import { Sparkles, Loader2, CheckCircle, FileText, Eye, EyeOff, ChevronDown, ChevronUp } from 'lucide-react';
 import { toast } from 'sonner';
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 // KIT domain mapping based on content focus
 const KIT_MAPPING = {
@@ -23,6 +24,8 @@ export default function GenerateSurvey() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [generationStep, setGenerationStep] = useState(0);
   const [isComplete, setIsComplete] = useState(false);
+  const [showPrompt, setShowPrompt] = useState(false);
+  const [generatedPrompt, setGeneratedPrompt] = useState('');
 
   const generationSteps = [
     'מנתח את הפעילות...',
@@ -82,24 +85,75 @@ export default function GenerateSurvey() {
       const knowledgeToMeasure = measurementTargets.selected_knowledge?.join(', ') || '';
       const skillsToMeasure = measurementTargets.selected_skills?.join(', ') || '';
 
-      const scaleQuestionsPrompt = `צור 5-7 שאלות סקר בסולם 1-5 עבור פעילות חינוכית.
-פרטי הפעילות:
-- תיאור: ${survey.activity_description}
-- קהל יעד: ${survey.audience}
+      // Build the comprehensive prompt
+      const audienceLabels = {
+        students: 'תלמידים',
+        parents: 'הורים', 
+        teachers: 'מורים',
+        management: 'הנהלה'
+      };
+
+      const eventTypeLabels = {
+        single_event: 'אירוע חד פעמי',
+        ongoing_program: 'תוכנית מתמשכת',
+        annual_activity: 'פעילות שנתית קבועה',
+        special_project: 'פרויקט מיוחד'
+      };
+
+      const gradeLabels = {
+        middle: 'חטיבת ביניים (ז׳-ט׳)',
+        high: 'תיכון (י׳-י״ב)',
+        college: 'מכללה (י״ג-י״ד)'
+      };
+
+      const selectedGrades = survey.grade_range?.selected_grades?.map(g => gradeLabels[g]).join(', ') || '';
+      const evaluationGoals = Array.isArray(survey.evaluation_goal) 
+        ? survey.evaluation_goal.join(', ') 
+        : survey.evaluation_goal || '';
+      const successDef = survey.success_definition?.selected_ideas?.join(', ') || survey.success_definition?.custom_text || '';
+
+      const scaleQuestionsPrompt = `אתה מומחה להערכה בית ספרית. אנא בנה עבורי שאלון משוב בהתאם לפרטים שאספק.
+
+🔵 פרטי הפעילות:
+- תיאור הפעילות: ${survey.activity_description || 'לא צוין'}
+- קהל יעד: ${audienceLabels[survey.audience] || survey.audience}
+- שכבות גיל: ${selectedGrades || 'לא צוין'}
+- סוג הפעילות: ${eventTypeLabels[survey.event_type] || survey.event_type || 'לא צוין'}
 - תחומי מיקוד: ${contentFocuses.join(', ')}
-- תחומי KIT למדידה: ${kitDomains.join(', ')}
 ${valuesToMeasure ? `- ערכים למדידה: ${valuesToMeasure}` : ''}
 ${knowledgeToMeasure ? `- ידע למדידה: ${knowledgeToMeasure}` : ''}
 ${skillsToMeasure ? `- מיומנויות למדידה: ${skillsToMeasure}` : ''}
+${evaluationGoals ? `- מטרות ההערכה: ${evaluationGoals}` : ''}
+${successDef ? `- הגדרת הצלחה: ${successDef}` : ''}
 
-${audienceGuidelines}
+🔵 הנחיות מחייבות (שיש לעמוד בהן בקפדנות):
+1. כל שאלה/היגד תתייחס לממד אחד בלבד
+2. אין חזרתיות – כל היגד מודד ממד אחר, ללא ניסוחים קרובים
+3. השאלון יהיה מותאם לקהל היעד עם ניסוחים בהירים ופשוטים
+4. דירוג לפי מידת הסכמה (5 דרגות: 1=בכלל לא מסכים, 5=מסכים מאוד)
 
-כל שאלה צריכה:
-1. להיות קצרה וברורה
-2. מתאימה לקהל היעד - בשפה פשוטה ובגוף שני
-3. להתייחס לאחד מתחומי ה-KIT או לערכים/ידע/מיומנויות שנבחרו
+${survey.audience === 'students' ? `🔵 הנחיות שפה לתלמידים (קריטי!):
+- השתמש בגוף שני (את/ה) ולא בגוף ראשון
+- אל תשתמש בשפה מקצועית כמו "פדגוגי", "הקנייה", "טיפוח ערכים"
+- השתמש בשפה פשוטה וידידותית שתלמידים מבינים
+- לדוגמה: במקום "עד כמה התרשמתי מהתוכן הפדגוגי" → "עד כמה התכנים היו מעניינים עבורך"` : ''}
+
+🔵 מבנה השאלון הנדרש:
+צור בדיוק 8-10 שאלות דירוג (היגדים) הכוללות:
+- לפחות 2 שאלות על איכות ההדרכה/הנחייה
+- לפחות שאלה אחת על גיבוש כיתתי/קבוצתי (אם רלוונטי לפעילות)
+- היגד אחד משולב ברעיון של משמעות אישית (לדוגמה: "הרגשתי שיש לי הזדמנות להביא לידי ביטוי חוזקות אישיות")
+- שאר השאלות יתפלגו על פני תחומי המיקוד השונים
+
+כל היגד צריך להיות:
+- קצר וברור (עד 15 מילים)
+- מודד ממד אחד ספציפי
+- מנוסח בחיוב (לא שלילה)
 
 החזר JSON עם מערך שאלות.`;
+
+      // Save the prompt for display
+      setGeneratedPrompt(scaleQuestionsPrompt);
 
       const scaleResponse = await base44.integrations.Core.InvokeLLM({
         prompt: scaleQuestionsPrompt,
@@ -127,16 +181,24 @@ ${audienceGuidelines}
         ? 'השתמש בגוף שני (את/ה) ושפה פשוטה וידידותית. לדוגמה: "מה הכי אהבת בפעילות?" במקום "מה היה המרכיב המוצלח ביותר?"'
         : '';
 
-      const openQuestionsPrompt = `צור 2 שאלות פתוחות עבור סקר משוב על פעילות חינוכית.
+      const openQuestionsPrompt = `צור בדיוק 4 שאלות פתוחות עבור סקר משוב על פעילות חינוכית.
+
 פרטי הפעילות:
 - תיאור: ${survey.activity_description}
 - סוג: ${survey.event_type}
 - קהל: ${survey.audience}
 
-שאלה אחת צריכה להיות על מה היה טוב/מוצלח.
-שאלה שנייה על מה ניתן לשפר.
-${survey.event_type === 'ongoing_program' ? 'התייחס לתהליך המתמשך ולא רק לאירוע בודד.' : ''}
-${openAudienceGuidelines}`;
+🔵 הנחיות מחייבות לשאלות הפתוחות:
+השאלות הפתוחות לא יחזרו על אותו רעיון של שאלות הדירוג — הן משלימות ולא משכפלות.
+
+צור בדיוק 4 שאלות פתוחות:
+1. שאלה על תרומה/ערך - מה הדבר המרכזי שלקחת מהפעילות
+2. שאלה על שיפור/המשך, תוך התייחסות לאתגר - מה ניתן לשפר
+3. שאלה על חוויה משמעותית או רגע מיוחד
+4. שאלה על המלצות לעתיד
+
+${survey.audience === 'students' ? 'השתמש בגוף שני (את/ה) ושפה פשוטה וידידותית.' : ''}
+${survey.event_type === 'ongoing_program' ? 'התייחס לתהליך המתמשך ולא רק לאירוע בודד.' : ''}`;
 
       const openResponse = await base44.integrations.Core.InvokeLLM({
         prompt: openQuestionsPrompt,
@@ -255,8 +317,8 @@ ${survey.activity_description}
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-orange-50/50 to-white flex items-center justify-center px-4">
-      <div className="max-w-md w-full text-center">
+    <div className="min-h-screen bg-gradient-to-b from-orange-50/50 to-white flex items-center justify-center px-4 py-8">
+      <div className="max-w-2xl w-full text-center">
         <AnimatePresence mode="wait">
           {!isGenerating && !isComplete && (
             <motion.div
@@ -264,6 +326,7 @@ ${survey.activity_description}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
+              className="w-full"
             >
               <div className="w-24 h-24 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-6">
                 <Sparkles className="w-12 h-12 text-[#E85A24]" />
@@ -330,6 +393,7 @@ ${survey.activity_description}
               key="complete"
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
+              className="w-full"
             >
               <div className="w-24 h-24 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
                 <CheckCircle className="w-12 h-12 text-green-600" />
@@ -340,6 +404,46 @@ ${survey.activity_description}
               <p className="text-gray-500 mb-8">
                 עכשיו תוכל לערוך ולהתאים את הסקר לפני הפרסום
               </p>
+              
+              {/* Show Prompt Button */}
+              <div className="mb-6">
+                <Button
+                  variant="outline"
+                  onClick={() => setShowPrompt(!showPrompt)}
+                  className="text-gray-600 border-gray-300"
+                >
+                  {showPrompt ? <EyeOff className="w-4 h-4 ml-2" /> : <Eye className="w-4 h-4 ml-2" />}
+                  {showPrompt ? 'הסתר פרומפט' : 'הצג את הפרומפט שיצר את השאלון'}
+                  {showPrompt ? <ChevronUp className="w-4 h-4 mr-2" /> : <ChevronDown className="w-4 h-4 mr-2" />}
+                </Button>
+              </div>
+
+              {/* Prompt Display */}
+              <AnimatePresence>
+                {showPrompt && generatedPrompt && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    exit={{ opacity: 0, height: 0 }}
+                    className="mb-6"
+                  >
+                    <Card className="text-right bg-gray-50 border-gray-200">
+                      <CardHeader className="pb-2">
+                        <CardTitle className="text-sm text-gray-600 flex items-center gap-2">
+                          <Sparkles className="w-4 h-4" />
+                          הפרומפט שנשלח ל-AI
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <pre className="text-xs text-gray-700 whitespace-pre-wrap font-sans leading-relaxed max-h-96 overflow-y-auto bg-white p-4 rounded-lg border">
+                          {generatedPrompt}
+                        </pre>
+                      </CardContent>
+                    </Card>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
               <Button
                 onClick={handleContinue}
                 className="px-8 py-6 bg-[#E85A24] hover:bg-[#D14A1A] text-white text-lg font-medium rounded-xl shadow-lg shadow-orange-200"
