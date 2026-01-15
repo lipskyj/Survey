@@ -340,34 +340,13 @@ export default function AdminPrompts() {
     }
   });
 
-  const activatePromptMutation = useMutation({
-    mutationFn: async (promptId) => {
-      // Deactivate all other prompts first
-      for (const p of prompts) {
-        if (p.is_active) {
-          await base44.entities.AdminPrompt.update(p.id, { is_active: false });
-        }
-      }
-      // Activate selected prompt
-      await base44.entities.AdminPrompt.update(promptId, { is_active: true });
+  const togglePromptMutation = useMutation({
+    mutationFn: ({ promptId, isActive }) => {
+      return base44.entities.AdminPrompt.update(promptId, { is_active: isActive });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-prompts'] });
-      toast.success('הפרומפט הופעל');
-    }
-  });
-
-  const deactivateAllMutation = useMutation({
-    mutationFn: async () => {
-      for (const p of prompts) {
-        if (p.is_active) {
-          await base44.entities.AdminPrompt.update(p.id, { is_active: false });
-        }
-      }
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['admin-prompts'] });
-      toast.success('כל הפרומפטים כבויים - משתמש בברירת מחדל');
+      toast.success('הפרומפט עודכן');
     }
   });
 
@@ -393,7 +372,8 @@ export default function AdminPrompts() {
     });
   };
 
-  const activePrompt = prompts.find(p => p.is_active);
+  const activePrompts = prompts.filter(p => p.is_active);
+  const activePrompt = activePrompts.length > 0 ? activePrompts[0] : null;
 
   const copyToClipboard = (text) => {
     navigator.clipboard.writeText(text);
@@ -460,7 +440,7 @@ export default function AdminPrompts() {
             <div>
               <h1 className="font-bold text-lg text-[#6B2D4A]">ניהול פרומפטים</h1>
               <p className="text-xs text-gray-500">
-                {activePrompt ? `פרומפט פעיל: ${activePrompt.name}` : 'משתמש בברירת מחדל'}
+                {activePrompts.length > 0 ? `${activePrompts.length} פרומפטים פעילים` : 'משתמש בברירת מחדל'}
               </p>
             </div>
           </div>
@@ -483,27 +463,20 @@ export default function AdminPrompts() {
 
       <div className="max-w-4xl mx-auto px-4 py-6 space-y-6">
         {/* Active Status */}
-        <Card className={`border-2 ${activePrompt ? 'border-green-200 bg-green-50' : 'border-gray-200 bg-gray-50'}`}>
+        <Card className={`border-2 ${activePrompts.length > 0 ? 'border-green-200 bg-green-50' : 'border-gray-200 bg-gray-50'}`}>
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <CheckCircle className={`w-5 h-5 ${activePrompt ? 'text-green-600' : 'text-gray-400'}`} />
+                <CheckCircle className={`w-5 h-5 ${activePrompts.length > 0 ? 'text-green-600' : 'text-gray-400'}`} />
                 <div>
                   <p className="font-medium text-gray-800">סטטוס נוכחי</p>
                   <p className="text-sm text-gray-600">
-                    {activePrompt ? `פרומפט "${activePrompt.name}" פעיל` : 'משתמש בפרומפטים הסטנדרטיים'}
+                    {activePrompts.length > 0 
+                      ? `${activePrompts.length} פרומפטים פעילים: ${activePrompts.map(p => p.name).join(', ')}`
+                      : 'משתמש בפרומפטים הסטנדרטיים'}
                   </p>
                 </div>
               </div>
-              {activePrompt && (
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  onClick={() => deactivateAllMutation.mutate()}
-                >
-                  חזור לברירת מחדל
-                </Button>
-              )}
             </div>
           </CardContent>
         </Card>
