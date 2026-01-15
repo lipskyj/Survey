@@ -721,11 +721,7 @@ export default function AdminPrompts() {
                         <Switch
                           checked={prompt.is_active}
                           onCheckedChange={(checked) => {
-                            if (checked) {
-                              activatePromptMutation.mutate(prompt.id);
-                            } else {
-                              deactivateAllMutation.mutate();
-                            }
+                            togglePromptMutation.mutate({ promptId: prompt.id, isActive: checked });
                           }}
                         />
                         <Button 
