@@ -291,12 +291,13 @@ ${survey.event_type === 'ongoing_program' ? '• התייחס לתהליך המ�
     try {
       const adminPrompts = await base44.entities.AdminPrompt.filter({ is_active: true });
       const activePrompt = adminPrompts.find(p => 
-        p.is_active && (p.language === 'both' || p.language === survey.language)
+        p.is_active && (p.language === 'both' || p.language === survey.language || p.language === 'hebrew')
       );
       
       console.log('Active prompt found:', activePrompt?.name);
       
       if (activePrompt) {
+        // Use the unified prompt for both scale and open questions
         let customPrompt = activePrompt.prompt_text;
         
         // Replace all variables
@@ -329,9 +330,9 @@ ${survey.event_type === 'ongoing_program' ? '• התייחס לתהליך המ�
         const ongoingNote = survey.event_type === 'ongoing_program' ? 'התייחס לתהליך המתמשך, לא רק לאירוע בודד' : '';
         customPrompt = customPrompt.replace(/{ongoing_note}/g, ongoingNote);
         
-        console.log('Using custom prompt, length:', customPrompt.length);
+        console.log('Using unified prompt, length:', customPrompt.length);
         setScalePrompt(customPrompt);
-        setOpenPrompt(newOpenPrompt); // Use default for open questions
+        setOpenPrompt(customPrompt); // Use same unified prompt for both
       } else {
         console.log('No active prompt, using defaults');
         setScalePrompt(newScalePrompt);
@@ -366,12 +367,12 @@ ${survey.event_type === 'ongoing_program' ? '• התייחס לתהליך המ�
       // Step 3: Generate scale questions
       setGenerationStep(3);
 
-      const scaleResponse = await base44.integrations.Core.InvokeLLM({
+      const unifiedResponse = await base44.integrations.Core.InvokeLLM({
         prompt: scalePrompt,
         response_json_schema: {
           type: "object",
           properties: {
-            questions: {
+            scale_questions: {
               type: "array",
               items: {
                 type: "object",
@@ -387,33 +388,26 @@ ${survey.event_type === 'ongoing_program' ? '• התייחס לתהליך המ�
                   }
                 }
               }
+            },
+            open_questions: {
+              type: "array",
+              items: {
+                type: "object",
+                properties: {
+                  prompt: { type: "string" }
+                }
+              }
             }
           }
         }
       });
+      
+      const scaleResponse = { questions: unifiedResponse.scale_questions || [] };
 
-      // Step 4: Generate open questions
+      // Step 4: Use open questions from unified response
       setGenerationStep(4);
 
-      const openResponse = openPrompt.trim() 
-        ? await base44.integrations.Core.InvokeLLM({
-            prompt: openPrompt,
-            response_json_schema: {
-              type: "object",
-              properties: {
-                questions: {
-                  type: "array",
-                  items: {
-                    type: "object",
-                    properties: {
-                      prompt: { type: "string" }
-                    }
-                  }
-                }
-              }
-            }
-          })
-        : { questions: [] };
+      const openResponse = { questions: unifiedResponse.open_questions || [] };
 
       // Generate bottom line question based on audience
       const bottomLinePrompts = {

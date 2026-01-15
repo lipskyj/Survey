@@ -18,7 +18,7 @@ const ADMIN_PASSWORD = '1234';
 // Default prompts storage key
 const PROMPTS_STORAGE_KEY = 'admin_prompts_config';
 
-const DEFAULT_SCALE_PROMPT_HE = `אתה מומחה להערכת חוויית למידה חינוכית מבוסס על גישת מדידת חוויה, תהליך והשפעה.
+const DEFAULT_UNIFIED_PROMPT_HE = `אתה מומחה להערכת חוויית למידה חינוכית מבוסס על גישת מדידת חוויה, תהליך והשפעה.
 
 🎯 עקרון המפתח: מדוד חוויה קונקרטית, לא עמדות
 ═══════════════════════════════════════
@@ -134,26 +134,17 @@ const DEFAULT_SCALE_PROMPT_HE = `אתה מומחה להערכת חוויית ל�
       "kit_domain": "delivery_quality"
     }
   ]
-}`;
-
-const DEFAULT_OPEN_PROMPT_HE = `אתה מומחה להערכה בית ספרית. צור שאלות פתוחות לסקר משוב.
+}
 
 ═══════════════════════════════════════
-📋 פרטי הפעילות:
+📝 חלק ב': שאלות פתוחות (4 שאלות)
 ═══════════════════════════════════════
-• תיאור: {activity_description}
-• סוג: {event_type}
-• קהל: {audience}
 
-═══════════════════════════════════════
 🎯 עקרון מנחה:
-═══════════════════════════════════════
 השאלות הפתוחות משלימות את שאלות הדירוג - לא חוזרות עליהן!
 מספרים מראים לאן להסתכל; שאלות פתוחות מסבירות למה.
 
-═══════════════════════════════════════
-📊 צור בדיוק 4 שאלות פתוחות:
-═══════════════════════════════════════
+צור בדיוק 4 שאלות פתוחות:
 
 1️⃣ שאלה רפלקטיבית על למידה עצמית:
    "בעקבות הפעילות למדתי על עצמי ש..."
@@ -171,23 +162,29 @@ const DEFAULT_OPEN_PROMPT_HE = `אתה מומחה להערכה בית ספרית
    "משהו נוסף שתרצה לשתף?"
    או: "האם יש נושא שהיית רוצה שידברו עליו בעתיד?"
 
-═══════════════════════════════════════
-⚠️ הנחיות מחייבות:
-═══════════════════════════════════════
-{audience_language}
-{ongoing_note}
+⚠️ הנחיות לשאלות הפתוחות:
+• {audience_language}
+• {ongoing_note}
 • שאלות קצרות וברורות
 • לא לחזור על אותם רעיונות משאלות הדירוג
 
 ═══════════════════════════════════════
-📤 פורמט התשובה:
+📤 פורמט תשובה סופי - JSON אחד מאוחד:
 ═══════════════════════════════════════
 {
-  "questions": [
-    {"prompt": "טקסט השאלה הראשונה"},
-    {"prompt": "טקסט השאלה השנייה"},
-    {"prompt": "טקסט השאלה השלישית"},
-    {"prompt": "טקסט השאלה הרביעית"}
+  "scale_questions": [
+    {
+      "prompt": "באיזו מידה...",
+      "scale_labels": {"low": "...", "high": "..."},
+      "kit_domain": "skills"
+    }
+    // ... 10 שאלות סולם
+  ],
+  "open_questions": [
+    {"prompt": "שאלה פתוחה 1"},
+    {"prompt": "שאלה פתוחה 2"},
+    {"prompt": "שאלה פתוחה 3"},
+    {"prompt": "שאלה פתוחה 4"}
   ]
 }`;
 
@@ -222,30 +219,16 @@ export default function AdminPrompts() {
   const ensureDefaultPromptsExist = async () => {
     try {
       const allPrompts = await base44.entities.AdminPrompt.list();
-      const hasDefaultScale = allPrompts.some(p => p.name === 'פרומפט דירוג - ברירת מחדל');
-      const hasDefaultOpen = allPrompts.some(p => p.name === 'פרומפט שאלות פתוחות - ברירת מחדל');
+      const hasDefaultUnified = allPrompts.some(p => p.name === 'פרומפט מאוחד - ברירת מחדל');
 
-      if (!hasDefaultScale) {
+      if (!hasDefaultUnified) {
         await base44.entities.AdminPrompt.create({
-          name: 'פרומפט דירוג - ברירת מחדל',
-          prompt_text: DEFAULT_SCALE_PROMPT_HE,
+          name: 'פרומפט מאוחד - ברירת מחדל',
+          prompt_text: DEFAULT_UNIFIED_PROMPT_HE,
           is_active: false,
           language: 'hebrew',
-          notes: 'הפרומפט הסטנדרטי המקורי של המערכת'
+          notes: 'פרומפט מאוחד לשאלות דירוג ושאלות פתוחות - הפרומפט הסטנדרטי של המערכת'
         });
-      }
-
-      if (!hasDefaultOpen) {
-        await base44.entities.AdminPrompt.create({
-          name: 'פרומפט שאלות פתוחות - ברירת מחדל',
-          prompt_text: DEFAULT_OPEN_PROMPT_HE,
-          is_active: false,
-          language: 'hebrew',
-          notes: 'פרומפט סטנדרטי לשאלות פתוחות'
-        });
-      }
-
-      if (!hasDefaultScale || !hasDefaultOpen) {
         queryClient.invalidateQueries({ queryKey: ['admin-prompts'] });
       }
     } catch (error) {
