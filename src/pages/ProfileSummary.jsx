@@ -69,6 +69,28 @@ export default function ProfileSummary() {
     return survey.grade_range.selected_grades.map(g => gradeLabels[g] || g).join(', ');
   };
 
+  const getMeasurementTargets = () => {
+    if (!survey?.measurement_targets) return null;
+    const { selected_values, selected_knowledge, selected_skills } = survey.measurement_targets;
+    const all = [
+      ...(selected_values || []),
+      ...(selected_knowledge || []),
+      ...(selected_skills || [])
+    ];
+    return all.length > 0 ? all.join(', ') : null;
+  };
+
+  const getBackgroundQuestions = () => {
+    if (!survey?.background_questions) return null;
+    const bg = survey.background_questions;
+    const selected = [];
+    if (bg.include_class) selected.push('כיתה');
+    if (bg.include_gender) selected.push('מגדר');
+    if (bg.include_subject) selected.push('מקצוע');
+    if (bg.include_role) selected.push('תפקיד');
+    return selected.length > 0 ? selected.join(', ') : null;
+  };
+
   const summaryItems = survey ? [
     { 
       icon: FileText, 
@@ -100,6 +122,12 @@ export default function ProfileSummary() {
       value: survey.content_focus?.map(cf => LABELS.content_focus[cf]).join(', ') || 'לא נבחרו',
       step: 'ContentFocus'
     },
+    ...(getMeasurementTargets() ? [{
+      icon: CheckCircle,
+      label: 'ערכים/ידע/מיומנויות למדידה',
+      value: getMeasurementTargets(),
+      step: 'MeasurementTargets'
+    }] : []),
     { 
       icon: Sparkles, 
       label: 'מטרת ההערכה', 
@@ -116,6 +144,12 @@ export default function ProfileSummary() {
         : survey.success_definition?.selected_ideas?.join(', ')?.slice(0, 50) + '...' || 'לא הוגדר',
       step: 'SuccessDefinition'
     },
+    ...(getBackgroundQuestions() ? [{
+      icon: Users,
+      label: 'שאלות רקע',
+      value: getBackgroundQuestions(),
+      step: 'BackgroundQuestions'
+    }] : []),
   ] : [];
 
   const handleContinue = async () => {
