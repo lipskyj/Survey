@@ -537,10 +537,10 @@ export default function AdminPrompts() {
           {prompts.map((prompt) => {
             const isDefault = prompt.name.includes('ברירת מחדל');
             return (
-            <Card 
-              key={prompt.id} 
-              className={`border-2 ${prompt.is_active ? 'border-green-400 bg-green-50' : 'border-gray-200'}`}
-            >
+              <Card 
+                key={prompt.id} 
+                className={`border-2 ${prompt.is_active ? 'border-green-400 bg-green-50' : 'border-gray-200'}`}
+              >
               {editingPrompt === prompt.id ? (
                 // Edit Mode
                 <CardContent className="p-4 space-y-4">
@@ -634,8 +634,8 @@ export default function AdminPrompts() {
                   </CardContent>
                 </>
               )}
-            </Card>
-          );
+              </Card>
+            );
           })}
         </div>
       </div>
