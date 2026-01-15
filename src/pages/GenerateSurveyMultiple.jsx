@@ -32,25 +32,46 @@ export default function GenerateSurveyMultiple() {
 
   useEffect(() => {
     const loadData = async () => {
-      const params = new URLSearchParams(window.location.search);
-      const id = params.get('surveyId');
-      let loadedSurvey = null;
-      
-      if (id) {
+      try {
+        const params = new URLSearchParams(window.location.search);
+        const id = params.get('surveyId');
+        
+        if (!id) {
+          console.error('No surveyId in URL');
+          toast.error('חסר מזהה סקר');
+          return;
+        }
+        
         setSurveyId(id);
         const surveys = await base44.entities.Survey.filter({ id });
-        if (surveys.length > 0) {
-          setSurvey(surveys[0]);
-          loadedSurvey = surveys[0];
+        
+        if (surveys.length === 0) {
+          console.error('Survey not found');
+          toast.error('סקר לא נמצא');
+          return;
         }
-      }
-      
-      // Load active prompts and auto-start generation
-      const prompts = await base44.entities.AdminPrompt.filter({ is_active: true });
-      setActivePrompts(prompts);
-      
-      if (prompts.length > 0 && loadedSurvey) {
-        generateAll();
+        
+        const loadedSurvey = surveys[0];
+        setSurvey(loadedSurvey);
+        console.log('Survey loaded:', loadedSurvey);
+        
+        // Load active prompts
+        const prompts = await base44.entities.AdminPrompt.filter({ is_active: true });
+        console.log('Active prompts loaded:', prompts.length);
+        setActivePrompts(prompts);
+        
+        // Auto-start generation after state is set
+        if (prompts.length > 0) {
+          setTimeout(() => {
+            console.log('Starting auto-generation');
+            startGeneration(prompts, loadedSurvey);
+          }, 500);
+        } else {
+          toast.error('אין פרומפטים פעילים');
+        }
+      } catch (error) {
+        console.error('Load error:', error);
+        toast.error('שגיאה בטעינת נתונים');
       }
     };
     loadData();
@@ -109,8 +130,9 @@ export default function GenerateSurveyMultiple() {
     return prompt;
   };
 
-  const generateWithPrompt = async (prompt) => {
-    const builtPrompt = buildPromptFromTemplate(prompt.prompt_text, survey);
+  const generateWithPrompt = async (prompt, surveyData) => {
+    const useSurvey = surveyData || survey;
+    const builtPrompt = buildPromptFromTemplate(prompt.prompt_text, useSurvey);
     
     // Check if unified prompt (has both scale_questions and open_questions)
     const isUnified = prompt.prompt_text.includes('scale_questions') && prompt.prompt_text.includes('open_questions');
@@ -189,19 +211,21 @@ export default function GenerateSurveyMultiple() {
     }
 
     // Create a duplicate survey
+    const useSurvey = surveyData || survey;
     const newSurvey = await base44.entities.Survey.create({
-      ...survey,
-      title: `${survey.activity_description?.slice(0, 30) || 'סקר'} - ${prompt.name}`,
+      ...useSurvey,
+      title: `${useSurvey.activity_description?.slice(0, 30) || 'סקר'} - ${prompt.name}`,
       prompt_version: prompt.name,
       status: 'draft'
     });
 
     // Create questions
+    const useSurvey = surveyData || survey;
     let orderIndex = 0;
     const questionsToCreate = [];
-    const bgQuestions = survey.background_questions || {};
+    const bgQuestions = useSurvey.background_questions || {};
 
-    if (survey.is_anonymous === false) {
+    if (useSurvey.is_anonymous === false) {
       questionsToCreate.push({
         survey_id: newSurvey.id,
         order_index: orderIndex++,
@@ -214,7 +238,7 @@ export default function GenerateSurveyMultiple() {
     }
 
     if (bgQuestions.include_class) {
-      const selectedGradeRanges = survey.grade_range?.selected_grades || [];
+      const selectedGradeRanges = useSurvey.grade_range?.selected_grades || [];
       const gradeChoicesMap = {
         middle: [{ value: 'z', label: 'ז׳' }, { value: 'h', label: 'ח׳' }, { value: 't', label: 'ט׳' }],
         high: [{ value: 'y', label: 'י׳' }, { value: 'ya', label: 'י״א' }, { value: 'yb', label: 'י״ב' }],
@@ -226,7 +250,7 @@ export default function GenerateSurveyMultiple() {
         order_index: orderIndex++,
         question_type: 'single_choice',
         kit_domain: 'none',
-        prompt_hebrew: survey.audience === 'parents' ? 'באיזו כיתה ילדך/ילדתך?' : 'באיזו כיתה את/ה?',
+        prompt_hebrew: useSurvey.audience === 'parents' ? 'באיזו כיתה ילדך/ילדתך?' : 'באיזו כיתה את/ה?',
         is_required: true,
         choices: relevantChoices.length > 0 ? relevantChoices : [{ value: 'z', label: 'ז׳' }],
         is_generated: true
@@ -271,7 +295,7 @@ export default function GenerateSurveyMultiple() {
       order_index: orderIndex++,
       question_type: 'bottom_line',
       kit_domain: 'none',
-      prompt_hebrew: bottomLinePrompts[survey.audience] || bottomLinePrompts.students,
+      prompt_hebrew: bottomLinePrompts[useSurvey.audience] || bottomLinePrompts.students,
       is_required: true,
       choices: [
         { value: 'yes', label: 'כן, בהחלט' },
@@ -286,23 +310,23 @@ export default function GenerateSurveyMultiple() {
     return newSurvey;
   };
 
-  const generateAll = async () => {
-    if (!activePrompts || activePrompts.length === 0 || !survey) {
-      console.log('Cannot generate:', { activePromptsLength: activePrompts?.length, hasSurvey: !!survey });
+  const startGeneration = async (prompts, surveyData) => {
+    if (!prompts || prompts.length === 0 || !surveyData) {
+      console.log('Cannot generate:', { promptsLength: prompts?.length, hasSurvey: !!surveyData });
       toast.error('חסרים נתונים ליצירת סקרים');
       return;
     }
 
-    console.log(`Starting generation with ${activePrompts.length} prompts`);
+    console.log(`Starting generation with ${prompts.length} prompts`);
     setIsGenerating(true);
     const results = [];
 
     try {
-      for (let i = 0; i < activePrompts.length; i++) {
-        console.log(`Generating version ${i + 1}/${activePrompts.length}`);
+      for (let i = 0; i < prompts.length; i++) {
+        console.log(`Generating version ${i + 1}/${prompts.length}`);
         setCurrentPromptIndex(i);
-        const newSurvey = await generateWithPrompt(activePrompts[i]);
-        results.push({ prompt: activePrompts[i].name, survey: newSurvey, promptNotes: activePrompts[i].notes });
+        const newSurvey = await generateWithPrompt(prompts[i], surveyData);
+        results.push({ prompt: prompts[i].name, survey: newSurvey, promptNotes: prompts[i].notes });
         console.log(`Version ${i + 1} created successfully`);
       }
 
@@ -351,6 +375,62 @@ export default function GenerateSurveyMultiple() {
   };
 
   if (viewingVersion) {
+    // Compare mode
+    if (viewingVersion.compare) {
+      return (
+        <div className="min-h-screen bg-gradient-to-b from-orange-50/50 to-white p-6">
+          <div className="max-w-7xl mx-auto">
+            <Button
+              onClick={backToAll}
+              variant="outline"
+              className="mb-6"
+            >
+              <ArrowRight className="w-4 h-4 ml-2" />
+              חזרה לכל הגרסאות
+            </Button>
+
+            <h1 className="text-2xl font-bold text-[#6B2D4A] mb-6">
+              השוואת {viewingVersion.versions.length} גרסאות
+            </h1>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {viewingVersion.versions.map(({ prompt, survey, promptNotes }, idx) => (
+                <div key={survey.id} className="space-y-4">
+                  <Card className="border-[#E85A24] sticky top-4">
+                    <CardHeader>
+                      <div className="flex items-center justify-between">
+                        <div className="flex-1">
+                          <CardTitle className="text-lg mb-2">גרסה {idx + 1}</CardTitle>
+                          <p className="text-sm text-gray-500 mb-2">
+                            <span className="font-medium text-[#E85A24]">{prompt}</span>
+                          </p>
+                          {promptNotes && (
+                            <p className="text-xs text-gray-600 bg-gray-50 p-2 rounded">
+                              {promptNotes}
+                            </p>
+                          )}
+                        </div>
+                        <Button
+                          onClick={() => navigate(createPageUrl('SurveyEditor') + `?surveyId=${survey.id}`)}
+                          size="sm"
+                          className="bg-[#E85A24] hover:bg-[#D14A1A]"
+                        >
+                          ערוך
+                        </Button>
+                      </div>
+                    </CardHeader>
+                  </Card>
+
+                  <SurveyPreview surveyId={survey.id} />
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // Single view mode
     return (
       <div className="min-h-screen bg-gradient-to-b from-orange-50/50 to-white p-6">
         <div className="max-w-4xl mx-auto">
@@ -460,62 +540,80 @@ export default function GenerateSurveyMultiple() {
                 )}
               </div>
 
-              <div className="grid gap-4 mb-6">
-                {generatedSurveys.map(({ prompt, survey }, idx) => {
-                  const isSelected = selectedVersions.includes(idx);
-                  return (
-                    <Card 
-                      key={survey.id} 
-                      className={`border-2 transition-all ${isSelected ? 'border-green-400 bg-green-50' : 'border-gray-200 opacity-60'}`}
+              <div className="mb-6">
+                {selectedVersions.length >= 2 && (
+                  <div className="mb-4 flex gap-2">
+                    <Button
+                      onClick={() => {
+                        const selected = generatedSurveys.filter((_, idx) => selectedVersions.includes(idx));
+                        if (selected.length >= 2) {
+                          setViewingVersion({ compare: true, versions: selected });
+                        }
+                      }}
+                      className="bg-blue-600 hover:bg-blue-700 text-white"
                     >
-                      <CardHeader>
-                        <div className="flex items-start justify-between gap-4">
-                          <div className="flex items-start gap-3 flex-1">
-                            <Switch
-                              checked={isSelected}
-                              onCheckedChange={() => toggleVersion(idx)}
-                              className="mt-1"
-                            />
-                            <div className="flex-1">
-                              <div className="flex items-center gap-2 mb-1">
-                                <CardTitle className="text-lg">גרסה {idx + 1}</CardTitle>
-                                <span className="text-xs text-white bg-[#E85A24] px-2 py-1 rounded-full">
-                                  {prompt}
-                                </span>
-                                {isSelected && (
-                                  <Check className="w-4 h-4 text-green-600" />
+                      השווה {selectedVersions.length} גרסאות נבחרות
+                    </Button>
+                  </div>
+                )}
+                
+                <div className="grid gap-4">
+                  {generatedSurveys.map(({ prompt, survey }, idx) => {
+                    const isSelected = selectedVersions.includes(idx);
+                    return (
+                      <Card 
+                        key={survey.id} 
+                        className={`border-2 transition-all ${isSelected ? 'border-green-400 bg-green-50' : 'border-gray-200 opacity-60'}`}
+                      >
+                        <CardHeader>
+                          <div className="flex items-start justify-between gap-4">
+                            <div className="flex items-start gap-3 flex-1">
+                              <Switch
+                                checked={isSelected}
+                                onCheckedChange={() => toggleVersion(idx)}
+                                className="mt-1"
+                              />
+                              <div className="flex-1">
+                                <div className="flex items-center gap-2 mb-1">
+                                  <CardTitle className="text-lg">גרסה {idx + 1}</CardTitle>
+                                  <span className="text-xs text-white bg-[#E85A24] px-2 py-1 rounded-full">
+                                    {prompt}
+                                  </span>
+                                  {isSelected && (
+                                    <Check className="w-4 h-4 text-green-600" />
+                                  )}
+                                </div>
+                                <p className="text-sm text-gray-600 mt-1">{survey.title}</p>
+                                {generatedSurveys[idx].promptNotes && (
+                                  <p className="text-xs text-gray-500 mt-1 bg-gray-50 p-2 rounded">
+                                    {generatedSurveys[idx].promptNotes}
+                                  </p>
                                 )}
                               </div>
-                              <p className="text-sm text-gray-600 mt-1">{survey.title}</p>
-                              {generatedSurveys[idx].promptNotes && (
-                                <p className="text-xs text-gray-500 mt-1 bg-gray-50 p-2 rounded">
-                                  {generatedSurveys[idx].promptNotes}
-                                </p>
-                              )}
                             </div>
                           </div>
-                        </div>
-                      </CardHeader>
-                      <CardContent className="flex gap-2">
-                        <Button
-                          onClick={() => viewVersion({ prompt, survey, promptNotes: generatedSurveys[idx].promptNotes })}
-                          variant="outline"
-                          className="flex-1"
-                        >
-                          <Eye className="w-4 h-4 ml-2" />
-                          צפה בגרסה
-                        </Button>
-                        <Button
-                          onClick={() => navigate(createPageUrl('SurveyEditor') + `?surveyId=${survey.id}`)}
-                          className="flex-1 bg-[#E85A24] hover:bg-[#D14A1A]"
-                        >
-                          <FileText className="w-4 h-4 ml-2" />
-                          ערוך
-                        </Button>
-                      </CardContent>
-                    </Card>
-                  );
-                })}
+                        </CardHeader>
+                        <CardContent className="flex gap-2">
+                          <Button
+                            onClick={() => viewVersion({ prompt, survey, promptNotes: generatedSurveys[idx].promptNotes })}
+                            variant="outline"
+                            className="flex-1"
+                          >
+                            <Eye className="w-4 h-4 ml-2" />
+                            צפה בגרסה
+                          </Button>
+                          <Button
+                            onClick={() => navigate(createPageUrl('SurveyEditor') + `?surveyId=${survey.id}`)}
+                            className="flex-1 bg-[#E85A24] hover:bg-[#D14A1A]"
+                          >
+                            <FileText className="w-4 h-4 ml-2" />
+                            ערוך
+                          </Button>
+                        </CardContent>
+                      </Card>
+                    );
+                  })}
+                </div>
               </div>
 
               <Button
