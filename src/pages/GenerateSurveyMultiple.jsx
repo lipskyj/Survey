@@ -334,6 +334,24 @@ export default function GenerateSurveyMultiple() {
     <div className="min-h-screen bg-gradient-to-b from-orange-50/50 to-white p-6">
       <div className="max-w-4xl mx-auto">
         <AnimatePresence mode="wait">
+          {!isGenerating && !isComplete && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="text-center"
+            >
+              <div className="w-24 h-24 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                <Loader2 className="w-12 h-12 text-[#E85A24] animate-spin" />
+              </div>
+              <h1 className="text-2xl font-bold text-[#6B2D4A] mb-4">
+                מכין ליצירה...
+              </h1>
+              <p className="text-gray-500">
+                טוען פרומפטים ומתחיל ביצירת הסקרים
+              </p>
+            </motion.div>
+          )}
+
           {isGenerating && !isComplete && (
             <motion.div
               initial={{ opacity: 0 }}
