@@ -330,8 +330,7 @@ export default function GenerateSurveyMultiple() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-orange-50/50 to-white p-6">
       <div className="max-w-4xl mx-auto">
-
-
+        <AnimatePresence mode="wait">
           {isGenerating && !isComplete && (
             <motion.div
               initial={{ opacity: 0 }}
