@@ -139,7 +139,7 @@ export default function GenerateSurveyMultiple() {
     
     console.log(`Generating with prompt: ${prompt.name}, unified: ${isUnified}`);
     
-    let scaleResponse;
+    let scaleResponse, openResponse;
     
     if (isUnified) {
       // Unified prompt format
@@ -180,6 +180,7 @@ export default function GenerateSurveyMultiple() {
       
       console.log('Unified response received:', response);
       scaleResponse = { questions: response.scale_questions || [] };
+      openResponse = { questions: response.open_questions || [] };
     } else {
       // Legacy format
       scaleResponse = await base44.integrations.Core.InvokeLLM({
@@ -208,6 +209,7 @@ export default function GenerateSurveyMultiple() {
         }
       });
       console.log('Legacy response received:', scaleResponse);
+      openResponse = { questions: [] }; // No open questions for legacy prompts
     }
 
     // Create a duplicate survey
@@ -277,6 +279,19 @@ export default function GenerateSurveyMultiple() {
         prompt_hebrew: q.prompt,
         is_required: true,
         scale_labels: q.scale_labels || { low: 'לא מסכים כלל', high: 'מסכים לחלוטין' },
+        is_generated: true
+      });
+    }
+
+    // Add open questions
+    for (const q of openResponse.questions || []) {
+      questionsToCreate.push({
+        survey_id: newSurvey.id,
+        order_index: orderIndex++,
+        question_type: 'open_text',
+        kit_domain: 'none',
+        prompt_hebrew: q.prompt,
+        is_required: false,
         is_generated: true
       });
     }

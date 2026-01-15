@@ -7,7 +7,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { motion } from 'framer-motion';
 import { 
   ChevronLeft, Edit2, FileText, Users, School, 
-  Calendar, Target, Sparkles, CheckCircle 
+  Calendar, Target, Sparkles, CheckCircle, Home, Shield
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -110,6 +110,18 @@ export default function ProfileSummary() {
       value: getGradeLabel(),
       step: 'GradeRange'
     },
+    {
+      icon: Shield,
+      label: 'אנונימיות',
+      value: survey.is_anonymous === false ? 'שמי (עם שם)' : 'אנונימי',
+      step: 'SurveyType'
+    },
+    ...(getBackgroundQuestions() ? [{
+      icon: Users,
+      label: 'שאלות רקע',
+      value: getBackgroundQuestions(),
+      step: 'BackgroundQuestions'
+    }] : []),
     { 
       icon: Calendar, 
       label: 'סוג הפעילות', 
@@ -143,13 +155,7 @@ export default function ProfileSummary() {
         ? survey.success_definition.custom_text?.slice(0, 50) + '...'
         : survey.success_definition?.selected_ideas?.join(', ')?.slice(0, 50) + '...' || 'לא הוגדר',
       step: 'SuccessDefinition'
-    },
-    ...(getBackgroundQuestions() ? [{
-      icon: Users,
-      label: 'שאלות רקע',
-      value: getBackgroundQuestions(),
-      step: 'BackgroundQuestions'
-    }] : []),
+    }
   ] : [];
 
   const handleContinue = async () => {
@@ -176,6 +182,16 @@ export default function ProfileSummary() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-orange-50/50 to-white">
       <div className="max-w-lg mx-auto px-4 py-8">
+        {/* Home Button */}
+        <div className="mb-6">
+          <Link to={createPageUrl('Home')}>
+            <Button variant="outline" size="sm" className="gap-2">
+              <Home className="w-4 h-4" />
+              חזרה לדף הבית
+            </Button>
+          </Link>
+        </div>
+
         {/* Header */}
         <div className="text-center mb-8">
           <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
