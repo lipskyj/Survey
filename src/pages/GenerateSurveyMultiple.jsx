@@ -42,9 +42,13 @@ export default function GenerateSurveyMultiple() {
         }
       }
       
-      // Load active prompts
+      // Load active prompts and auto-start generation
       const prompts = await base44.entities.AdminPrompt.filter({ is_active: true });
       setActivePrompts(prompts);
+      
+      if (prompts.length > 0 && surveys.length > 0) {
+        generateAll();
+      }
     };
     loadData();
   }, []);
@@ -222,8 +226,7 @@ export default function GenerateSurveyMultiple() {
   };
 
   const generateAll = async () => {
-    if (activePrompts.length === 0) {
-      toast.error('אין פרומפטים פעילים');
+    if (!activePrompts || activePrompts.length === 0 || !survey) {
       return;
     }
 
@@ -234,7 +237,7 @@ export default function GenerateSurveyMultiple() {
       for (let i = 0; i < activePrompts.length; i++) {
         setCurrentPromptIndex(i);
         const newSurvey = await generateWithPrompt(activePrompts[i]);
-        results.push({ prompt: activePrompts[i].name, survey: newSurvey });
+        results.push({ prompt: activePrompts[i].name, survey: newSurvey, promptNotes: activePrompts[i].notes });
       }
 
       setGeneratedSurveys(results);
@@ -296,11 +299,16 @@ export default function GenerateSurveyMultiple() {
           <Card className="border-[#E85A24] mb-6">
             <CardHeader>
               <div className="flex items-center justify-between">
-                <div>
-                  <CardTitle className="text-2xl">{viewingVersion.survey.title}</CardTitle>
-                  <p className="text-sm text-gray-500 mt-1">
+                <div className="flex-1">
+                  <CardTitle className="text-2xl mb-2">{viewingVersion.survey.title}</CardTitle>
+                  <p className="text-sm text-gray-500 mb-2">
                     נוצר בעזרת: <span className="font-medium text-[#E85A24]">{viewingVersion.prompt}</span>
                   </p>
+                  {viewingVersion.promptNotes && (
+                    <p className="text-sm text-gray-600 bg-gray-50 p-3 rounded-lg">
+                      {viewingVersion.promptNotes}
+                    </p>
+                  )}
                 </div>
                 <Button
                   onClick={() => navigate(createPageUrl('SurveyEditor') + `?surveyId=${viewingVersion.survey.id}`)}
@@ -322,49 +330,7 @@ export default function GenerateSurveyMultiple() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-orange-50/50 to-white p-6">
       <div className="max-w-4xl mx-auto">
-        <AnimatePresence mode="wait">
-          {!isGenerating && !isComplete && (
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="text-center mb-8"
-            >
-              <div className="w-20 h-20 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Sparkles className="w-10 h-10 text-[#E85A24]" />
-              </div>
-              <h1 className="text-3xl font-bold text-[#6B2D4A] mb-2">
-                יצירת גרסאות סקר מרובות
-              </h1>
-              <p className="text-gray-500 mb-4">
-                {activePrompts.length} פרומפטים פעילים - ייווצרו {activePrompts.length} גרסאות סקר
-              </p>
 
-              <div className="grid gap-3 mb-6 max-w-xl mx-auto">
-                {activePrompts.map((prompt, idx) => (
-                  <Card key={prompt.id} className="border-[#E85A24]">
-                    <CardContent className="p-4 flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-full bg-[#E85A24] text-white flex items-center justify-center font-bold">
-                        {idx + 1}
-                      </div>
-                      <div className="flex-1 text-right">
-                        <p className="font-medium text-[#6B2D4A]">{prompt.name}</p>
-                        <p className="text-xs text-gray-500">{prompt.language === 'both' ? 'עברית + عربية' : prompt.language}</p>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-
-              <Button
-                onClick={generateAll}
-                disabled={activePrompts.length === 0}
-                className="px-8 py-6 bg-[#E85A24] hover:bg-[#D14A1A] text-white text-lg font-medium rounded-xl"
-              >
-                <Sparkles className="w-5 h-5 ml-2" />
-                צור את כל הגרסאות
-              </Button>
-            </motion.div>
-          )}
 
           {isGenerating && !isComplete && (
             <motion.div
@@ -437,13 +403,18 @@ export default function GenerateSurveyMultiple() {
                                 )}
                               </div>
                               <p className="text-sm text-gray-600 mt-1">{survey.title}</p>
+                              {generatedSurveys[idx].promptNotes && (
+                                <p className="text-xs text-gray-500 mt-1 bg-gray-50 p-2 rounded">
+                                  {generatedSurveys[idx].promptNotes}
+                                </p>
+                              )}
                             </div>
                           </div>
                         </div>
                       </CardHeader>
                       <CardContent className="flex gap-2">
                         <Button
-                          onClick={() => viewVersion({ prompt, survey })}
+                          onClick={() => viewVersion({ prompt, survey, promptNotes: generatedSurveys[idx].promptNotes })}
                           variant="outline"
                           className="flex-1"
                         >
