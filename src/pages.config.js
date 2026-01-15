@@ -22,9 +22,9 @@ import ResultsByQuestion from './pages/ResultsByQuestion';
 import ResultsOverview from './pages/ResultsOverview';
 import SuccessDefinition from './pages/SuccessDefinition';
 import SurveyEditor from './pages/SurveyEditor';
+import SurveyLanguage from './pages/SurveyLanguage';
 import SurveyManagement from './pages/SurveyManagement';
 import SurveyType from './pages/SurveyType';
-import SurveyLanguage from './pages/SurveyLanguage';
 import __Layout from './Layout.jsx';
 
 
@@ -53,9 +53,9 @@ export const PAGES = {
     "ResultsOverview": ResultsOverview,
     "SuccessDefinition": SuccessDefinition,
     "SurveyEditor": SurveyEditor,
+    "SurveyLanguage": SurveyLanguage,
     "SurveyManagement": SurveyManagement,
     "SurveyType": SurveyType,
-    "SurveyLanguage": SurveyLanguage,
 }
 
 export const pagesConfig = {

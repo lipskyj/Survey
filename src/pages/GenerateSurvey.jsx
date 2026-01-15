@@ -58,7 +58,7 @@ export default function GenerateSurvey() {
     }
   }, [survey]);
 
-  const buildPrompts = () => {
+  const buildPrompts = async () => {
     const contentFocuses = survey.content_focus || ['pedagogical'];
     const measurementTargets = survey.measurement_targets || {};
     const valuesToMeasure = measurementTargets.selected_values?.join(', ') || '';
@@ -258,41 +258,62 @@ ${survey.event_type === 'ongoing_program' ? '• התייחס לתהליך המ�
 }`;
 
     // Check for active admin prompt from database
-    const loadActivePrompt = async () => {
-      try {
-        const adminPrompts = await base44.entities.AdminPrompt.filter({ is_active: true });
-        const activePrompt = adminPrompts.find(p => 
-          p.is_active && (p.language === 'both' || p.language === survey.language)
-        );
+    try {
+      const adminPrompts = await base44.entities.AdminPrompt.filter({ is_active: true });
+      const activePrompt = adminPrompts.find(p => 
+        p.is_active && (p.language === 'both' || p.language === survey.language)
+      );
+      
+      console.log('Active prompt found:', activePrompt?.name);
+      
+      if (activePrompt) {
+        let customPrompt = activePrompt.prompt_text;
         
-        if (activePrompt) {
-          let customPrompt = activePrompt.prompt_text;
-          customPrompt = customPrompt.replace(/{activity_description}/g, survey.activity_description || 'לא צוין');
-          customPrompt = customPrompt.replace(/{audience}/g, audienceLabels[survey.audience] || survey.audience);
-          customPrompt = customPrompt.replace(/{grades}/g, selectedGrades || 'לא צוין');
-          customPrompt = customPrompt.replace(/{event_type}/g, eventTypeLabels[survey.event_type] || survey.event_type || 'לא צוין');
-          customPrompt = customPrompt.replace(/{content_focus}/g, contentFocusDisplay);
-          customPrompt = customPrompt.replace(/{values_section}/g, valuesToMeasure ? `• ערכים למדידה: ${valuesToMeasure}` : '');
-          customPrompt = customPrompt.replace(/{knowledge_section}/g, knowledgeToMeasure ? `• ידע למדידה: ${knowledgeToMeasure}` : '');
-          customPrompt = customPrompt.replace(/{skills_section}/g, skillsToMeasure ? `• מיומנויות למדידה: ${skillsToMeasure}` : '');
-          customPrompt = customPrompt.replace(/{goals_section}/g, evaluationGoals ? `• מטרות ההערכה: ${evaluationGoals}` : '');
-          customPrompt = customPrompt.replace(/{success_section}/g, successDef ? `• הגדרת הצלחה: ${successDef}` : '');
-          setScalePrompt(customPrompt);
-          setOpenPrompt(''); // Not used when custom prompt is active
-        } else {
-          // Use default prompts based on survey language
-          setScalePrompt(newScalePrompt);
-          setOpenPrompt(newOpenPrompt);
-        }
-      } catch (error) {
-        // Fallback to defaults
+        // Replace all variables
+        customPrompt = customPrompt.replace(/{activity_description}/g, survey.activity_description || 'לא צוין');
+        customPrompt = customPrompt.replace(/{audience}/g, audienceLabels[survey.audience] || survey.audience);
+        customPrompt = customPrompt.replace(/{grades}/g, selectedGrades || 'לא צוין');
+        customPrompt = customPrompt.replace(/{event_type}/g, eventTypeLabels[survey.event_type] || survey.event_type || 'לא צוין');
+        customPrompt = customPrompt.replace(/{content_focus}/g, contentFocusDisplay);
+        customPrompt = customPrompt.replace(/{values_section}/g, valuesToMeasure ? `• ערכים למדידה: ${valuesToMeasure}` : '');
+        customPrompt = customPrompt.replace(/{knowledge_section}/g, knowledgeToMeasure ? `• ידע למדידה: ${knowledgeToMeasure}` : '');
+        customPrompt = customPrompt.replace(/{skills_section}/g, skillsToMeasure ? `• מיומנויות למדידה: ${skillsToMeasure}` : '');
+        customPrompt = customPrompt.replace(/{goals_section}/g, evaluationGoals ? `• מטרות ההערכה: ${evaluationGoals}` : '');
+        customPrompt = customPrompt.replace(/{success_section}/g, successDef ? `• הגדרת הצלחה: ${successDef}` : '');
+        
+        // Also replace audience language section
+        const studentLanguageSection = survey.audience === 'students' ? `
+═══════════════════════════════════════
+📝 הנחיות שפה לתלמידים - קריטי!
+═══════════════════════════════════════
+• גוף שני (את/ה) - לא גוף ראשון (אני)
+• שפה פשוטה וידידותית - לא מקצועית!
+• ❌ לא: "פדגוגי", "הקנייה", "טיפוח ערכים", "רכישת מיומנויות"
+• ✅ כן: "מעניין", "למדתי", "הרגשתי", "נהניתי"` : '';
+        
+        customPrompt = customPrompt.replace(/{student_language_section}/g, studentLanguageSection);
+        
+        const audienceLanguage = survey.audience === 'students' ? 'שפה פשוטה בגוף שני (את/ה)' : 'שפה מקצועית מכבדת';
+        customPrompt = customPrompt.replace(/{audience_language}/g, audienceLanguage);
+        
+        const ongoingNote = survey.event_type === 'ongoing_program' ? 'התייחס לתהליך המתמשך, לא רק לאירוע בודד' : '';
+        customPrompt = customPrompt.replace(/{ongoing_note}/g, ongoingNote);
+        
+        console.log('Using custom prompt, length:', customPrompt.length);
+        setScalePrompt(customPrompt);
+        setOpenPrompt(newOpenPrompt); // Use default for open questions
+      } else {
+        console.log('No active prompt, using defaults');
         setScalePrompt(newScalePrompt);
         setOpenPrompt(newOpenPrompt);
       }
-      setPromptReady(true);
-    };
+    } catch (error) {
+      console.error('Error loading active prompt:', error);
+      setScalePrompt(newScalePrompt);
+      setOpenPrompt(newOpenPrompt);
+    }
     
-    loadActivePrompt();
+    setPromptReady(true);
   };
 
   const generateQuestions = async () => {
@@ -337,23 +358,25 @@ ${survey.event_type === 'ongoing_program' ? '• התייחס לתהליך המ�
       // Step 4: Generate open questions
       setGenerationStep(4);
 
-      const openResponse = await base44.integrations.Core.InvokeLLM({
-        prompt: openPrompt,
-        response_json_schema: {
-          type: "object",
-          properties: {
-            questions: {
-              type: "array",
-              items: {
-                type: "object",
-                properties: {
-                  prompt: { type: "string" }
+      const openResponse = openPrompt.trim() 
+        ? await base44.integrations.Core.InvokeLLM({
+            prompt: openPrompt,
+            response_json_schema: {
+              type: "object",
+              properties: {
+                questions: {
+                  type: "array",
+                  items: {
+                    type: "object",
+                    properties: {
+                      prompt: { type: "string" }
+                    }
+                  }
                 }
               }
             }
-          }
-        }
-      });
+          })
+        : { questions: [] };
 
       // Generate bottom line question based on audience
       const bottomLinePrompts = {
@@ -572,12 +595,17 @@ ${survey.activity_description}
 
               <Button
                 onClick={generateQuestions}
-                disabled={!scalePrompt.trim()}
+                disabled={!scalePrompt.trim() || !promptReady}
                 className="px-8 py-6 bg-[#E85A24] hover:bg-[#D14A1A] text-white text-lg font-medium rounded-xl shadow-lg shadow-orange-200"
               >
                 <Sparkles className="w-5 h-5 ml-2" />
                 צור סקר
               </Button>
+              {scalePrompt && (
+                <p className="text-xs text-gray-400 mt-3">
+                  {scalePrompt.includes('prompt v2') ? '✅ משתמש בפרומפט מותאם' : 'משתמש בפרומפט סטנדרטי'}
+                </p>
+              )}
             </motion.div>
           )}
 
