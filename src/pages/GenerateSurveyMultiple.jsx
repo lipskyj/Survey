@@ -8,6 +8,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Sparkles, Loader2, CheckCircle, FileText, Eye, ArrowRight, Trash2, Check } from 'lucide-react';
 import { Switch } from "@/components/ui/switch";
 import { toast } from 'sonner';
+import SurveyPreview from '../components/SurveyPreview';
 
 const KIT_MAPPING = {
   pedagogical: ['relevance', 'skills', 'delivery_quality'],
