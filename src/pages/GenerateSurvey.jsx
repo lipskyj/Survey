@@ -261,41 +261,28 @@ ${survey.event_type === 'ongoing_program' ? '• התייחס לתהליך המ�
     const savedConfig = localStorage.getItem('admin_prompts_config');
     if (savedConfig) {
       const config = JSON.parse(savedConfig);
-      if (config.useCustomScalePrompt && config.scalePrompt) {
-        // Replace placeholders in custom prompt
-        let customScale = config.scalePrompt;
-        customScale = customScale.replace('{activity_description}', survey.activity_description || 'לא צוין');
-        customScale = customScale.replace('{audience}', audienceLabels[survey.audience] || survey.audience);
-        customScale = customScale.replace('{grades}', selectedGrades || 'לא צוין');
-        customScale = customScale.replace('{event_type}', eventTypeLabels[survey.event_type] || survey.event_type || 'לא צוין');
-        customScale = customScale.replace('{content_focus}', contentFocusDisplay);
-        customScale = customScale.replace('{values_section}', valuesToMeasure ? `• ערכים למדידה: ${valuesToMeasure}` : '');
-        customScale = customScale.replace('{knowledge_section}', knowledgeToMeasure ? `• ידע למדידה: ${knowledgeToMeasure}` : '');
-        customScale = customScale.replace('{skills_section}', skillsToMeasure ? `• מיומנויות למדידה: ${skillsToMeasure}` : '');
-        customScale = customScale.replace('{goals_section}', evaluationGoals ? `• מטרות ההערכה: ${evaluationGoals}` : '');
-        customScale = customScale.replace('{success_section}', successDef ? `• הגדרת הצלחה: ${successDef}` : '');
-        customScale = customScale.replace('{student_language_section}', survey.audience === 'students' ? `
-═══════════════════════════════════════
-📝 הנחיות שפה לתלמידים - קריטי!
-═══════════════════════════════════════
-• גוף שני (את/ה) - לא גוף ראשון (אני)
-• שפה פשוטה וידידותית - לא מקצועית!
-• ❌ לא: "פדגוגי", "הקנייה", "טיפוח ערכים", "רכישת מיומנויות"
-• ✅ כן: "מעניין", "למדתי", "הרגשתי", "נהניתי"` : '');
-        setScalePrompt(customScale);
+      
+      // If custom prompt is active, use it for everything
+      if (config.useCustomPrompt && config.customPrompt) {
+        let customPrompt = config.customPrompt;
+        customPrompt = customPrompt.replace(/{activity_description}/g, survey.activity_description || 'לא צוין');
+        customPrompt = customPrompt.replace(/{audience}/g, audienceLabels[survey.audience] || survey.audience);
+        customPrompt = customPrompt.replace(/{grades}/g, selectedGrades || 'לא צוין');
+        customPrompt = customPrompt.replace(/{event_type}/g, eventTypeLabels[survey.event_type] || survey.event_type || 'לא צוין');
+        customPrompt = customPrompt.replace(/{content_focus}/g, contentFocusDisplay);
+        customPrompt = customPrompt.replace(/{values_section}/g, valuesToMeasure ? `• ערכים למדידה: ${valuesToMeasure}` : '');
+        customPrompt = customPrompt.replace(/{knowledge_section}/g, knowledgeToMeasure ? `• ידע למדידה: ${knowledgeToMeasure}` : '');
+        customPrompt = customPrompt.replace(/{skills_section}/g, skillsToMeasure ? `• מיומנויות למדידה: ${skillsToMeasure}` : '');
+        customPrompt = customPrompt.replace(/{goals_section}/g, evaluationGoals ? `• מטרות ההערכה: ${evaluationGoals}` : '');
+        customPrompt = customPrompt.replace(/{success_section}/g, successDef ? `• הגדרת הצלחה: ${successDef}` : '');
+        setScalePrompt(customPrompt);
+        setOpenPrompt(''); // Not used when custom prompt is active
+      } else if (config.language === 'arabic') {
+        // Use Arabic defaults
+        setScalePrompt(newScalePrompt.replace('אתה מומחה להערכה בית ספרית', 'أنت خبير في التقييم المدرسي'));
+        setOpenPrompt(newOpenPrompt);
       } else {
         setScalePrompt(newScalePrompt);
-      }
-
-      if (config.useCustomOpenPrompt && config.openPrompt) {
-        let customOpen = config.openPrompt;
-        customOpen = customOpen.replace('{activity_description}', survey.activity_description || 'לא צוין');
-        customOpen = customOpen.replace('{audience}', audienceLabels[survey.audience] || survey.audience);
-        customOpen = customOpen.replace('{event_type}', eventTypeLabels[survey.event_type] || survey.event_type || 'לא צוין');
-        customOpen = customOpen.replace('{audience_language}', survey.audience === 'students' ? '• שפה פשוטה בגוף שני (את/ה)' : '• שפה מקצועית מכבדת');
-        customOpen = customOpen.replace('{ongoing_note}', survey.event_type === 'ongoing_program' ? '• התייחס לתהליך המתמשך, לא רק לאירוע בודד' : '');
-        setOpenPrompt(customOpen);
-      } else {
         setOpenPrompt(newOpenPrompt);
       }
     } else {

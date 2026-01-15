@@ -4,7 +4,7 @@ import { createPageUrl } from '@/utils';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { motion } from 'framer-motion';
-import { Plus, FileText, Edit3, CheckCircle2 } from 'lucide-react';
+import { Plus, FileText, Edit3, CheckCircle2, Settings } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import OnboardingCarousel from '@/components/OnboardingCarousel';
@@ -125,6 +125,31 @@ export default function Home() {
                   </div>
                   <div className="text-3xl sm:text-4xl font-black text-amber-600">
                     {draftSurveys.length}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </Link>
+        </motion.div>
+
+        {/* Admin Settings */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: showOnboarding ? 0 : 0.4 }}
+        >
+          <Link to={createPageUrl('AdminPrompts')}>
+            <Card className="bg-white border border-gray-100 shadow-sm hover:shadow-md transition-all rounded-3xl group cursor-pointer">
+              <CardContent className="p-6 sm:p-8">
+                <div className="flex items-center gap-4 sm:gap-5">
+                  <div className="w-14 h-14 sm:w-16 sm:h-16 bg-gray-100 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform">
+                    <Settings className="w-7 h-7 sm:w-8 sm:h-8 text-gray-600" />
+                  </div>
+                  <div>
+                    <h3 className="text-xl sm:text-2xl font-black text-[#6B2D4A] mb-1">הגדרות מנהל</h3>
+                    <p className="text-gray-500 text-sm sm:text-base font-medium">
+                      ניהול פרומפטים ושפת השאלונים
+                    </p>
                   </div>
                 </div>
               </CardContent>

@@ -16,7 +16,7 @@ const ADMIN_PASSWORD = '1234';
 // Default prompts storage key
 const PROMPTS_STORAGE_KEY = 'admin_prompts_config';
 
-const DEFAULT_SCALE_PROMPT = `אתה מומחה להערכה בית ספרית מבוסס על "ערכה להערכת תכניות ופעילויות בית ספריות" של רשת עתיד.
+const DEFAULT_SCALE_PROMPT_HE = `אתה מומחה להערכה בית ספרית מבוסס על "ערכה להערכת תכניות ופעילויות בית ספריות" של רשת עתיד.
 
 🎯 מטרת השאלון: לסייע לצוותים לקיים הערכה פשוטה, עניינית ומשמעותית שתשמש תשתית לקבלת החלטות מבוססות נתונים.
 
@@ -104,7 +104,68 @@ const DEFAULT_SCALE_PROMPT = `אתה מומחה להערכה בית ספרית �
   ]
 }`;
 
-const DEFAULT_OPEN_PROMPT = `אתה מומחה להערכה בית ספרית. צור שאלות פתוחות לסקר משוב.
+const DEFAULT_SCALE_PROMPT_AR = `أنت خبير في التقييم المدرسي بناءً على "مجموعة أدوات تقييم البرامج والأنشطة المدرسية" لشبكة عتيد.
+
+🎯 هدف الاستبيان: مساعدة الفرق على إجراء تقييم بسيط وموضوعي وهادف يشكل أساساً لاتخاذ قرارات مبنية على البيانات.
+
+═══════════════════════════════════════
+📋 تفاصيل النشاط/البرنامج:
+═══════════════════════════════════════
+• الوصف: {activity_description}
+• الجمهور المستهدف: {audience}
+• الصفوف: {grades}
+• النوع: {event_type}
+• مجالات التركيز: {content_focus}
+{values_section}
+{knowledge_section}
+{skills_section}
+{goals_section}
+{success_section}
+
+═══════════════════════════════════════
+🔬 نموذج التقييم متعدد الطبقات (KIT Framework):
+═══════════════════════════════════════
+يجب أن يغطي كل استبيان جميع الطبقات التالية:
+
+🅰️ الطبقة المعرفية - اكتساب المعرفة
+🅱️ طبقة المهارات والتطبيق
+🅲️ الطبقة العاطفية-التحفيزية
+🅳️ طبقة الانتماء والمشاركة
+🅴️ طبقة الصلة بالواقع
+🅵️ جودة التوجيه/الإرشاد
+
+═══════════════════════════════════════
+⚠️ تعليمات إلزامية:
+═══════════════════════════════════════
+1. ✅ كل عبارة تقيس بُعداً واحداً فقط
+2. ✅ لا تكرار - كل عبارة مختلفة جوهرياً
+3. ✅ صياغة إيجابية
+4. ✅ قصيرة وواضحة - حتى 15 كلمة
+5. ✅ تصنيف: 5 درجات (1=لا أوافق إطلاقاً، 5=أوافق تماماً)
+
+{student_language_section}
+
+═══════════════════════════════════════
+📊 هيكل الاستبيان المطلوب:
+═══════════════════════════════════════
+أنشئ بالضبط 10 عبارات للتصنيف.
+
+═══════════════════════════════════════
+📤 صيغة الإجابة:
+═══════════════════════════════════════
+أعد JSON مع مصفوفة من 10 أسئلة بالضبط.
+كل سؤال يتضمن:
+- prompt: نص العبارة بالعربية
+- kit_domain: أحد: relevance, skills, delivery_quality, belonging
+
+{
+  "questions": [
+    {"prompt": "تعلمت أشياء جديدة لم أكن أعرفها من قبل", "kit_domain": "skills"},
+    {"prompt": "قدّم المرشد النشاط بطريقة مثيرة للاهتمام", "kit_domain": "delivery_quality"}
+  ]
+}`;
+
+const DEFAULT_OPEN_PROMPT_HE = `אתה מומחה להערכה בית ספרית. צור שאלות פתוחות לסקר משוב.
 
 ═══════════════════════════════════════
 📋 פרטי הפעילות:
@@ -159,16 +220,53 @@ const DEFAULT_OPEN_PROMPT = `אתה מומחה להערכה בית ספרית. �
   ]
 }`;
 
+const DEFAULT_OPEN_PROMPT_AR = `أنت خبير في التقييم المدرسي. أنشئ أسئلة مفتوحة لاستبيان التغذية الراجعة.
+
+═══════════════════════════════════════
+📋 تفاصيل النشاط:
+═══════════════════════════════════════
+• الوصف: {activity_description}
+• النوع: {event_type}
+• الجمهور: {audience}
+
+═══════════════════════════════════════
+📊 أنشئ بالضبط 4 أسئلة مفتوحة:
+═══════════════════════════════════════
+
+1️⃣ سؤال تأملي عن التعلم الذاتي
+2️⃣ سؤال عن الجزء الأكثر أهمية/نجاحاً
+3️⃣ سؤال نقدي للتحسين
+4️⃣ سؤال مفتوح عام
+
+═══════════════════════════════════════
+⚠️ تعليمات إلزامية:
+═══════════════════════════════════════
+{audience_language}
+{ongoing_note}
+• أسئلة قصيرة وواضحة
+• لا تكرار لنفس الأفكار من أسئلة التصنيف
+
+═══════════════════════════════════════
+📤 صيغة الإجابة:
+═══════════════════════════════════════
+{
+  "questions": [
+    {"prompt": "نص السؤال الأول"},
+    {"prompt": "نص السؤال الثاني"},
+    {"prompt": "نص السؤال الثالث"},
+    {"prompt": "نص السؤال الرابع"}
+  ]
+}`;
+
 export default function AdminPrompts() {
   const navigate = useNavigate();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   
-  const [scalePrompt, setScalePrompt] = useState('');
-  const [openPrompt, setOpenPrompt] = useState('');
-  const [useCustomScalePrompt, setUseCustomScalePrompt] = useState(false);
-  const [useCustomOpenPrompt, setUseCustomOpenPrompt] = useState(false);
+  const [language, setLanguage] = useState('hebrew'); // hebrew or arabic
+  const [customPrompt, setCustomPrompt] = useState('');
+  const [useCustomPrompt, setUseCustomPrompt] = useState(false);
   const [savedConfig, setSavedConfig] = useState(null);
 
   useEffect(() => {
@@ -177,13 +275,9 @@ export default function AdminPrompts() {
     if (saved) {
       const config = JSON.parse(saved);
       setSavedConfig(config);
-      setScalePrompt(config.scalePrompt || DEFAULT_SCALE_PROMPT);
-      setOpenPrompt(config.openPrompt || DEFAULT_OPEN_PROMPT);
-      setUseCustomScalePrompt(config.useCustomScalePrompt || false);
-      setUseCustomOpenPrompt(config.useCustomOpenPrompt || false);
-    } else {
-      setScalePrompt(DEFAULT_SCALE_PROMPT);
-      setOpenPrompt(DEFAULT_OPEN_PROMPT);
+      setLanguage(config.language || 'hebrew');
+      setCustomPrompt(config.customPrompt || '');
+      setUseCustomPrompt(config.useCustomPrompt || false);
     }
   }, []);
 
@@ -198,10 +292,9 @@ export default function AdminPrompts() {
 
   const handleSave = () => {
     const config = {
-      scalePrompt,
-      openPrompt,
-      useCustomScalePrompt,
-      useCustomOpenPrompt,
+      language,
+      customPrompt,
+      useCustomPrompt,
       lastUpdated: new Date().toISOString()
     };
     localStorage.setItem(PROMPTS_STORAGE_KEY, JSON.stringify(config));
@@ -209,14 +302,17 @@ export default function AdminPrompts() {
     toast.success('ההגדרות נשמרו בהצלחה');
   };
 
-  const handleResetScale = () => {
-    setScalePrompt(DEFAULT_SCALE_PROMPT);
-    toast.success('פרומפט שאלות הדירוג אופס לברירת המחדל');
+  const handleResetCustom = () => {
+    setCustomPrompt('');
+    setUseCustomPrompt(false);
+    toast.success('הפרומפט המותאם נמחק');
   };
 
-  const handleResetOpen = () => {
-    setOpenPrompt(DEFAULT_OPEN_PROMPT);
-    toast.success('פרומפט השאלות הפתוחות אופס לברירת המחדל');
+  const getDefaultPrompts = () => {
+    if (language === 'arabic') {
+      return { scale: DEFAULT_SCALE_PROMPT_AR, open: DEFAULT_OPEN_PROMPT_AR };
+    }
+    return { scale: DEFAULT_SCALE_PROMPT_HE, open: DEFAULT_OPEN_PROMPT_HE };
   };
 
   const copyToClipboard = (text) => {
@@ -272,6 +368,8 @@ export default function AdminPrompts() {
     );
   }
 
+  const defaults = getDefaultPrompts();
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
       {/* Header */}
@@ -297,11 +395,41 @@ export default function AdminPrompts() {
       </div>
 
       <div className="max-w-4xl mx-auto px-4 py-6 space-y-6">
+        {/* Language Selection */}
+        <Card className="border-2 border-[#E85A24]">
+          <CardHeader>
+            <CardTitle className="text-lg text-[#6B2D4A]">שפת השאלונים</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex gap-4">
+              <label 
+                className={`flex-1 flex items-center gap-3 p-4 rounded-xl cursor-pointer transition-all ${language === 'hebrew' ? 'bg-[#E85A24]/10 border-2 border-[#E85A24]' : 'bg-white border-2 border-gray-200 hover:border-gray-300'}`}
+                onClick={() => setLanguage('hebrew')}
+              >
+                <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${language === 'hebrew' ? 'border-[#E85A24]' : 'border-gray-300'}`}>
+                  {language === 'hebrew' && <div className="w-2.5 h-2.5 rounded-full bg-[#E85A24]" />}
+                </div>
+                <span className="font-medium">עברית</span>
+              </label>
+              
+              <label 
+                className={`flex-1 flex items-center gap-3 p-4 rounded-xl cursor-pointer transition-all ${language === 'arabic' ? 'bg-[#E85A24]/10 border-2 border-[#E85A24]' : 'bg-white border-2 border-gray-200 hover:border-gray-300'}`}
+                onClick={() => setLanguage('arabic')}
+              >
+                <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${language === 'arabic' ? 'border-[#E85A24]' : 'border-gray-300'}`}>
+                  {language === 'arabic' && <div className="w-2.5 h-2.5 rounded-full bg-[#E85A24]" />}
+                </div>
+                <span className="font-medium">عربية</span>
+              </label>
+            </div>
+          </CardContent>
+        </Card>
+
         {/* Info Box */}
         <Card className="bg-blue-50 border-blue-200">
           <CardContent className="p-4">
             <p className="text-sm text-blue-800">
-              <strong>משתנים זמינים בפרומפט שאלות דירוג:</strong><br />
+              <strong>משתנים זמינים בפרומפט:</strong><br />
               <code className="bg-blue-100 px-1 rounded">{'{activity_description}'}</code> - תיאור הפעילות<br />
               <code className="bg-blue-100 px-1 rounded">{'{audience}'}</code> - קהל יעד<br />
               <code className="bg-blue-100 px-1 rounded">{'{grades}'}</code> - שכבות גיל<br />
@@ -311,110 +439,109 @@ export default function AdminPrompts() {
               <code className="bg-blue-100 px-1 rounded">{'{knowledge_section}'}</code> - ידע למדידה<br />
               <code className="bg-blue-100 px-1 rounded">{'{skills_section}'}</code> - מיומנויות למדידה<br />
               <code className="bg-blue-100 px-1 rounded">{'{goals_section}'}</code> - מטרות ההערכה<br />
-              <code className="bg-blue-100 px-1 rounded">{'{success_section}'}</code> - הגדרת הצלחה<br />
-              <code className="bg-blue-100 px-1 rounded">{'{student_language_section}'}</code> - הנחיות שפה לתלמידים (אוטומטי)
-            </p>
-            <p className="text-sm text-blue-800 mt-3">
-              <strong>משתנים לפרומפט שאלות פתוחות:</strong><br />
-              <code className="bg-blue-100 px-1 rounded">{'{activity_description}'}</code>, 
-              <code className="bg-blue-100 px-1 rounded">{'{audience}'}</code>, 
-              <code className="bg-blue-100 px-1 rounded">{'{event_type}'}</code><br />
-              <code className="bg-blue-100 px-1 rounded">{'{audience_language}'}</code> - הנחיות שפה לפי קהל<br />
-              <code className="bg-blue-100 px-1 rounded">{'{ongoing_note}'}</code> - הערה לתוכנית מתמשכת
+              <code className="bg-blue-100 px-1 rounded">{'{success_section}'}</code> - הגדרת הצלחה
             </p>
           </CardContent>
         </Card>
 
-        {/* Scale Questions Prompt */}
+        {/* Custom Prompt Toggle */}
         <Card className="border-2 border-gray-200">
           <CardHeader>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <Sparkles className="w-5 h-5 text-[#E85A24]" />
-                <CardTitle className="text-lg text-[#6B2D4A]">פרומפט שאלות דירוג (10 היגדים)</CardTitle>
+                <CardTitle className="text-lg text-[#6B2D4A]">פרומפט מותאם אישית</CardTitle>
               </div>
-              <div className="flex items-center gap-4">
-                <div className="flex items-center gap-2">
-                  <Switch
-                    id="use-scale"
-                    checked={useCustomScalePrompt}
-                    onCheckedChange={setUseCustomScalePrompt}
-                  />
-                  <Label htmlFor="use-scale" className="text-sm">
-                    {useCustomScalePrompt ? 'פרומפט מותאם פעיל' : 'ברירת מחדל'}
-                  </Label>
-                </div>
-                <div className="flex gap-1">
-                  <Button variant="ghost" size="sm" onClick={() => copyToClipboard(scalePrompt)}>
-                    <Copy className="w-4 h-4" />
-                  </Button>
-                  <Button variant="ghost" size="sm" onClick={handleResetScale}>
-                    <RotateCcw className="w-4 h-4" />
-                  </Button>
-                </div>
+              <div className="flex items-center gap-2">
+                <Switch
+                  id="use-custom"
+                  checked={useCustomPrompt}
+                  onCheckedChange={setUseCustomPrompt}
+                />
+                <Label htmlFor="use-custom" className="text-sm">
+                  {useCustomPrompt ? 'פרומפט מותאם פעיל' : 'משתמש בברירת מחדל'}
+                </Label>
               </div>
             </div>
           </CardHeader>
           <CardContent>
-            <Textarea
-              value={scalePrompt}
-              onChange={(e) => setScalePrompt(e.target.value)}
-              className="min-h-[400px] text-sm font-mono leading-relaxed"
-              dir="rtl"
-            />
+            <p className="text-sm text-gray-600 mb-4">
+              {useCustomPrompt 
+                ? 'הפרומפט המותאם שלך משמש ליצירת השאלונים. הפרומפטים הסטנדרטיים לא פעילים.' 
+                : 'כרגע משתמשים בפרומפטים הסטנדרטיים לפי השפה שנבחרה.'}
+            </p>
+            
+            {useCustomPrompt && (
+              <div className="space-y-4">
+                <Textarea
+                  value={customPrompt}
+                  onChange={(e) => setCustomPrompt(e.target.value)}
+                  placeholder="כתוב כאן את הפרומפט המותאם שלך... הפרומפט צריך להחזיר JSON עם מערך questions הכולל את כל השאלות (דירוג + פתוחות)"
+                  className="min-h-[400px] text-sm font-mono leading-relaxed"
+                  dir="rtl"
+                />
+                <div className="flex gap-2">
+                  <Button variant="outline" size="sm" onClick={() => copyToClipboard(customPrompt)}>
+                    <Copy className="w-4 h-4 ml-1" />
+                    העתק
+                  </Button>
+                  <Button variant="outline" size="sm" onClick={handleResetCustom}>
+                    <RotateCcw className="w-4 h-4 ml-1" />
+                    מחק פרומפט מותאם
+                  </Button>
+                </div>
+              </div>
+            )}
           </CardContent>
         </Card>
 
-        {/* Open Questions Prompt */}
-        <Card className="border-2 border-gray-200">
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <Sparkles className="w-5 h-5 text-[#E85A24]" />
-                <CardTitle className="text-lg text-[#6B2D4A]">פרומפט שאלות פתוחות (4 שאלות)</CardTitle>
-              </div>
-              <div className="flex items-center gap-4">
-                <div className="flex items-center gap-2">
-                  <Switch
-                    id="use-open"
-                    checked={useCustomOpenPrompt}
-                    onCheckedChange={setUseCustomOpenPrompt}
-                  />
-                  <Label htmlFor="use-open" className="text-sm">
-                    {useCustomOpenPrompt ? 'פרומפט מותאם פעיל' : 'ברירת מחדל'}
-                  </Label>
-                </div>
-                <div className="flex gap-1">
-                  <Button variant="ghost" size="sm" onClick={() => copyToClipboard(openPrompt)}>
+        {/* Default Prompts Preview (Read Only) */}
+        {!useCustomPrompt && (
+          <>
+            <Card className="border-2 border-gray-200 bg-gray-50">
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-base text-gray-600">פרומפט ברירת מחדל - שאלות דירוג ({language === 'arabic' ? 'عربية' : 'עברית'})</CardTitle>
+                  <Button variant="ghost" size="sm" onClick={() => copyToClipboard(defaults.scale)}>
                     <Copy className="w-4 h-4" />
                   </Button>
-                  <Button variant="ghost" size="sm" onClick={handleResetOpen}>
-                    <RotateCcw className="w-4 h-4" />
+                </div>
+              </CardHeader>
+              <CardContent>
+                <pre className="text-xs text-gray-600 whitespace-pre-wrap font-sans leading-relaxed max-h-48 overflow-y-auto bg-white p-4 rounded-lg border">
+                  {defaults.scale}
+                </pre>
+              </CardContent>
+            </Card>
+
+            <Card className="border-2 border-gray-200 bg-gray-50">
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-base text-gray-600">פרומפט ברירת מחדל - שאלות פתוחות ({language === 'arabic' ? 'عربية' : 'עברית'})</CardTitle>
+                  <Button variant="ghost" size="sm" onClick={() => copyToClipboard(defaults.open)}>
+                    <Copy className="w-4 h-4" />
                   </Button>
                 </div>
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <Textarea
-              value={openPrompt}
-              onChange={(e) => setOpenPrompt(e.target.value)}
-              className="min-h-[300px] text-sm font-mono leading-relaxed"
-              dir="rtl"
-            />
-          </CardContent>
-        </Card>
+              </CardHeader>
+              <CardContent>
+                <pre className="text-xs text-gray-600 whitespace-pre-wrap font-sans leading-relaxed max-h-48 overflow-y-auto bg-white p-4 rounded-lg border">
+                  {defaults.open}
+                </pre>
+              </CardContent>
+            </Card>
+          </>
+        )}
 
         {/* Status */}
-        <Card className={`border-2 ${useCustomScalePrompt || useCustomOpenPrompt ? 'border-green-200 bg-green-50' : 'border-gray-200 bg-gray-50'}`}>
+        <Card className={`border-2 ${useCustomPrompt ? 'border-amber-200 bg-amber-50' : 'border-green-200 bg-green-50'}`}>
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
-              <CheckCircle className={`w-5 h-5 ${useCustomScalePrompt || useCustomOpenPrompt ? 'text-green-600' : 'text-gray-400'}`} />
+              <CheckCircle className={`w-5 h-5 ${useCustomPrompt ? 'text-amber-600' : 'text-green-600'}`} />
               <div>
-                <p className="font-medium text-gray-800">סטטוס פרומפטים</p>
+                <p className="font-medium text-gray-800">סטטוס נוכחי</p>
                 <p className="text-sm text-gray-600">
-                  שאלות דירוג: {useCustomScalePrompt ? 'פרומפט מותאם' : 'ברירת מחדל'} | 
-                  שאלות פתוחות: {useCustomOpenPrompt ? 'פרומפט מותאם' : 'ברירת מחדל'}
+                  שפה: {language === 'arabic' ? 'ערבית' : 'עברית'} | 
+                  פרומפט: {useCustomPrompt ? 'מותאם אישית' : 'ברירת מחדל'}
                 </p>
               </div>
             </div>
