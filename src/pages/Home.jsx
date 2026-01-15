@@ -53,7 +53,7 @@ export default function Home() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: showOnboarding ? 0 : 0.1 }}
         >
-          <Link to={createPageUrl('ActivityDescription')}>
+          <Link to={createPageUrl('SurveyLanguage')}>
             <Card className="bg-gradient-to-br from-[#E85A24] to-[#D14A1A] border-0 shadow-lg hover:shadow-xl transition-all rounded-3xl group cursor-pointer">
               <CardContent className="p-8 sm:p-10">
                 <div className="flex items-center justify-between">
