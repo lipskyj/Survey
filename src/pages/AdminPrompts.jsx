@@ -268,6 +268,9 @@ export default function AdminPrompts() {
   const [showPassword, setShowPassword] = useState(false);
   
   const [editingPrompt, setEditingPrompt] = useState(null);
+  const [editName, setEditName] = useState('');
+  const [editText, setEditText] = useState('');
+  const [editLanguage, setEditLanguage] = useState('both');
   const [newPromptName, setNewPromptName] = useState('');
   const [newPromptText, setNewPromptText] = useState('');
   const [newPromptLanguage, setNewPromptLanguage] = useState('both');
@@ -300,9 +303,34 @@ export default function AdminPrompts() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-prompts'] });
       setEditingPrompt(null);
+      setEditName('');
+      setEditText('');
+      setEditLanguage('both');
       toast.success('הפרומפט עודכן');
     }
   });
+
+  const startEditing = (prompt) => {
+    setEditingPrompt(prompt.id);
+    setEditName(prompt.name);
+    setEditText(prompt.prompt_text);
+    setEditLanguage(prompt.language || 'both');
+  };
+
+  const handleUpdatePrompt = () => {
+    if (!editName.trim() || !editText.trim()) {
+      toast.error('יש למלא שם ותוכן');
+      return;
+    }
+    updatePromptMutation.mutate({
+      id: editingPrompt,
+      data: {
+        name: editName,
+        prompt_text: editText,
+        language: editLanguage
+      }
+    });
+  };
 
   const deletePromptMutation = useMutation({
     mutationFn: (id) => base44.entities.AdminPrompt.delete(id),
@@ -627,62 +655,114 @@ export default function AdminPrompts() {
               key={prompt.id} 
               className={`border-2 ${prompt.is_active ? 'border-green-400 bg-green-50' : 'border-gray-200'}`}
             >
-              <CardHeader className="pb-2">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <CardTitle className="text-base">{prompt.name}</CardTitle>
-                    {prompt.is_active && (
-                      <span className="bg-green-500 text-white text-xs px-2 py-1 rounded-full">פעיל</span>
-                    )}
-                    <span className="text-xs text-gray-500">
-                      {prompt.language === 'both' ? 'עברית + عربية' : prompt.language === 'hebrew' ? 'עברית' : 'عربية'}
-                    </span>
+              {editingPrompt === prompt.id ? (
+                // Edit Mode
+                <CardContent className="p-4 space-y-4">
+                  <div>
+                    <Label>שם הפרומפט</Label>
+                    <Input
+                      value={editName}
+                      onChange={(e) => setEditName(e.target.value)}
+                      className="mt-1"
+                    />
                   </div>
-                  <div className="flex gap-1">
-                    {!prompt.is_active ? (
-                      <Button 
-                        variant="outline" 
-                        size="sm"
-                        onClick={() => activatePromptMutation.mutate(prompt.id)}
-                        className="text-green-600 border-green-600"
-                      >
-                        הפעל
-                      </Button>
-                    ) : (
-                      <Button 
-                        variant="outline" 
-                        size="sm"
-                        onClick={() => deactivateAllMutation.mutate()}
-                      >
-                        כבה
-                      </Button>
-                    )}
+                  <div>
+                    <Label>שפה</Label>
+                    <div className="flex gap-2 mt-1">
+                      {['both', 'hebrew', 'arabic'].map(lang => (
+                        <Button
+                          key={lang}
+                          variant={editLanguage === lang ? 'default' : 'outline'}
+                          size="sm"
+                          onClick={() => setEditLanguage(lang)}
+                          className={editLanguage === lang ? 'bg-[#E85A24]' : ''}
+                        >
+                          {lang === 'both' ? 'שתיהן' : lang === 'hebrew' ? 'עברית' : 'عربية'}
+                        </Button>
+                      ))}
+                    </div>
+                  </div>
+                  <div>
+                    <Label>תוכן הפרומפט</Label>
+                    <Textarea
+                      value={editText}
+                      onChange={(e) => setEditText(e.target.value)}
+                      className="mt-1 min-h-[200px] text-sm font-mono"
+                      dir="rtl"
+                    />
+                  </div>
+                  <div className="flex gap-2 justify-end">
+                    <Button variant="outline" onClick={() => setEditingPrompt(null)}>ביטול</Button>
                     <Button 
-                      variant="ghost" 
-                      size="icon"
-                      onClick={() => copyToClipboard(prompt.prompt_text)}
+                      onClick={handleUpdatePrompt}
+                      className="bg-[#E85A24] hover:bg-[#D14A1A]"
+                      disabled={updatePromptMutation.isPending}
                     >
-                      <Copy className="w-4 h-4" />
-                    </Button>
-                    <Button 
-                      variant="ghost" 
-                      size="icon"
-                      onClick={() => {
-                        if (confirm('למחוק את הפרומפט?')) {
-                          deletePromptMutation.mutate(prompt.id);
-                        }
-                      }}
-                    >
-                      <Trash2 className="w-4 h-4 text-red-500" />
+                      <Save className="w-4 h-4 ml-1" />
+                      שמור
                     </Button>
                   </div>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <pre className="text-xs text-gray-600 whitespace-pre-wrap font-sans leading-relaxed max-h-32 overflow-y-auto bg-white p-3 rounded-lg border">
-                  {prompt.prompt_text.slice(0, 500)}...
-                </pre>
-              </CardContent>
+                </CardContent>
+              ) : (
+                // View Mode
+                <>
+                  <CardHeader className="pb-2">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <CardTitle className="text-base">{prompt.name}</CardTitle>
+                        {prompt.is_active && (
+                          <span className="bg-green-500 text-white text-xs px-2 py-1 rounded-full">פעיל</span>
+                        )}
+                        <span className="text-xs text-gray-500">
+                          {prompt.language === 'both' ? 'עברית + عربية' : prompt.language === 'hebrew' ? 'עברית' : 'عربية'}
+                        </span>
+                      </div>
+                      <div className="flex gap-1">
+                        <Switch
+                          checked={prompt.is_active}
+                          onCheckedChange={(checked) => {
+                            if (checked) {
+                              activatePromptMutation.mutate(prompt.id);
+                            } else {
+                              deactivateAllMutation.mutate();
+                            }
+                          }}
+                        />
+                        <Button 
+                          variant="ghost" 
+                          size="icon"
+                          onClick={() => startEditing(prompt)}
+                        >
+                          <Edit2 className="w-4 h-4" />
+                        </Button>
+                        <Button 
+                          variant="ghost" 
+                          size="icon"
+                          onClick={() => copyToClipboard(prompt.prompt_text)}
+                        >
+                          <Copy className="w-4 h-4" />
+                        </Button>
+                        <Button 
+                          variant="ghost" 
+                          size="icon"
+                          onClick={() => {
+                            if (confirm('למחוק את הפרומפט?')) {
+                              deletePromptMutation.mutate(prompt.id);
+                            }
+                          }}
+                        >
+                          <Trash2 className="w-4 h-4 text-red-500" />
+                        </Button>
+                      </div>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <pre className="text-xs text-gray-600 whitespace-pre-wrap font-sans leading-relaxed max-h-32 overflow-y-auto bg-white p-3 rounded-lg border">
+                      {prompt.prompt_text.slice(0, 500)}...
+                    </pre>
+                  </CardContent>
+                </>
+              )}
             </Card>
           ))}
         </div>
