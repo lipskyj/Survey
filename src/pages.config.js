@@ -10,6 +10,7 @@ import EvaluationGoal from './pages/EvaluationGoal';
 import EventType from './pages/EventType';
 import ExportData from './pages/ExportData';
 import GenerateSurvey from './pages/GenerateSurvey';
+import GenerateSurveyMultiple from './pages/GenerateSurveyMultiple';
 import GradeRange from './pages/GradeRange';
 import Home from './pages/Home';
 import MeasurementTargets from './pages/MeasurementTargets';
@@ -25,7 +26,6 @@ import SurveyEditor from './pages/SurveyEditor';
 import SurveyLanguage from './pages/SurveyLanguage';
 import SurveyManagement from './pages/SurveyManagement';
 import SurveyType from './pages/SurveyType';
-import GenerateSurveyMultiple from './pages/GenerateSurveyMultiple';
 import __Layout from './Layout.jsx';
 
 
@@ -42,6 +42,7 @@ export const PAGES = {
     "EventType": EventType,
     "ExportData": ExportData,
     "GenerateSurvey": GenerateSurvey,
+    "GenerateSurveyMultiple": GenerateSurveyMultiple,
     "GradeRange": GradeRange,
     "Home": Home,
     "MeasurementTargets": MeasurementTargets,
@@ -57,7 +58,6 @@ export const PAGES = {
     "SurveyLanguage": SurveyLanguage,
     "SurveyManagement": SurveyManagement,
     "SurveyType": SurveyType,
-    "GenerateSurveyMultiple": GenerateSurveyMultiple,
 }
 
 export const pagesConfig = {
