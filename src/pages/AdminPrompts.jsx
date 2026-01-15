@@ -213,6 +213,46 @@ export default function AdminPrompts() {
     enabled: isAuthenticated
   });
 
+  useEffect(() => {
+    if (isAuthenticated) {
+      ensureDefaultPromptsExist();
+    }
+  }, [isAuthenticated]);
+
+  const ensureDefaultPromptsExist = async () => {
+    try {
+      const allPrompts = await base44.entities.AdminPrompt.list();
+      const hasDefaultScale = allPrompts.some(p => p.name === 'פרומפט דירוג - ברירת מחדל');
+      const hasDefaultOpen = allPrompts.some(p => p.name === 'פרומפט שאלות פתוחות - ברירת מחדל');
+
+      if (!hasDefaultScale) {
+        await base44.entities.AdminPrompt.create({
+          name: 'פרומפט דירוג - ברירת מחדל',
+          prompt_text: DEFAULT_SCALE_PROMPT_HE,
+          is_active: false,
+          language: 'hebrew',
+          notes: 'הפרומפט הסטנדרטי המקורי של המערכת'
+        });
+      }
+
+      if (!hasDefaultOpen) {
+        await base44.entities.AdminPrompt.create({
+          name: 'פרומפט שאלות פתוחות - ברירת מחדל',
+          prompt_text: DEFAULT_OPEN_PROMPT_HE,
+          is_active: false,
+          language: 'hebrew',
+          notes: 'פרומפט סטנדרטי לשאלות פתוחות'
+        });
+      }
+
+      if (!hasDefaultScale || !hasDefaultOpen) {
+        queryClient.invalidateQueries({ queryKey: ['admin-prompts'] });
+      }
+    } catch (error) {
+      console.error('Error creating default prompts:', error);
+    }
+  };
+
   const createPromptMutation = useMutation({
     mutationFn: (data) => base44.entities.AdminPrompt.create(data),
     onSuccess: () => {
@@ -494,7 +534,9 @@ export default function AdminPrompts() {
             </Card>
           )}
 
-          {prompts.map((prompt) => (
+          {prompts.map((prompt) => {
+            const isDefault = prompt.name.includes('ברירת מחדל');
+            return (
             <Card 
               key={prompt.id} 
               className={`border-2 ${prompt.is_active ? 'border-green-400 bg-green-50' : 'border-gray-200'}`}
@@ -539,6 +581,9 @@ export default function AdminPrompts() {
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
                         <CardTitle className="text-base">{prompt.name}</CardTitle>
+                        {isDefault && (
+                          <span className="bg-gray-500 text-white text-xs px-2 py-1 rounded-full">מובנה</span>
+                        )}
                         {prompt.is_active && (
                           <span className="bg-green-500 text-white text-xs px-2 py-1 rounded-full">פעיל</span>
                         )}
@@ -550,13 +595,28 @@ export default function AdminPrompts() {
                             togglePromptMutation.mutate({ promptId: prompt.id, isActive: checked });
                           }}
                         />
-                        <Button 
-                          variant="ghost" 
-                          size="icon"
-                          onClick={() => startEditing(prompt)}
-                        >
-                          <Edit2 className="w-4 h-4" />
-                        </Button>
+                        {!isDefault && (
+                          <>
+                            <Button 
+                              variant="ghost" 
+                              size="icon"
+                              onClick={() => startEditing(prompt)}
+                            >
+                              <Edit2 className="w-4 h-4" />
+                            </Button>
+                            <Button 
+                              variant="ghost" 
+                              size="icon"
+                              onClick={() => {
+                                if (confirm('למחוק את הפרומפט?')) {
+                                  deletePromptMutation.mutate(prompt.id);
+                                }
+                              }}
+                            >
+                              <Trash2 className="w-4 h-4 text-red-500" />
+                            </Button>
+                          </>
+                        )}
                         <Button 
                           variant="ghost" 
                           size="icon"
@@ -564,30 +624,19 @@ export default function AdminPrompts() {
                         >
                           <Copy className="w-4 h-4" />
                         </Button>
-                        <Button 
-                          variant="ghost" 
-                          size="icon"
-                          onClick={() => {
-                            if (confirm('למחוק את הפרומפט?')) {
-                              deletePromptMutation.mutate(prompt.id);
-                            }
-                          }}
-                        >
-                          <Trash2 className="w-4 h-4 text-red-500" />
-                        </Button>
                       </div>
                     </div>
                   </CardHeader>
                   <CardContent>
-                    <pre className="text-xs text-gray-600 whitespace-pre-wrap font-sans leading-relaxed max-h-32 overflow-y-auto bg-white p-3 rounded-lg border">
-                      {prompt.prompt_text.slice(0, 500)}...
+                    <pre className="text-xs text-gray-600 whitespace-pre-wrap font-sans leading-relaxed max-h-96 overflow-y-auto bg-white p-3 rounded-lg border">
+                      {prompt.prompt_text}
                     </pre>
                   </CardContent>
                 </>
               )}
             </Card>
-          )}
-          )}
+          );
+          })}
         </div>
       </div>
     </div>
