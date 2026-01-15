@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -10,7 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { motion } from 'framer-motion';
-import { Lock, Sparkles, Save, RotateCcw, Copy, CheckCircle, Settings, Eye, EyeOff, Plus, Trash2, Edit2 } from 'lucide-react';
+import { Lock, Sparkles, Save, RotateCcw, Copy, CheckCircle, Settings, Eye, EyeOff, Plus, Trash2, Edit2, Home } from 'lucide-react';
 import { toast } from 'sonner';
 
 const ADMIN_PASSWORD = '1234';
@@ -431,13 +431,20 @@ export default function AdminPrompts() {
               </p>
             </div>
           </div>
-          <Button
-            onClick={() => setShowNewForm(true)}
-            className="bg-[#E85A24] hover:bg-[#D14A1A] text-white"
-          >
-            <Plus className="w-4 h-4 ml-2" />
-            פרומפט חדש
-          </Button>
+          <div className="flex items-center gap-2">
+            <Link to={createPageUrl('Home')}>
+              <Button variant="outline" size="icon">
+                <Home className="w-4 h-4" />
+              </Button>
+            </Link>
+            <Button
+              onClick={() => setShowNewForm(true)}
+              className="bg-[#E85A24] hover:bg-[#D14A1A] text-white"
+            >
+              <Plus className="w-4 h-4 ml-2" />
+              פרומפט חדש
+            </Button>
+          </div>
         </div>
       </div>
 

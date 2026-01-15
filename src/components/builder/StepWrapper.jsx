@@ -1,4 +1,4 @@
-import React, { useEffect, useCallback } from 'react';
+import React, { useEffect, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight, Save, Loader2 } from 'lucide-react';
@@ -20,26 +20,43 @@ export default function StepWrapper({
   showSaveDraft = true,
   direction = 1
 }) {
+  const isNavigatingRef = useRef(false);
+  const touchStartRef = useRef(null);
+
+  // Reset navigation lock when loading changes
+  useEffect(() => {
+    if (!isLoading) {
+      isNavigatingRef.current = false;
+    }
+  }, [isLoading]);
+
   // Swipe gesture handling
   const handleTouchStart = useCallback((e) => {
-    const touch = e.touches[0];
-    e.currentTarget.dataset.touchStartX = touch.clientX;
+    touchStartRef.current = e.touches[0].clientX;
   }, []);
 
   const handleTouchEnd = useCallback((e) => {
-    const touchStartX = parseFloat(e.currentTarget.dataset.touchStartX);
+    if (isNavigatingRef.current || isLoading) return;
+    
+    const touchStartX = touchStartRef.current;
+    if (touchStartX === null) return;
+    
     const touchEndX = e.changedTouches[0].clientX;
     const diff = touchStartX - touchEndX;
+    touchStartRef.current = null;
 
     // RTL: swipe left = next, swipe right = back
-    if (Math.abs(diff) > 50) {
+    if (Math.abs(diff) > 80) { // Increased threshold
+      isNavigatingRef.current = true;
       if (diff > 0 && !isNextDisabled && onNext) {
         onNext();
       } else if (diff < 0 && showBack && onBack) {
         onBack();
+      } else {
+        isNavigatingRef.current = false;
       }
     }
-  }, [isNextDisabled, onNext, onBack, showBack]);
+  }, [isNextDisabled, onNext, onBack, showBack, isLoading]);
 
   return (
     <div 
@@ -119,7 +136,12 @@ export default function StepWrapper({
           )}
           
           <Button
-            onClick={onNext}
+            onClick={() => {
+              if (!isNavigatingRef.current && !isLoading) {
+                isNavigatingRef.current = true;
+                onNext();
+              }
+            }}
             disabled={isNextDisabled || isLoading}
             className="flex-1 flex items-center justify-center gap-2 px-6 py-6 bg-[#E85A24] hover:bg-[#D14A1A] text-white text-lg font-medium"
           >
