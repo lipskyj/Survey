@@ -5,9 +5,8 @@ import { base44 } from '@/api/base44Client';
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { motion, AnimatePresence } from 'framer-motion';
-import { Sparkles, Loader2, CheckCircle, FileText, Edit2, RotateCcw } from 'lucide-react';
+import { Sparkles, Loader2, CheckCircle, FileText } from 'lucide-react';
 import { toast } from 'sonner';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 // KIT domain mapping based on content focus
 const KIT_MAPPING = {
@@ -27,11 +26,7 @@ export default function GenerateSurvey() {
   const [isComplete, setIsComplete] = useState(false);
   const [scalePrompt, setScalePrompt] = useState('');
   const [openPrompt, setOpenPrompt] = useState('');
-  const [isEditingScalePrompt, setIsEditingScalePrompt] = useState(false);
-  const [isEditingOpenPrompt, setIsEditingOpenPrompt] = useState(false);
   const [promptReady, setPromptReady] = useState(false);
-  const [defaultScalePrompt, setDefaultScalePrompt] = useState('');
-  const [defaultOpenPrompt, setDefaultOpenPrompt] = useState('');
 
   const generationSteps = [
     'מנתח את הפעילות...',
@@ -262,10 +257,52 @@ ${survey.event_type === 'ongoing_program' ? '• התייחס לתהליך המ�
   ]
 }`;
 
-    setScalePrompt(newScalePrompt);
-    setOpenPrompt(newOpenPrompt);
-    setDefaultScalePrompt(newScalePrompt);
-    setDefaultOpenPrompt(newOpenPrompt);
+    // Check for admin custom prompts
+    const savedConfig = localStorage.getItem('admin_prompts_config');
+    if (savedConfig) {
+      const config = JSON.parse(savedConfig);
+      if (config.useCustomScalePrompt && config.scalePrompt) {
+        // Replace placeholders in custom prompt
+        let customScale = config.scalePrompt;
+        customScale = customScale.replace('{activity_description}', survey.activity_description || 'לא צוין');
+        customScale = customScale.replace('{audience}', audienceLabels[survey.audience] || survey.audience);
+        customScale = customScale.replace('{grades}', selectedGrades || 'לא צוין');
+        customScale = customScale.replace('{event_type}', eventTypeLabels[survey.event_type] || survey.event_type || 'לא צוין');
+        customScale = customScale.replace('{content_focus}', contentFocusDisplay);
+        customScale = customScale.replace('{values_section}', valuesToMeasure ? `• ערכים למדידה: ${valuesToMeasure}` : '');
+        customScale = customScale.replace('{knowledge_section}', knowledgeToMeasure ? `• ידע למדידה: ${knowledgeToMeasure}` : '');
+        customScale = customScale.replace('{skills_section}', skillsToMeasure ? `• מיומנויות למדידה: ${skillsToMeasure}` : '');
+        customScale = customScale.replace('{goals_section}', evaluationGoals ? `• מטרות ההערכה: ${evaluationGoals}` : '');
+        customScale = customScale.replace('{success_section}', successDef ? `• הגדרת הצלחה: ${successDef}` : '');
+        customScale = customScale.replace('{student_language_section}', survey.audience === 'students' ? `
+═══════════════════════════════════════
+📝 הנחיות שפה לתלמידים - קריטי!
+═══════════════════════════════════════
+• גוף שני (את/ה) - לא גוף ראשון (אני)
+• שפה פשוטה וידידותית - לא מקצועית!
+• ❌ לא: "פדגוגי", "הקנייה", "טיפוח ערכים", "רכישת מיומנויות"
+• ✅ כן: "מעניין", "למדתי", "הרגשתי", "נהניתי"` : '');
+        setScalePrompt(customScale);
+      } else {
+        setScalePrompt(newScalePrompt);
+      }
+
+      if (config.useCustomOpenPrompt && config.openPrompt) {
+        let customOpen = config.openPrompt;
+        customOpen = customOpen.replace('{activity_description}', survey.activity_description || 'לא צוין');
+        customOpen = customOpen.replace('{audience}', audienceLabels[survey.audience] || survey.audience);
+        customOpen = customOpen.replace('{event_type}', eventTypeLabels[survey.event_type] || survey.event_type || 'לא צוין');
+        customOpen = customOpen.replace('{audience_language}', survey.audience === 'students' ? '• שפה פשוטה בגוף שני (את/ה)' : '• שפה מקצועית מכבדת');
+        customOpen = customOpen.replace('{ongoing_note}', survey.event_type === 'ongoing_program' ? '• התייחס לתהליך המתמשך, לא רק לאירוע בודד' : '');
+        setOpenPrompt(customOpen);
+      } else {
+        setOpenPrompt(newOpenPrompt);
+      }
+    } else {
+      setScalePrompt(newScalePrompt);
+      setOpenPrompt(newOpenPrompt);
+    }
+
     setPromptReady(true);
   };
 
@@ -510,110 +547,8 @@ ${survey.activity_description}
                 הכל מוכן ליצירת הסקר
               </h1>
               <p className="text-gray-500 mb-6">
-                בדוק ועדכן את הפרומפט לפי הצורך לפני יצירת השאלון
+                המערכת תייצר שאלון מותאם אישית בהתבסס על הפרטים שהזנת
               </p>
-
-              {/* Scale Questions Prompt Card */}
-              <Card className="text-right mb-4 border-2 border-gray-200">
-                <CardHeader className="pb-2">
-                  <div className="flex items-center justify-between">
-                    <CardTitle className="text-base text-[#6B2D4A] flex items-center gap-2">
-                      <Sparkles className="w-5 h-5 text-[#E85A24]" />
-                      פרומפט לשאלות דירוג (10 היגדים)
-                    </CardTitle>
-                    <div className="flex gap-2">
-                      {isEditingScalePrompt && (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => {
-                            setScalePrompt(defaultScalePrompt);
-                            toast.success('הפרומפט אופס לברירת המחדל');
-                          }}
-                          className="text-gray-500 hover:text-gray-700"
-                        >
-                          <RotateCcw className="w-4 h-4 ml-1" />
-                          איפוס
-                        </Button>
-                      )}
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => setIsEditingScalePrompt(!isEditingScalePrompt)}
-                        className="text-[#E85A24] hover:text-[#D14A1A]"
-                      >
-                        <Edit2 className="w-4 h-4 ml-1" />
-                        {isEditingScalePrompt ? 'סיום עריכה' : 'עריכה'}
-                      </Button>
-                    </div>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  {isEditingScalePrompt ? (
-                    <Textarea
-                      value={scalePrompt}
-                      onChange={(e) => setScalePrompt(e.target.value)}
-                      className="min-h-[300px] text-sm font-mono leading-relaxed"
-                      dir="rtl"
-                    />
-                  ) : (
-                    <pre className="text-xs text-gray-700 whitespace-pre-wrap font-sans leading-relaxed max-h-48 overflow-y-auto bg-gray-50 p-4 rounded-lg border">
-                      {scalePrompt}
-                    </pre>
-                  )}
-                </CardContent>
-              </Card>
-
-              {/* Open Questions Prompt Card */}
-              <Card className="text-right mb-6 border-2 border-gray-200">
-                <CardHeader className="pb-2">
-                  <div className="flex items-center justify-between">
-                    <CardTitle className="text-base text-[#6B2D4A] flex items-center gap-2">
-                      <Sparkles className="w-5 h-5 text-[#E85A24]" />
-                      פרומפט לשאלות פתוחות (4 שאלות)
-                    </CardTitle>
-                    <div className="flex gap-2">
-                      {isEditingOpenPrompt && (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => {
-                            setOpenPrompt(defaultOpenPrompt);
-                            toast.success('הפרומפט אופס לברירת המחדל');
-                          }}
-                          className="text-gray-500 hover:text-gray-700"
-                        >
-                          <RotateCcw className="w-4 h-4 ml-1" />
-                          איפוס
-                        </Button>
-                      )}
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => setIsEditingOpenPrompt(!isEditingOpenPrompt)}
-                        className="text-[#E85A24] hover:text-[#D14A1A]"
-                      >
-                        <Edit2 className="w-4 h-4 ml-1" />
-                        {isEditingOpenPrompt ? 'סיום עריכה' : 'עריכה'}
-                      </Button>
-                    </div>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  {isEditingOpenPrompt ? (
-                    <Textarea
-                      value={openPrompt}
-                      onChange={(e) => setOpenPrompt(e.target.value)}
-                      className="min-h-[200px] text-sm font-mono leading-relaxed"
-                      dir="rtl"
-                    />
-                  ) : (
-                    <pre className="text-xs text-gray-700 whitespace-pre-wrap font-sans leading-relaxed max-h-48 overflow-y-auto bg-gray-50 p-4 rounded-lg border">
-                      {openPrompt}
-                    </pre>
-                  )}
-                </CardContent>
-              </Card>
 
               <Button
                 onClick={generateQuestions}
