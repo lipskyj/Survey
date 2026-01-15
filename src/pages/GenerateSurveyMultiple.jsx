@@ -211,7 +211,6 @@ export default function GenerateSurveyMultiple() {
     }
 
     // Create a duplicate survey
-    const useSurvey = surveyData || survey;
     const newSurvey = await base44.entities.Survey.create({
       ...useSurvey,
       title: `${useSurvey.activity_description?.slice(0, 30) || 'סקר'} - ${prompt.name}`,
@@ -220,7 +219,6 @@ export default function GenerateSurveyMultiple() {
     });
 
     // Create questions
-    const useSurvey = surveyData || survey;
     let orderIndex = 0;
     const questionsToCreate = [];
     const bgQuestions = useSurvey.background_questions || {};
