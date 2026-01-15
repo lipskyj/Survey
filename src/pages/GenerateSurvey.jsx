@@ -377,7 +377,14 @@ ${survey.event_type === 'ongoing_program' ? '• התייחס לתהליך המ�
                 type: "object",
                 properties: {
                   prompt: { type: "string" },
-                  kit_domain: { type: "string" }
+                  kit_domain: { type: "string" },
+                  scale_labels: {
+                    type: "object",
+                    properties: {
+                      low: { type: "string" },
+                      high: { type: "string" }
+                    }
+                  }
                 }
               }
             }
@@ -527,7 +534,7 @@ ${survey.event_type === 'ongoing_program' ? '• התייחס לתהליך המ�
           kit_domain: q.kit_domain || 'relevance',
           prompt_hebrew: q.prompt,
           is_required: true,
-          scale_labels: { low: 'לא מסכים כלל', high: 'מסכים לחלוטין' },
+          scale_labels: q.scale_labels || { low: 'לא מסכים כלל', high: 'מסכים לחלוטין' },
           is_generated: true
         });
       }
