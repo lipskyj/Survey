@@ -367,47 +367,105 @@ ${survey.event_type === 'ongoing_program' ? '• התייחס לתהליך המ�
       // Step 3: Generate scale questions
       setGenerationStep(3);
 
-      const unifiedResponse = await base44.integrations.Core.InvokeLLM({
-        prompt: scalePrompt,
-        response_json_schema: {
-          type: "object",
-          properties: {
-            scale_questions: {
-              type: "array",
-              items: {
-                type: "object",
-                properties: {
-                  prompt: { type: "string" },
-                  kit_domain: { type: "string" },
-                  scale_labels: {
-                    type: "object",
-                    properties: {
-                      low: { type: "string" },
-                      high: { type: "string" }
+      // Check if using unified prompt (scale_questions + open_questions) or legacy format (questions only)
+      const isUnifiedPrompt = scalePrompt === openPrompt;
+      
+      let scaleResponse, openResponse;
+      
+      if (isUnifiedPrompt) {
+        // Unified prompt - get both scale and open questions in one call
+        const unifiedResponse = await base44.integrations.Core.InvokeLLM({
+          prompt: scalePrompt,
+          response_json_schema: {
+            type: "object",
+            properties: {
+              scale_questions: {
+                type: "array",
+                items: {
+                  type: "object",
+                  properties: {
+                    prompt: { type: "string" },
+                    kit_domain: { type: "string" },
+                    scale_labels: {
+                      type: "object",
+                      properties: {
+                        low: { type: "string" },
+                        high: { type: "string" }
+                      }
                     }
                   }
                 }
-              }
-            },
-            open_questions: {
-              type: "array",
-              items: {
-                type: "object",
-                properties: {
-                  prompt: { type: "string" }
+              },
+              open_questions: {
+                type: "array",
+                items: {
+                  type: "object",
+                  properties: {
+                    prompt: { type: "string" }
+                  }
                 }
               }
             }
           }
-        }
-      });
+        });
+        
+        scaleResponse = { questions: unifiedResponse.scale_questions || [] };
+        openResponse = { questions: unifiedResponse.open_questions || [] };
+      } else {
+        // Legacy separate prompts
+        const scaleResult = await base44.integrations.Core.InvokeLLM({
+          prompt: scalePrompt,
+          response_json_schema: {
+            type: "object",
+            properties: {
+              questions: {
+                type: "array",
+                items: {
+                  type: "object",
+                  properties: {
+                    prompt: { type: "string" },
+                    kit_domain: { type: "string" },
+                    scale_labels: {
+                      type: "object",
+                      properties: {
+                        low: { type: "string" },
+                        high: { type: "string" }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        });
+        
+        scaleResponse = scaleResult;
+
+        // Step 4: Generate open questions
+        setGenerationStep(4);
+
+        const openResult = await base44.integrations.Core.InvokeLLM({
+          prompt: openPrompt,
+          response_json_schema: {
+            type: "object",
+            properties: {
+              questions: {
+                type: "array",
+                items: {
+                  type: "object",
+                  properties: {
+                    prompt: { type: "string" }
+                  }
+                }
+              }
+            }
+          }
+        });
+        
+        openResponse = openResult;
+      }
       
-      const scaleResponse = { questions: unifiedResponse.scale_questions || [] };
-
-      // Step 4: Use open questions from unified response
       setGenerationStep(4);
-
-      const openResponse = { questions: unifiedResponse.open_questions || [] };
 
       // Generate bottom line question based on audience
       const bottomLinePrompts = {
