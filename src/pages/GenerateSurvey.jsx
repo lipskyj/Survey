@@ -374,6 +374,7 @@ ${survey.event_type === 'ongoing_program' ? '• התייחס לתהליך המ�
       
       if (isUnifiedPrompt) {
         // Unified prompt - get both scale and open questions in one call
+        console.log('Using unified prompt format');
         const unifiedResponse = await base44.integrations.Core.InvokeLLM({
           prompt: scalePrompt,
           response_json_schema: {
@@ -409,10 +410,17 @@ ${survey.event_type === 'ongoing_program' ? '• התייחס לתהליך המ�
           }
         });
         
+        console.log('Unified response:', unifiedResponse);
+        console.log('Scale questions count:', unifiedResponse.scale_questions?.length);
+        console.log('Open questions count:', unifiedResponse.open_questions?.length);
+        
         scaleResponse = { questions: unifiedResponse.scale_questions || [] };
         openResponse = { questions: unifiedResponse.open_questions || [] };
+        
+        setGenerationStep(4);
       } else {
         // Legacy separate prompts
+        console.log('Using separate prompts format');
         const scaleResult = await base44.integrations.Core.InvokeLLM({
           prompt: scalePrompt,
           response_json_schema: {
@@ -439,6 +447,7 @@ ${survey.event_type === 'ongoing_program' ? '• התייחס לתהליך המ�
           }
         });
         
+        console.log('Scale response:', scaleResult);
         scaleResponse = scaleResult;
 
         // Step 4: Generate open questions
@@ -462,10 +471,9 @@ ${survey.event_type === 'ongoing_program' ? '• התייחס לתהליך המ�
           }
         });
         
+        console.log('Open response:', openResult);
         openResponse = openResult;
       }
-      
-      setGenerationStep(4);
 
       // Generate bottom line question based on audience
       const bottomLinePrompts = {
