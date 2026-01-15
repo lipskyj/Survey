@@ -5,7 +5,8 @@ import { base44 } from '@/api/base44Client';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { motion, AnimatePresence } from 'framer-motion';
-import { Sparkles, Loader2, CheckCircle, FileText, Eye } from 'lucide-react';
+import { Sparkles, Loader2, CheckCircle, FileText, Eye, ArrowRight, Trash2, Check } from 'lucide-react';
+import { Switch } from "@/components/ui/switch";
 import { toast } from 'sonner';
 
 const KIT_MAPPING = {
@@ -25,6 +26,8 @@ export default function GenerateSurveyMultiple() {
   const [currentPromptIndex, setCurrentPromptIndex] = useState(0);
   const [generatedSurveys, setGeneratedSurveys] = useState([]);
   const [isComplete, setIsComplete] = useState(false);
+  const [viewingVersion, setViewingVersion] = useState(null);
+  const [selectedVersions, setSelectedVersions] = useState([]);
 
   useEffect(() => {
     const loadData = async () => {
@@ -234,6 +237,7 @@ export default function GenerateSurveyMultiple() {
       }
 
       setGeneratedSurveys(results);
+      setSelectedVersions(results.map((_, idx) => idx)); // Select all by default
       setIsComplete(true);
       toast.success(`נוצרו ${results.length} גרסאות סקר!`);
     } catch (error) {
@@ -243,6 +247,76 @@ export default function GenerateSurveyMultiple() {
       setIsGenerating(false);
     }
   };
+
+  const toggleVersion = (index) => {
+    setSelectedVersions(prev => 
+      prev.includes(index) 
+        ? prev.filter(i => i !== index)
+        : [...prev, index]
+    );
+  };
+
+  const deleteUnselected = async () => {
+    if (!confirm('למחוק את הגרסאות שלא נבחרו?')) return;
+    
+    const toDelete = generatedSurveys
+      .filter((_, idx) => !selectedVersions.includes(idx))
+      .map(g => g.survey.id);
+    
+    for (const id of toDelete) {
+      await base44.entities.Survey.delete(id);
+    }
+    
+    setGeneratedSurveys(prev => prev.filter((_, idx) => selectedVersions.includes(idx)));
+    toast.success('גרסאות נמחקו');
+  };
+
+  const viewVersion = (versionData) => {
+    setViewingVersion(versionData);
+  };
+
+  const backToAll = () => {
+    setViewingVersion(null);
+  };
+
+  if (viewingVersion) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-orange-50/50 to-white p-6">
+        <div className="max-w-4xl mx-auto">
+          <Button
+            onClick={backToAll}
+            variant="outline"
+            className="mb-6"
+          >
+            <ArrowRight className="w-4 h-4 ml-2" />
+            חזרה לכל הגרסאות
+          </Button>
+
+          <Card className="border-[#E85A24] mb-6">
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="text-2xl">{viewingVersion.survey.title}</CardTitle>
+                  <p className="text-sm text-gray-500 mt-1">
+                    נוצר בעזרת: <span className="font-medium text-[#E85A24]">{viewingVersion.prompt}</span>
+                  </p>
+                </div>
+                <Button
+                  onClick={() => navigate(createPageUrl('SurveyEditor') + `?surveyId=${viewingVersion.survey.id}`)}
+                  className="bg-[#E85A24] hover:bg-[#D14A1A]"
+                >
+                  <FileText className="w-4 h-4 ml-2" />
+                  ערוך סקר
+                </Button>
+              </div>
+            </CardHeader>
+          </Card>
+
+          <SurveyPreview surveyId={viewingVersion.survey.id} />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-orange-50/50 to-white p-6">
@@ -314,45 +388,78 @@ export default function GenerateSurveyMultiple() {
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
             >
-              <div className="w-24 h-24 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                <CheckCircle className="w-12 h-12 text-green-600" />
+              <div className="flex items-center justify-between mb-6">
+                <div>
+                  <h1 className="text-3xl font-bold text-[#6B2D4A]">
+                    {generatedSurveys.length} גרסאות נוצרו בהצלחה!
+                  </h1>
+                  <p className="text-gray-500 mt-1">
+                    {selectedVersions.length} גרסאות נבחרו • השווה ובחר את הגרסה המתאימה ביותר
+                  </p>
+                </div>
+                {selectedVersions.length < generatedSurveys.length && (
+                  <Button
+                    onClick={deleteUnselected}
+                    variant="outline"
+                    className="text-red-600 border-red-600"
+                  >
+                    <Trash2 className="w-4 h-4 ml-2" />
+                    מחק לא נבחרו
+                  </Button>
+                )}
               </div>
-              <h1 className="text-3xl font-bold text-[#6B2D4A] mb-4 text-center">
-                {generatedSurveys.length} גרסאות נוצרו בהצלחה!
-              </h1>
 
               <div className="grid gap-4 mb-6">
-                {generatedSurveys.map(({ prompt, survey }) => (
-                  <Card key={survey.id} className="border-green-400">
-                    <CardHeader>
-                      <CardTitle className="text-lg flex items-center justify-between">
-                        <span>{survey.title}</span>
-                        <span className="text-sm font-normal text-gray-500 bg-green-100 px-3 py-1 rounded-full">
-                          {prompt}
-                        </span>
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent className="flex gap-2">
-                      <Button
-                        onClick={() => navigate(createPageUrl('SurveyEditor') + `?surveyId=${survey.id}`)}
-                        className="flex-1 bg-[#E85A24] hover:bg-[#D14A1A]"
-                      >
-                        <FileText className="w-4 h-4 ml-2" />
-                        ערוך סקר
-                      </Button>
-                      <Button
-                        variant="outline"
-                        onClick={() => {
-                          const slug = survey.share_slug || survey.id;
-                          window.open(createPageUrl('RespondIntro') + `?s=${slug}`, '_blank');
-                        }}
-                      >
-                        <Eye className="w-4 h-4 ml-2" />
-                        תצוגה מקדימה
-                      </Button>
-                    </CardContent>
-                  </Card>
-                ))}
+                {generatedSurveys.map(({ prompt, survey }, idx) => {
+                  const isSelected = selectedVersions.includes(idx);
+                  return (
+                    <Card 
+                      key={survey.id} 
+                      className={`border-2 transition-all ${isSelected ? 'border-green-400 bg-green-50' : 'border-gray-200 opacity-60'}`}
+                    >
+                      <CardHeader>
+                        <div className="flex items-start justify-between gap-4">
+                          <div className="flex items-start gap-3 flex-1">
+                            <Switch
+                              checked={isSelected}
+                              onCheckedChange={() => toggleVersion(idx)}
+                              className="mt-1"
+                            />
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2 mb-1">
+                                <CardTitle className="text-lg">גרסה {idx + 1}</CardTitle>
+                                <span className="text-xs text-white bg-[#E85A24] px-2 py-1 rounded-full">
+                                  {prompt}
+                                </span>
+                                {isSelected && (
+                                  <Check className="w-4 h-4 text-green-600" />
+                                )}
+                              </div>
+                              <p className="text-sm text-gray-600 mt-1">{survey.title}</p>
+                            </div>
+                          </div>
+                        </div>
+                      </CardHeader>
+                      <CardContent className="flex gap-2">
+                        <Button
+                          onClick={() => viewVersion({ prompt, survey })}
+                          variant="outline"
+                          className="flex-1"
+                        >
+                          <Eye className="w-4 h-4 ml-2" />
+                          צפה בגרסה
+                        </Button>
+                        <Button
+                          onClick={() => navigate(createPageUrl('SurveyEditor') + `?surveyId=${survey.id}`)}
+                          className="flex-1 bg-[#E85A24] hover:bg-[#D14A1A]"
+                        >
+                          <FileText className="w-4 h-4 ml-2" />
+                          ערוך
+                        </Button>
+                      </CardContent>
+                    </Card>
+                  );
+                })}
               </div>
 
               <Button
