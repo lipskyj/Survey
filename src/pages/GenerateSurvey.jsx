@@ -398,6 +398,27 @@ ${survey.event_type === 'ongoing_program' ? '• התייחס לתהליך המ�
       }
       
       if (bgQuestions.include_class) {
+        // Build choices based on selected grade ranges
+        const selectedGradeRanges = survey.grade_range?.selected_grades || [];
+        const gradeChoicesMap = {
+          middle: [
+            { value: 'z', label: 'ז׳' },
+            { value: 'h', label: 'ח׳' },
+            { value: 't', label: 'ט׳' }
+          ],
+          high: [
+            { value: 'y', label: 'י׳' },
+            { value: 'ya', label: 'י״א' },
+            { value: 'yb', label: 'י״ב' }
+          ],
+          college: [
+            { value: 'yg', label: 'י״ג' },
+            { value: 'yd', label: 'י״ד' }
+          ]
+        };
+        
+        const relevantChoices = selectedGradeRanges.flatMap(range => gradeChoicesMap[range] || []);
+        
         questionsToCreate.push({
           survey_id: surveyId,
           order_index: orderIndex++,
@@ -405,13 +426,10 @@ ${survey.event_type === 'ongoing_program' ? '• התייחס לתהליך המ�
           kit_domain: 'none',
           prompt_hebrew: survey.audience === 'parents' ? 'באיזו כיתה ילדך/ילדתך?' : 'באיזו כיתה את/ה?',
           is_required: true,
-          choices: [
+          choices: relevantChoices.length > 0 ? relevantChoices : [
             { value: 'z', label: 'ז׳' },
             { value: 'h', label: 'ח׳' },
-            { value: 't', label: 'ט׳' },
-            { value: 'y', label: 'י׳' },
-            { value: 'ya', label: 'י״א' },
-            { value: 'yb', label: 'י״ב' }
+            { value: 't', label: 'ט׳' }
           ],
           is_generated: true
         });

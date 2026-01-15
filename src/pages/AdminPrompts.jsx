@@ -301,12 +301,26 @@ export default function AdminPrompts() {
         <Card className="bg-blue-50 border-blue-200">
           <CardContent className="p-4">
             <p className="text-sm text-blue-800">
-              <strong>משתנים זמינים בפרומפט:</strong><br />
+              <strong>משתנים זמינים בפרומפט שאלות דירוג:</strong><br />
               <code className="bg-blue-100 px-1 rounded">{'{activity_description}'}</code> - תיאור הפעילות<br />
               <code className="bg-blue-100 px-1 rounded">{'{audience}'}</code> - קהל יעד<br />
               <code className="bg-blue-100 px-1 rounded">{'{grades}'}</code> - שכבות גיל<br />
               <code className="bg-blue-100 px-1 rounded">{'{event_type}'}</code> - סוג האירוע<br />
-              <code className="bg-blue-100 px-1 rounded">{'{content_focus}'}</code> - תחומי מיקוד
+              <code className="bg-blue-100 px-1 rounded">{'{content_focus}'}</code> - תחומי מיקוד<br />
+              <code className="bg-blue-100 px-1 rounded">{'{values_section}'}</code> - ערכים למדידה<br />
+              <code className="bg-blue-100 px-1 rounded">{'{knowledge_section}'}</code> - ידע למדידה<br />
+              <code className="bg-blue-100 px-1 rounded">{'{skills_section}'}</code> - מיומנויות למדידה<br />
+              <code className="bg-blue-100 px-1 rounded">{'{goals_section}'}</code> - מטרות ההערכה<br />
+              <code className="bg-blue-100 px-1 rounded">{'{success_section}'}</code> - הגדרת הצלחה<br />
+              <code className="bg-blue-100 px-1 rounded">{'{student_language_section}'}</code> - הנחיות שפה לתלמידים (אוטומטי)
+            </p>
+            <p className="text-sm text-blue-800 mt-3">
+              <strong>משתנים לפרומפט שאלות פתוחות:</strong><br />
+              <code className="bg-blue-100 px-1 rounded">{'{activity_description}'}</code>, 
+              <code className="bg-blue-100 px-1 rounded">{'{audience}'}</code>, 
+              <code className="bg-blue-100 px-1 rounded">{'{event_type}'}</code><br />
+              <code className="bg-blue-100 px-1 rounded">{'{audience_language}'}</code> - הנחיות שפה לפי קהל<br />
+              <code className="bg-blue-100 px-1 rounded">{'{ongoing_note}'}</code> - הערה לתוכנית מתמשכת
             </p>
           </CardContent>
         </Card>
