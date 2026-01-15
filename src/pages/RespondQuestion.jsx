@@ -246,6 +246,54 @@ export default function RespondQuestion() {
           </div>
         );
 
+      case 'multi_choice':
+        const multiChoices = currentQuestion.choices || [];
+        const selectedValues = currentAnswer ? currentAnswer.split(',').filter(v => v) : [];
+        return (
+          <div className="space-y-3">
+            <p className="text-sm text-gray-500 mb-2">ניתן לבחור יותר מאפשרות אחת</p>
+            {multiChoices.map((choice) => {
+              const isSelected = selectedValues.includes(choice.value);
+              return (
+                <motion.button
+                  key={choice.value}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={() => {
+                    let newSelected;
+                    if (isSelected) {
+                      newSelected = selectedValues.filter(v => v !== choice.value);
+                    } else {
+                      newSelected = [...selectedValues, choice.value];
+                    }
+                    handleAnswer(newSelected.join(','));
+                  }}
+                  className={cn(
+                    "w-full p-4 rounded-xl border-2 text-right transition-all flex items-center gap-3",
+                    isSelected
+                      ? "border-[#E85A24] bg-orange-50"
+                      : "border-gray-200 bg-white hover:border-gray-300"
+                  )}
+                >
+                  <div className={cn(
+                    "w-6 h-6 rounded-md flex items-center justify-center flex-shrink-0",
+                    isSelected
+                      ? "bg-[#E85A24] text-white"
+                      : "border-2 border-gray-300"
+                  )}>
+                    {isSelected && <Check className="w-4 h-4" />}
+                  </div>
+                  <span className={cn(
+                    "font-medium",
+                    isSelected ? "text-[#6B2D4A]" : "text-gray-700"
+                  )}>
+                    {choice.label}
+                  </span>
+                </motion.button>
+              );
+            })}
+          </div>
+        );
+
       default:
         return null;
     }
