@@ -110,32 +110,83 @@ export default function GenerateSurveyMultiple() {
   };
 
   const generateWithPrompt = async (prompt) => {
-    // Generate questions using LLM
-    const scaleResponse = await base44.integrations.Core.InvokeLLM({
-      prompt: buildPromptFromTemplate(prompt.prompt_text, survey),
-      response_json_schema: {
-        type: "object",
-        properties: {
-          questions: {
-            type: "array",
-            items: {
-              type: "object",
-              properties: {
-                prompt: { type: "string" },
-                kit_domain: { type: "string" },
-                scale_labels: {
-                  type: "object",
-                  properties: {
-                    low: { type: "string" },
-                    high: { type: "string" }
+    const builtPrompt = buildPromptFromTemplate(prompt.prompt_text, survey);
+    
+    // Check if unified prompt (has both scale_questions and open_questions)
+    const isUnified = prompt.prompt_text.includes('scale_questions') && prompt.prompt_text.includes('open_questions');
+    
+    console.log(`Generating with prompt: ${prompt.name}, unified: ${isUnified}`);
+    
+    let scaleResponse;
+    
+    if (isUnified) {
+      // Unified prompt format
+      const response = await base44.integrations.Core.InvokeLLM({
+        prompt: builtPrompt,
+        response_json_schema: {
+          type: "object",
+          properties: {
+            scale_questions: {
+              type: "array",
+              items: {
+                type: "object",
+                properties: {
+                  prompt: { type: "string" },
+                  kit_domain: { type: "string" },
+                  scale_labels: {
+                    type: "object",
+                    properties: {
+                      low: { type: "string" },
+                      high: { type: "string" }
+                    }
+                  }
+                }
+              }
+            },
+            open_questions: {
+              type: "array",
+              items: {
+                type: "object",
+                properties: {
+                  prompt: { type: "string" }
+                }
+              }
+            }
+          }
+        }
+      });
+      
+      console.log('Unified response received:', response);
+      scaleResponse = { questions: response.scale_questions || [] };
+    } else {
+      // Legacy format
+      scaleResponse = await base44.integrations.Core.InvokeLLM({
+        prompt: builtPrompt,
+        response_json_schema: {
+          type: "object",
+          properties: {
+            questions: {
+              type: "array",
+              items: {
+                type: "object",
+                properties: {
+                  prompt: { type: "string" },
+                  kit_domain: { type: "string" },
+                  scale_labels: {
+                    type: "object",
+                    properties: {
+                      low: { type: "string" },
+                      high: { type: "string" }
+                    }
                   }
                 }
               }
             }
           }
         }
-      }
-    });
+      });
+      console.log('Legacy response received:', scaleResponse);
+    }
 
     // Create a duplicate survey
     const newSurvey = await base44.entities.Survey.create({
@@ -237,26 +288,32 @@ export default function GenerateSurveyMultiple() {
 
   const generateAll = async () => {
     if (!activePrompts || activePrompts.length === 0 || !survey) {
+      console.log('Cannot generate:', { activePromptsLength: activePrompts?.length, hasSurvey: !!survey });
+      toast.error('חסרים נתונים ליצירת סקרים');
       return;
     }
 
+    console.log(`Starting generation with ${activePrompts.length} prompts`);
     setIsGenerating(true);
     const results = [];
 
     try {
       for (let i = 0; i < activePrompts.length; i++) {
+        console.log(`Generating version ${i + 1}/${activePrompts.length}`);
         setCurrentPromptIndex(i);
         const newSurvey = await generateWithPrompt(activePrompts[i]);
         results.push({ prompt: activePrompts[i].name, survey: newSurvey, promptNotes: activePrompts[i].notes });
+        console.log(`Version ${i + 1} created successfully`);
       }
 
+      console.log(`All ${results.length} versions generated successfully`);
       setGeneratedSurveys(results);
-      setSelectedVersions(results.map((_, idx) => idx)); // Select all by default
+      setSelectedVersions(results.map((_, idx) => idx));
       setIsComplete(true);
       toast.success(`נוצרו ${results.length} גרסאות סקר!`);
     } catch (error) {
       console.error('Generation error:', error);
-      toast.error('שגיאה ביצירת הסקרים');
+      toast.error(`שגיאה ביצירת הסקרים: ${error.message}`);
     } finally {
       setIsGenerating(false);
     }
