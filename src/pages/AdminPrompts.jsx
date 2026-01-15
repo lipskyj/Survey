@@ -9,9 +9,11 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { motion } from 'framer-motion';
-import { Lock, Sparkles, Save, RotateCcw, Copy, CheckCircle, Settings, Eye, EyeOff, Plus, Trash2, Edit2, Home } from 'lucide-react';
+import { Lock, Sparkles, Save, RotateCcw, Copy, CheckCircle, Settings, Eye, EyeOff, Plus, Trash2, Edit2, Home, BookOpen } from 'lucide-react';
 import { toast } from 'sonner';
+import QuestionLogicGuidelines from '../components/QuestionLogicGuidelines';
 
 const ADMIN_PASSWORD = '1234';
 
@@ -415,7 +417,20 @@ export default function AdminPrompts() {
         </div>
       </div>
 
-      <div className="max-w-4xl mx-auto px-4 py-6 space-y-6">
+      <div className="max-w-4xl mx-auto px-4 py-6">
+        <Tabs defaultValue="prompts" dir="rtl">
+          <TabsList className="mb-6">
+            <TabsTrigger value="prompts" className="gap-2">
+              <Sparkles className="w-4 h-4" />
+              פרומפטים
+            </TabsTrigger>
+            <TabsTrigger value="guidelines" className="gap-2">
+              <BookOpen className="w-4 h-4" />
+              הנחיות לוגיקה
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="prompts" className="space-y-6">
         {/* Active Status */}
         <Card className={`border-2 ${activePrompts.length > 0 ? 'border-green-200 bg-green-50' : 'border-gray-200 bg-gray-50'}`}>
           <CardContent className="p-4">
@@ -621,7 +636,13 @@ export default function AdminPrompts() {
             );
           })}
         </div>
-      </div>
-    </div>
-  );
-}
+          </TabsContent>
+
+          <TabsContent value="guidelines">
+            <QuestionLogicGuidelines />
+          </TabsContent>
+        </Tabs>
+        </div>
+        </div>
+        );
+        }
