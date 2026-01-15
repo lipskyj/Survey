@@ -473,44 +473,11 @@ export default function AdminPrompts() {
           </Card>
         )}
 
-        {/* Default Prompts Section */}
-        <div className="space-y-4">
-          <h2 className="font-bold text-lg text-[#6B2D4A]">פרומפטים סטנדרטיים (ברירת מחדל)</h2>
-          <p className="text-sm text-gray-600 bg-yellow-50 border border-yellow-200 p-3 rounded-lg">
-            ⚠️ <strong>חשוב:</strong> פרומפטים אלו משמשים רק כאשר אין פרומפטים פעילים. כאשר יש פרומפט פעיל, המערכת משתמשת בו במקום.
+        {/* Info */}
+        <div className="bg-blue-50 border border-blue-200 p-4 rounded-lg">
+          <p className="text-sm text-gray-700">
+            💡 <strong>השוואת פרומפטים:</strong> כעת תוכל להפעיל מספר פרומפטים במקביל. המערכת תיצור גרסת סקר נפרדת לכל פרומפט פעיל, וכך תוכל להשוות תוצאות ולבחור את הטובה ביותר.
           </p>
-          
-          <Card className="border-2 border-gray-200 bg-gray-50">
-            <CardHeader className="pb-2">
-              <div className="flex items-center justify-between">
-                <CardTitle className="text-base">פרומפט דירוג - עברית (ברירת מחדל)</CardTitle>
-                <Button variant="ghost" size="sm" onClick={() => copyToClipboard(DEFAULT_SCALE_PROMPT_HE)}>
-                  <Copy className="w-4 h-4 ml-1" /> העתק הכל
-                </Button>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <pre className="text-xs text-gray-600 whitespace-pre-wrap font-sans leading-relaxed max-h-96 overflow-y-auto bg-white p-3 rounded-lg border">
-                {DEFAULT_SCALE_PROMPT_HE}
-              </pre>
-            </CardContent>
-          </Card>
-
-          <Card className="border-2 border-gray-200 bg-gray-50">
-            <CardHeader className="pb-2">
-              <div className="flex items-center justify-between">
-                <CardTitle className="text-base">פרומפט שאלות פתוחות - עברית (ברירת מחדל)</CardTitle>
-                <Button variant="ghost" size="sm" onClick={() => copyToClipboard(DEFAULT_OPEN_PROMPT_HE)}>
-                  <Copy className="w-4 h-4 ml-1" /> העתק הכל
-                </Button>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <pre className="text-xs text-gray-600 whitespace-pre-wrap font-sans leading-relaxed max-h-96 overflow-y-auto bg-white p-3 rounded-lg border">
-                {DEFAULT_OPEN_PROMPT_HE}
-              </pre>
-            </CardContent>
-          </Card>
         </div>
 
         {/* Saved Prompts List */}
@@ -619,7 +586,8 @@ export default function AdminPrompts() {
                 </>
               )}
             </Card>
-          ))}
+          )}
+          )}
         </div>
       </div>
     </div>
