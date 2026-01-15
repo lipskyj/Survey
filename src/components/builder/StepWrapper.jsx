@@ -20,15 +20,7 @@ export default function StepWrapper({
   showSaveDraft = true,
   direction = 1
 }) {
-  const isNavigatingRef = useRef(false);
   const touchStartRef = useRef(null);
-
-  // Reset navigation lock when loading changes
-  useEffect(() => {
-    if (!isLoading) {
-      isNavigatingRef.current = false;
-    }
-  }, [isLoading]);
 
   // Swipe gesture handling
   const handleTouchStart = useCallback((e) => {
@@ -36,7 +28,7 @@ export default function StepWrapper({
   }, []);
 
   const handleTouchEnd = useCallback((e) => {
-    if (isNavigatingRef.current || isLoading) return;
+    if (isLoading) return;
     
     const touchStartX = touchStartRef.current;
     if (touchStartX === null) return;
@@ -46,14 +38,11 @@ export default function StepWrapper({
     touchStartRef.current = null;
 
     // RTL: swipe left = next, swipe right = back
-    if (Math.abs(diff) > 80) { // Increased threshold
-      isNavigatingRef.current = true;
+    if (Math.abs(diff) > 100) {
       if (diff > 0 && !isNextDisabled && onNext) {
         onNext();
       } else if (diff < 0 && showBack && onBack) {
         onBack();
-      } else {
-        isNavigatingRef.current = false;
       }
     }
   }, [isNextDisabled, onNext, onBack, showBack, isLoading]);
@@ -137,10 +126,8 @@ export default function StepWrapper({
           
           <Button
             type="button"
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              if (!isLoading && !isNextDisabled && onNext) {
+            onClick={() => {
+              if (onNext && !isLoading && !isNextDisabled) {
                 onNext();
               }
             }}
