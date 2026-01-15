@@ -25,6 +25,7 @@ import SurveyEditor from './pages/SurveyEditor';
 import SurveyLanguage from './pages/SurveyLanguage';
 import SurveyManagement from './pages/SurveyManagement';
 import SurveyType from './pages/SurveyType';
+import GenerateSurveyMultiple from './pages/GenerateSurveyMultiple';
 import __Layout from './Layout.jsx';
 
 
@@ -56,6 +57,7 @@ export const PAGES = {
     "SurveyLanguage": SurveyLanguage,
     "SurveyManagement": SurveyManagement,
     "SurveyType": SurveyType,
+    "GenerateSurveyMultiple": GenerateSurveyMultiple,
 }
 
 export const pagesConfig = {
