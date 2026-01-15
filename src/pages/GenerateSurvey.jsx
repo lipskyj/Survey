@@ -257,40 +257,42 @@ ${survey.event_type === 'ongoing_program' ? '• התייחס לתהליך המ�
   ]
 }`;
 
-    // Check for admin custom prompts
-    const savedConfig = localStorage.getItem('admin_prompts_config');
-    if (savedConfig) {
-      const config = JSON.parse(savedConfig);
-      
-      // If custom prompt is active, use it for everything
-      if (config.useCustomPrompt && config.customPrompt) {
-        let customPrompt = config.customPrompt;
-        customPrompt = customPrompt.replace(/{activity_description}/g, survey.activity_description || 'לא צוין');
-        customPrompt = customPrompt.replace(/{audience}/g, audienceLabels[survey.audience] || survey.audience);
-        customPrompt = customPrompt.replace(/{grades}/g, selectedGrades || 'לא צוין');
-        customPrompt = customPrompt.replace(/{event_type}/g, eventTypeLabels[survey.event_type] || survey.event_type || 'לא צוין');
-        customPrompt = customPrompt.replace(/{content_focus}/g, contentFocusDisplay);
-        customPrompt = customPrompt.replace(/{values_section}/g, valuesToMeasure ? `• ערכים למדידה: ${valuesToMeasure}` : '');
-        customPrompt = customPrompt.replace(/{knowledge_section}/g, knowledgeToMeasure ? `• ידע למדידה: ${knowledgeToMeasure}` : '');
-        customPrompt = customPrompt.replace(/{skills_section}/g, skillsToMeasure ? `• מיומנויות למדידה: ${skillsToMeasure}` : '');
-        customPrompt = customPrompt.replace(/{goals_section}/g, evaluationGoals ? `• מטרות ההערכה: ${evaluationGoals}` : '');
-        customPrompt = customPrompt.replace(/{success_section}/g, successDef ? `• הגדרת הצלחה: ${successDef}` : '');
-        setScalePrompt(customPrompt);
-        setOpenPrompt(''); // Not used when custom prompt is active
-      } else if (config.language === 'arabic') {
-        // Use Arabic defaults
-        setScalePrompt(newScalePrompt.replace('אתה מומחה להערכה בית ספרית', 'أنت خبير في التقييم المدرسي'));
-        setOpenPrompt(newOpenPrompt);
-      } else {
+    // Check for active admin prompt from database
+    const loadActivePrompt = async () => {
+      try {
+        const adminPrompts = await base44.entities.AdminPrompt.filter({ is_active: true });
+        const activePrompt = adminPrompts.find(p => 
+          p.is_active && (p.language === 'both' || p.language === survey.language)
+        );
+        
+        if (activePrompt) {
+          let customPrompt = activePrompt.prompt_text;
+          customPrompt = customPrompt.replace(/{activity_description}/g, survey.activity_description || 'לא צוין');
+          customPrompt = customPrompt.replace(/{audience}/g, audienceLabels[survey.audience] || survey.audience);
+          customPrompt = customPrompt.replace(/{grades}/g, selectedGrades || 'לא צוין');
+          customPrompt = customPrompt.replace(/{event_type}/g, eventTypeLabels[survey.event_type] || survey.event_type || 'לא צוין');
+          customPrompt = customPrompt.replace(/{content_focus}/g, contentFocusDisplay);
+          customPrompt = customPrompt.replace(/{values_section}/g, valuesToMeasure ? `• ערכים למדידה: ${valuesToMeasure}` : '');
+          customPrompt = customPrompt.replace(/{knowledge_section}/g, knowledgeToMeasure ? `• ידע למדידה: ${knowledgeToMeasure}` : '');
+          customPrompt = customPrompt.replace(/{skills_section}/g, skillsToMeasure ? `• מיומנויות למדידה: ${skillsToMeasure}` : '');
+          customPrompt = customPrompt.replace(/{goals_section}/g, evaluationGoals ? `• מטרות ההערכה: ${evaluationGoals}` : '');
+          customPrompt = customPrompt.replace(/{success_section}/g, successDef ? `• הגדרת הצלחה: ${successDef}` : '');
+          setScalePrompt(customPrompt);
+          setOpenPrompt(''); // Not used when custom prompt is active
+        } else {
+          // Use default prompts based on survey language
+          setScalePrompt(newScalePrompt);
+          setOpenPrompt(newOpenPrompt);
+        }
+      } catch (error) {
+        // Fallback to defaults
         setScalePrompt(newScalePrompt);
         setOpenPrompt(newOpenPrompt);
       }
-    } else {
-      setScalePrompt(newScalePrompt);
-      setOpenPrompt(newOpenPrompt);
-    }
-
-    setPromptReady(true);
+      setPromptReady(true);
+    };
+    
+    loadActivePrompt();
   };
 
   const generateQuestions = async () => {

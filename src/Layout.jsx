@@ -6,7 +6,7 @@ import { Home, FileText, BarChart3, Settings } from 'lucide-react';
 export default function Layout({ children, currentPageName }) {
   const isRespondentFlow = ['RespondIntro', 'RespondQuestion', 'RespondComplete'].includes(currentPageName);
   const isBuilderFlow = [
-            'ActivityDescription', 'Audience', 'GradeRange', 'EventType', 
+            'SurveyLanguage', 'ActivityDescription', 'Audience', 'GradeRange', 'EventType', 
             'ContentFocus', 'EvaluationGoal', 'SuccessDefinition',
             'ProfileSummary', 'GenerateSurvey', 'SurveyEditor', 'PublishShare',
             'EditQuestion', 'AddQuestion', 'ReorderQuestions', 'AdminPrompts'

@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
+import { base44 } from '@/api/base44Client';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -8,7 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { motion } from 'framer-motion';
-import { Lock, Sparkles, Save, RotateCcw, Copy, CheckCircle, Settings, Eye, EyeOff } from 'lucide-react';
+import { Lock, Sparkles, Save, RotateCcw, Copy, CheckCircle, Settings, Eye, EyeOff, Plus, Trash2, Edit2 } from 'lucide-react';
 import { toast } from 'sonner';
 
 const ADMIN_PASSWORD = '1234';
@@ -260,26 +262,81 @@ const DEFAULT_OPEN_PROMPT_AR = `أنت خبير في التقييم المدرس
 
 export default function AdminPrompts() {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   
-  const [language, setLanguage] = useState('hebrew'); // hebrew or arabic
-  const [customPrompt, setCustomPrompt] = useState('');
-  const [useCustomPrompt, setUseCustomPrompt] = useState(false);
-  const [savedConfig, setSavedConfig] = useState(null);
+  const [editingPrompt, setEditingPrompt] = useState(null);
+  const [newPromptName, setNewPromptName] = useState('');
+  const [newPromptText, setNewPromptText] = useState('');
+  const [newPromptLanguage, setNewPromptLanguage] = useState('both');
+  const [showNewForm, setShowNewForm] = useState(false);
 
-  useEffect(() => {
-    // Load saved config from localStorage
-    const saved = localStorage.getItem(PROMPTS_STORAGE_KEY);
-    if (saved) {
-      const config = JSON.parse(saved);
-      setSavedConfig(config);
-      setLanguage(config.language || 'hebrew');
-      setCustomPrompt(config.customPrompt || '');
-      setUseCustomPrompt(config.useCustomPrompt || false);
+  const { data: prompts = [], isLoading: promptsLoading } = useQuery({
+    queryKey: ['admin-prompts'],
+    queryFn: () => base44.entities.AdminPrompt.list('-created_date'),
+    enabled: isAuthenticated
+  });
+
+  const createPromptMutation = useMutation({
+    mutationFn: (data) => base44.entities.AdminPrompt.create(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries(['admin-prompts']);
+      setShowNewForm(false);
+      setNewPromptName('');
+      setNewPromptText('');
+      toast.success('הפרומפט נשמר');
     }
-  }, []);
+  });
+
+  const updatePromptMutation = useMutation({
+    mutationFn: ({ id, data }) => base44.entities.AdminPrompt.update(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries(['admin-prompts']);
+      setEditingPrompt(null);
+      toast.success('הפרומפט עודכן');
+    }
+  });
+
+  const deletePromptMutation = useMutation({
+    mutationFn: (id) => base44.entities.AdminPrompt.delete(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries(['admin-prompts']);
+      toast.success('הפרומפט נמחק');
+    }
+  });
+
+  const activatePromptMutation = useMutation({
+    mutationFn: async (promptId) => {
+      // Deactivate all other prompts first
+      for (const p of prompts) {
+        if (p.is_active) {
+          await base44.entities.AdminPrompt.update(p.id, { is_active: false });
+        }
+      }
+      // Activate selected prompt
+      await base44.entities.AdminPrompt.update(promptId, { is_active: true });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries(['admin-prompts']);
+      toast.success('הפרומפט הופעל');
+    }
+  });
+
+  const deactivateAllMutation = useMutation({
+    mutationFn: async () => {
+      for (const p of prompts) {
+        if (p.is_active) {
+          await base44.entities.AdminPrompt.update(p.id, { is_active: false });
+        }
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries(['admin-prompts']);
+      toast.success('כל הפרומפטים כבויים - משתמש בברירת מחדל');
+    }
+  });
 
   const handleLogin = () => {
     if (password === ADMIN_PASSWORD) {
@@ -290,30 +347,20 @@ export default function AdminPrompts() {
     }
   };
 
-  const handleSave = () => {
-    const config = {
-      language,
-      customPrompt,
-      useCustomPrompt,
-      lastUpdated: new Date().toISOString()
-    };
-    localStorage.setItem(PROMPTS_STORAGE_KEY, JSON.stringify(config));
-    setSavedConfig(config);
-    toast.success('ההגדרות נשמרו בהצלחה');
-  };
-
-  const handleResetCustom = () => {
-    setCustomPrompt('');
-    setUseCustomPrompt(false);
-    toast.success('הפרומפט המותאם נמחק');
-  };
-
-  const getDefaultPrompts = () => {
-    if (language === 'arabic') {
-      return { scale: DEFAULT_SCALE_PROMPT_AR, open: DEFAULT_OPEN_PROMPT_AR };
+  const handleCreatePrompt = () => {
+    if (!newPromptName.trim() || !newPromptText.trim()) {
+      toast.error('יש למלא שם ותוכן לפרומפט');
+      return;
     }
-    return { scale: DEFAULT_SCALE_PROMPT_HE, open: DEFAULT_OPEN_PROMPT_HE };
+    createPromptMutation.mutate({
+      name: newPromptName,
+      prompt_text: newPromptText,
+      language: newPromptLanguage,
+      is_active: false
+    });
   };
+
+  const activePrompt = prompts.find(p => p.is_active);
 
   const copyToClipboard = (text) => {
     navigator.clipboard.writeText(text);
@@ -368,8 +415,6 @@ export default function AdminPrompts() {
     );
   }
 
-  const defaults = getDefaultPrompts();
-
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
       {/* Header */}
@@ -381,46 +426,44 @@ export default function AdminPrompts() {
             </div>
             <div>
               <h1 className="font-bold text-lg text-[#6B2D4A]">ניהול פרומפטים</h1>
-              <p className="text-xs text-gray-500">עדכון אחרון: {savedConfig?.lastUpdated ? new Date(savedConfig.lastUpdated).toLocaleString('he-IL') : 'לא נשמר'}</p>
+              <p className="text-xs text-gray-500">
+                {activePrompt ? `פרומפט פעיל: ${activePrompt.name}` : 'משתמש בברירת מחדל'}
+              </p>
             </div>
           </div>
           <Button
-            onClick={handleSave}
+            onClick={() => setShowNewForm(true)}
             className="bg-[#E85A24] hover:bg-[#D14A1A] text-white"
           >
-            <Save className="w-4 h-4 ml-2" />
-            שמור הכל
+            <Plus className="w-4 h-4 ml-2" />
+            פרומפט חדש
           </Button>
         </div>
       </div>
 
       <div className="max-w-4xl mx-auto px-4 py-6 space-y-6">
-        {/* Language Selection */}
-        <Card className="border-2 border-[#E85A24]">
-          <CardHeader>
-            <CardTitle className="text-lg text-[#6B2D4A]">שפת השאלונים</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex gap-4">
-              <label 
-                className={`flex-1 flex items-center gap-3 p-4 rounded-xl cursor-pointer transition-all ${language === 'hebrew' ? 'bg-[#E85A24]/10 border-2 border-[#E85A24]' : 'bg-white border-2 border-gray-200 hover:border-gray-300'}`}
-                onClick={() => setLanguage('hebrew')}
-              >
-                <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${language === 'hebrew' ? 'border-[#E85A24]' : 'border-gray-300'}`}>
-                  {language === 'hebrew' && <div className="w-2.5 h-2.5 rounded-full bg-[#E85A24]" />}
+        {/* Active Status */}
+        <Card className={`border-2 ${activePrompt ? 'border-green-200 bg-green-50' : 'border-gray-200 bg-gray-50'}`}>
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <CheckCircle className={`w-5 h-5 ${activePrompt ? 'text-green-600' : 'text-gray-400'}`} />
+                <div>
+                  <p className="font-medium text-gray-800">סטטוס נוכחי</p>
+                  <p className="text-sm text-gray-600">
+                    {activePrompt ? `פרומפט "${activePrompt.name}" פעיל` : 'משתמש בפרומפטים הסטנדרטיים'}
+                  </p>
                 </div>
-                <span className="font-medium">עברית</span>
-              </label>
-              
-              <label 
-                className={`flex-1 flex items-center gap-3 p-4 rounded-xl cursor-pointer transition-all ${language === 'arabic' ? 'bg-[#E85A24]/10 border-2 border-[#E85A24]' : 'bg-white border-2 border-gray-200 hover:border-gray-300'}`}
-                onClick={() => setLanguage('arabic')}
-              >
-                <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${language === 'arabic' ? 'border-[#E85A24]' : 'border-gray-300'}`}>
-                  {language === 'arabic' && <div className="w-2.5 h-2.5 rounded-full bg-[#E85A24]" />}
-                </div>
-                <span className="font-medium">عربية</span>
-              </label>
+              </div>
+              {activePrompt && (
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => deactivateAllMutation.mutate()}
+                >
+                  חזור לברירת מחדל
+                </Button>
+              )}
             </div>
           </CardContent>
         </Card>
@@ -430,123 +473,155 @@ export default function AdminPrompts() {
           <CardContent className="p-4">
             <p className="text-sm text-blue-800">
               <strong>משתנים זמינים בפרומפט:</strong><br />
-              <code className="bg-blue-100 px-1 rounded">{'{activity_description}'}</code> - תיאור הפעילות<br />
-              <code className="bg-blue-100 px-1 rounded">{'{audience}'}</code> - קהל יעד<br />
-              <code className="bg-blue-100 px-1 rounded">{'{grades}'}</code> - שכבות גיל<br />
-              <code className="bg-blue-100 px-1 rounded">{'{event_type}'}</code> - סוג האירוע<br />
-              <code className="bg-blue-100 px-1 rounded">{'{content_focus}'}</code> - תחומי מיקוד<br />
-              <code className="bg-blue-100 px-1 rounded">{'{values_section}'}</code> - ערכים למדידה<br />
-              <code className="bg-blue-100 px-1 rounded">{'{knowledge_section}'}</code> - ידע למדידה<br />
-              <code className="bg-blue-100 px-1 rounded">{'{skills_section}'}</code> - מיומנויות למדידה<br />
-              <code className="bg-blue-100 px-1 rounded">{'{goals_section}'}</code> - מטרות ההערכה<br />
-              <code className="bg-blue-100 px-1 rounded">{'{success_section}'}</code> - הגדרת הצלחה
+              <code className="bg-blue-100 px-1 rounded">{'{activity_description}'}</code>, 
+              <code className="bg-blue-100 px-1 rounded">{'{audience}'}</code>, 
+              <code className="bg-blue-100 px-1 rounded">{'{grades}'}</code>, 
+              <code className="bg-blue-100 px-1 rounded">{'{event_type}'}</code>, 
+              <code className="bg-blue-100 px-1 rounded">{'{content_focus}'}</code>, 
+              <code className="bg-blue-100 px-1 rounded">{'{values_section}'}</code>, 
+              <code className="bg-blue-100 px-1 rounded">{'{knowledge_section}'}</code>, 
+              <code className="bg-blue-100 px-1 rounded">{'{skills_section}'}</code>, 
+              <code className="bg-blue-100 px-1 rounded">{'{goals_section}'}</code>, 
+              <code className="bg-blue-100 px-1 rounded">{'{success_section}'}</code>
             </p>
           </CardContent>
         </Card>
 
-        {/* Custom Prompt Toggle */}
-        <Card className="border-2 border-gray-200">
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <Sparkles className="w-5 h-5 text-[#E85A24]" />
-                <CardTitle className="text-lg text-[#6B2D4A]">פרומפט מותאם אישית</CardTitle>
-              </div>
-              <div className="flex items-center gap-2">
-                <Switch
-                  id="use-custom"
-                  checked={useCustomPrompt}
-                  onCheckedChange={setUseCustomPrompt}
+        {/* New Prompt Form */}
+        {showNewForm && (
+          <Card className="border-2 border-[#E85A24]">
+            <CardHeader>
+              <CardTitle className="text-lg text-[#6B2D4A]">פרומפט חדש</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div>
+                <Label>שם הפרומפט</Label>
+                <Input
+                  value={newPromptName}
+                  onChange={(e) => setNewPromptName(e.target.value)}
+                  placeholder="למשל: פרומפט מקוצר v2"
+                  className="mt-1"
                 />
-                <Label htmlFor="use-custom" className="text-sm">
-                  {useCustomPrompt ? 'פרומפט מותאם פעיל' : 'משתמש בברירת מחדל'}
-                </Label>
               </div>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm text-gray-600 mb-4">
-              {useCustomPrompt 
-                ? 'הפרומפט המותאם שלך משמש ליצירת השאלונים. הפרומפטים הסטנדרטיים לא פעילים.' 
-                : 'כרגע משתמשים בפרומפטים הסטנדרטיים לפי השפה שנבחרה.'}
-            </p>
-            
-            {useCustomPrompt && (
-              <div className="space-y-4">
+              <div>
+                <Label>שפה</Label>
+                <div className="flex gap-2 mt-1">
+                  {['both', 'hebrew', 'arabic'].map(lang => (
+                    <Button
+                      key={lang}
+                      variant={newPromptLanguage === lang ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => setNewPromptLanguage(lang)}
+                      className={newPromptLanguage === lang ? 'bg-[#E85A24]' : ''}
+                    >
+                      {lang === 'both' ? 'שתיהן' : lang === 'hebrew' ? 'עברית' : 'عربية'}
+                    </Button>
+                  ))}
+                </div>
+              </div>
+              <div>
+                <Label>תוכן הפרומפט</Label>
                 <Textarea
-                  value={customPrompt}
-                  onChange={(e) => setCustomPrompt(e.target.value)}
-                  placeholder="כתוב כאן את הפרומפט המותאם שלך... הפרומפט צריך להחזיר JSON עם מערך questions הכולל את כל השאלות (דירוג + פתוחות)"
-                  className="min-h-[400px] text-sm font-mono leading-relaxed"
+                  value={newPromptText}
+                  onChange={(e) => setNewPromptText(e.target.value)}
+                  placeholder="כתוב כאן את הפרומפט המלא..."
+                  className="mt-1 min-h-[300px] text-sm font-mono"
                   dir="rtl"
                 />
-                <div className="flex gap-2">
-                  <Button variant="outline" size="sm" onClick={() => copyToClipboard(customPrompt)}>
-                    <Copy className="w-4 h-4 ml-1" />
-                    העתק
-                  </Button>
-                  <Button variant="outline" size="sm" onClick={handleResetCustom}>
-                    <RotateCcw className="w-4 h-4 ml-1" />
-                    מחק פרומפט מותאם
-                  </Button>
-                </div>
               </div>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Default Prompts Preview (Read Only) */}
-        {!useCustomPrompt && (
-          <>
-            <Card className="border-2 border-gray-200 bg-gray-50">
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <CardTitle className="text-base text-gray-600">פרומפט ברירת מחדל - שאלות דירוג ({language === 'arabic' ? 'عربية' : 'עברית'})</CardTitle>
-                  <Button variant="ghost" size="sm" onClick={() => copyToClipboard(defaults.scale)}>
-                    <Copy className="w-4 h-4" />
-                  </Button>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <pre className="text-xs text-gray-600 whitespace-pre-wrap font-sans leading-relaxed max-h-48 overflow-y-auto bg-white p-4 rounded-lg border">
-                  {defaults.scale}
-                </pre>
-              </CardContent>
-            </Card>
-
-            <Card className="border-2 border-gray-200 bg-gray-50">
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <CardTitle className="text-base text-gray-600">פרומפט ברירת מחדל - שאלות פתוחות ({language === 'arabic' ? 'عربية' : 'עברית'})</CardTitle>
-                  <Button variant="ghost" size="sm" onClick={() => copyToClipboard(defaults.open)}>
-                    <Copy className="w-4 h-4" />
-                  </Button>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <pre className="text-xs text-gray-600 whitespace-pre-wrap font-sans leading-relaxed max-h-48 overflow-y-auto bg-white p-4 rounded-lg border">
-                  {defaults.open}
-                </pre>
-              </CardContent>
-            </Card>
-          </>
+              <div className="flex gap-2 justify-end">
+                <Button variant="outline" onClick={() => setShowNewForm(false)}>ביטול</Button>
+                <Button 
+                  onClick={handleCreatePrompt}
+                  className="bg-[#E85A24] hover:bg-[#D14A1A]"
+                  disabled={createPromptMutation.isPending}
+                >
+                  <Save className="w-4 h-4 ml-1" />
+                  שמור
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
         )}
 
-        {/* Status */}
-        <Card className={`border-2 ${useCustomPrompt ? 'border-amber-200 bg-amber-50' : 'border-green-200 bg-green-50'}`}>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <CheckCircle className={`w-5 h-5 ${useCustomPrompt ? 'text-amber-600' : 'text-green-600'}`} />
-              <div>
-                <p className="font-medium text-gray-800">סטטוס נוכחי</p>
-                <p className="text-sm text-gray-600">
-                  שפה: {language === 'arabic' ? 'ערבית' : 'עברית'} | 
-                  פרומפט: {useCustomPrompt ? 'מותאם אישית' : 'ברירת מחדל'}
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        {/* Saved Prompts List */}
+        <div className="space-y-4">
+          <h2 className="font-bold text-lg text-[#6B2D4A]">פרומפטים שמורים ({prompts.length})</h2>
+          
+          {prompts.length === 0 && !promptsLoading && (
+            <Card className="bg-gray-50 border-gray-200">
+              <CardContent className="p-8 text-center">
+                <Sparkles className="w-12 h-12 text-gray-300 mx-auto mb-4" />
+                <p className="text-gray-500">אין פרומפטים שמורים</p>
+                <p className="text-sm text-gray-400">כשאין פרומפט פעיל, המערכת משתמשת בפרומפטים הסטנדרטיים</p>
+              </CardContent>
+            </Card>
+          )}
+
+          {prompts.map((prompt) => (
+            <Card 
+              key={prompt.id} 
+              className={`border-2 ${prompt.is_active ? 'border-green-400 bg-green-50' : 'border-gray-200'}`}
+            >
+              <CardHeader className="pb-2">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <CardTitle className="text-base">{prompt.name}</CardTitle>
+                    {prompt.is_active && (
+                      <span className="bg-green-500 text-white text-xs px-2 py-1 rounded-full">פעיל</span>
+                    )}
+                    <span className="text-xs text-gray-500">
+                      {prompt.language === 'both' ? 'עברית + عربية' : prompt.language === 'hebrew' ? 'עברית' : 'عربية'}
+                    </span>
+                  </div>
+                  <div className="flex gap-1">
+                    {!prompt.is_active ? (
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => activatePromptMutation.mutate(prompt.id)}
+                        className="text-green-600 border-green-600"
+                      >
+                        הפעל
+                      </Button>
+                    ) : (
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => deactivateAllMutation.mutate()}
+                      >
+                        כבה
+                      </Button>
+                    )}
+                    <Button 
+                      variant="ghost" 
+                      size="icon"
+                      onClick={() => copyToClipboard(prompt.prompt_text)}
+                    >
+                      <Copy className="w-4 h-4" />
+                    </Button>
+                    <Button 
+                      variant="ghost" 
+                      size="icon"
+                      onClick={() => {
+                        if (confirm('למחוק את הפרומפט?')) {
+                          deletePromptMutation.mutate(prompt.id);
+                        }
+                      }}
+                    >
+                      <Trash2 className="w-4 h-4 text-red-500" />
+                    </Button>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <pre className="text-xs text-gray-600 whitespace-pre-wrap font-sans leading-relaxed max-h-32 overflow-y-auto bg-white p-3 rounded-lg border">
+                  {prompt.prompt_text.slice(0, 500)}...
+                </pre>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
       </div>
     </div>
   );
