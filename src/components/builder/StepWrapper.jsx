@@ -136,9 +136,11 @@ export default function StepWrapper({
           )}
           
           <Button
-            onClick={() => {
-              if (!isNavigatingRef.current && !isLoading) {
-                isNavigatingRef.current = true;
+            type="button"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              if (!isLoading && !isNextDisabled && onNext) {
                 onNext();
               }
             }}
