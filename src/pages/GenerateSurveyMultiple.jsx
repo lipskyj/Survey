@@ -53,19 +53,10 @@ export default function GenerateSurveyMultiple() {
         
         const loadedSurvey = surveys[0];
         setSurvey(loadedSurvey);
-        console.log('Survey loaded:', loadedSurvey);
         
-        // Use built-in 4-step system (no external prompts)
-        const builtInPrompt = {
-          name: '4 Steps - Built-in System',
-          notes: 'מערכת 4 שלבים עם Locks קשיחים'
-        };
-        setActivePrompts([builtInPrompt]);
-        
-        // Auto-start generation
+        // Auto-start direct generation
         setTimeout(() => {
-          console.log('Starting auto-generation with 4-step system');
-          startGeneration([builtInPrompt], loadedSurvey);
+          generateDirectly(loadedSurvey);
         }, 500);
       } catch (error) {
         console.error('Load error:', error);
@@ -74,6 +65,232 @@ export default function GenerateSurveyMultiple() {
     };
     loadData();
   }, []);
+
+  const generateDirectly = async (useSurvey) => {
+    setIsGenerating(true);
+    
+    try {
+      const ctx = buildSurveyContext(useSurvey);
+      
+      // Single comprehensive prompt
+      const prompt = `אתה מומחה ליצירת שאלוני הערכה בית-ספריים בעברית.
+
+📋 פרטי הפעילות:
+${ctx.activity_description}
+
+קהל יעד: ${ctx.audience}
+גילאים: ${ctx.grades}
+סוג: ${ctx.event_type}
+תחומי מיקוד: ${ctx.content_focus}
+${ctx.values_section ? ctx.values_section : ''}
+${ctx.knowledge_section ? ctx.knowledge_section : ''}
+${ctx.skills_section ? ctx.skills_section : ''}
+${ctx.goals_section ? ctx.goals_section : ''}
+${ctx.success_section ? ctx.success_section : ''}
+
+🎯 יצירת שאלון איכותי:
+
+צור שאלון משוב עם:
+• 8-12 שאלות דירוג (סולם 1-5 בלבד)
+• 3-4 שאלות פתוחות
+
+הנחיות קריטיות:
+1. כל שאלה בעברית בלבד
+2. כל שאלת דירוג בסולם 1-5 (לא 1-10!)
+3. שאלות ספציפיות לפעילות "${ctx.activity_description}" - לא גנריות
+4. התאמה מלאה לקהל ${ctx.audience}
+5. כיסוי תחומי המיקוד: ${ctx.content_focus}
+
+כללי תוכן:
+• כל שאלת דירוג מתחילה ב"עד כמה" או "באיזו מידה"
+• שאלות פתוחות משלימות (לא משכפלות) את שאלות הדירוג
+• אין חזרתיות
+• התמקדות בנושאים רלוונטיים בלבד
+
+${ctx.audience === 'students' ? `
+שפה לתלמידים:
+• גוף שני (את/ה) - לא גוף ראשון
+• שפה פשוטה - לא מקצועית
+• ✅ מעניין, למדתי, הרגשתי
+• ❌ פדגוגי, הקנייה, טיפוח ערכים
+` : ''}
+
+החזר JSON בעברית בלבד.`;
+
+      const response = await base44.integrations.Core.InvokeLLM({
+        prompt,
+        response_json_schema: {
+          type: "object",
+          properties: {
+            title: { type: "string" },
+            intro: { type: "string" },
+            scale_questions: {
+              type: "array",
+              items: {
+                type: "object",
+                properties: {
+                  prompt: { type: "string" },
+                  dimension: { 
+                    type: "string",
+                    enum: ["relevance", "skills", "delivery_quality", "belonging"]
+                  },
+                  scale_labels: {
+                    type: "object",
+                    properties: {
+                      low: { type: "string" },
+                      high: { type: "string" }
+                    }
+                  }
+                }
+              }
+            },
+            open_questions: {
+              type: "array",
+              items: {
+                type: "object",
+                properties: {
+                  prompt: { type: "string" }
+                }
+              }
+            }
+          }
+        }
+      });
+
+      // Create survey
+      const newSurvey = await base44.entities.Survey.create({
+        ...useSurvey,
+        title: response.title || useSurvey.activity_description?.slice(0, 50) || 'סקר משוב',
+        intro_text: response.intro,
+        status: 'draft',
+        current_step: 'B3'
+      });
+
+      setSurveyId(newSurvey.id);
+
+      // Create questions
+      let orderIndex = 0;
+      const questionsToCreate = [];
+      const bgQuestions = useSurvey.background_questions || {};
+
+      // Name question if not anonymous
+      if (useSurvey.is_anonymous === false) {
+        questionsToCreate.push({
+          survey_id: newSurvey.id,
+          order_index: orderIndex++,
+          question_type: 'open_text',
+          kit_domain: 'none',
+          prompt_hebrew: 'מה שמך?',
+          is_required: true,
+          is_generated: true
+        });
+      }
+
+      // Background questions
+      if (bgQuestions.include_class) {
+        const gradeChoicesMap = {
+          middle: [{ value: 'z', label: 'ז׳' }, { value: 'h', label: 'ח׳' }, { value: 't', label: 'ט׳' }],
+          high: [{ value: 'y', label: 'י׳' }, { value: 'ya', label: 'י״א' }, { value: 'yb', label: 'י״ב' }],
+          college: [{ value: 'yg', label: 'י״ג' }, { value: 'yd', label: 'י״ד' }]
+        };
+        const selectedGradeRanges = useSurvey.grade_range?.selected_grades || [];
+        const relevantChoices = selectedGradeRanges.flatMap(range => gradeChoicesMap[range] || []);
+        
+        questionsToCreate.push({
+          survey_id: newSurvey.id,
+          order_index: orderIndex++,
+          question_type: 'single_choice',
+          kit_domain: 'none',
+          prompt_hebrew: useSurvey.audience === 'parents' ? 'באיזו כיתה ילדך/ילדתך?' : 'באיזו כיתה את/ה?',
+          is_required: true,
+          choices: relevantChoices.length > 0 ? relevantChoices : [{ value: 'z', label: 'ז׳' }],
+          is_generated: true
+        });
+      }
+
+      if (bgQuestions.include_gender) {
+        questionsToCreate.push({
+          survey_id: newSurvey.id,
+          order_index: orderIndex++,
+          question_type: 'single_choice',
+          kit_domain: 'none',
+          prompt_hebrew: 'מה המגדר שלך?',
+          is_required: true,
+          choices: [
+            { value: 'male', label: 'זכר' },
+            { value: 'female', label: 'נקבה' },
+            { value: 'other', label: 'אחר' }
+          ],
+          is_generated: true
+        });
+      }
+
+      // Scale questions
+      for (const q of response.scale_questions || []) {
+        questionsToCreate.push({
+          survey_id: newSurvey.id,
+          order_index: orderIndex++,
+          question_type: 'scale_5',
+          kit_domain: q.dimension || 'relevance',
+          prompt_hebrew: q.prompt,
+          is_required: true,
+          scale_labels: q.scale_labels || { low: 'לא מסכים כלל', high: 'מסכים לחלוטין' },
+          is_generated: true
+        });
+      }
+
+      // Open questions
+      for (const q of response.open_questions || []) {
+        questionsToCreate.push({
+          survey_id: newSurvey.id,
+          order_index: orderIndex++,
+          question_type: 'open_text',
+          kit_domain: 'none',
+          prompt_hebrew: q.prompt,
+          is_required: false,
+          is_generated: true
+        });
+      }
+
+      // Bottom line question
+      const bottomLinePrompts = {
+        students: 'האם היית ממליץ/ה לחברים להשתתף בפעילות כזו?',
+        parents: 'האם הייתם רוצים שילדכם ישתתף בפעילויות דומות בעתיד?',
+        teachers: 'האם הייתם ממליצים להמשיך את הפעילות הזו?',
+        management: 'האם יש ערך מוסף לפעילות זו בהשוואה למשאבים המושקעים?'
+      };
+
+      questionsToCreate.push({
+        survey_id: newSurvey.id,
+        order_index: orderIndex++,
+        question_type: 'bottom_line',
+        kit_domain: 'none',
+        prompt_hebrew: bottomLinePrompts[useSurvey.audience] || bottomLinePrompts.students,
+        is_required: true,
+        choices: [
+          { value: 'yes', label: 'כן, בהחלט' },
+          { value: 'maybe', label: 'אולי' },
+          { value: 'no', label: 'לא' }
+        ],
+        is_generated: true
+      });
+
+      await base44.entities.SurveyQuestion.bulkCreate(questionsToCreate);
+
+      setIsComplete(true);
+      toast.success('הסקר נוצר בהצלחה!');
+      
+      // Navigate directly to editor
+      setTimeout(() => {
+        navigate(createPageUrl('SurveyEditor') + `?surveyId=${newSurvey.id}`);
+      }, 1500);
+
+    } catch (error) {
+      console.error('Generation error:', error);
+      toast.error('שגיאה ביצירת הסקר');
+      setIsGenerating(false);
+    }
+  };
 
   const generateWith4Steps = async (prompt, useSurvey) => {
     console.log('Starting 4-step generation process');
@@ -778,13 +995,13 @@ Duplication check:
               className="text-center"
             >
               <div className="w-24 h-24 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                <Loader2 className="w-12 h-12 text-[#E85A24] animate-spin" />
+                <Sparkles className="w-12 h-12 text-[#E85A24]" />
               </div>
               <h1 className="text-2xl font-bold text-[#6B2D4A] mb-4">
                 מכין ליצירה...
               </h1>
               <p className="text-gray-500">
-                טוען פרומפטים ומתחיל ביצירת הסקרים
+                מתכונן ליצור את השאלון המותאם
               </p>
             </motion.div>
           )}
@@ -799,10 +1016,10 @@ Duplication check:
                 <Loader2 className="w-12 h-12 text-[#E85A24] animate-spin" />
               </div>
               <h1 className="text-2xl font-bold text-[#6B2D4A] mb-4">
-                יוצר גרסה {currentPromptIndex + 1} מתוך {activePrompts.length}
+                יוצר את השאלון...
               </h1>
               <p className="text-gray-500">
-                {activePrompts[currentPromptIndex]?.name}
+                מייצר שאלות מותאמות לפעילות ולקהל היעד
               </p>
             </motion.div>
           )}
@@ -811,111 +1028,17 @@ Duplication check:
             <motion.div
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
+              className="text-center"
             >
-              <div className="flex items-center justify-between mb-6">
-                <div>
-                  <h1 className="text-3xl font-bold text-[#6B2D4A]">
-                    {generatedSurveys.length} גרסאות נוצרו בהצלחה!
-                  </h1>
-                  <p className="text-gray-500 mt-1">
-                    {selectedVersions.length} גרסאות נבחרו • השווה ובחר את הגרסה המתאימה ביותר
-                  </p>
-                </div>
-                {selectedVersions.length < generatedSurveys.length && (
-                  <Button
-                    onClick={deleteUnselected}
-                    variant="outline"
-                    className="text-red-600 border-red-600"
-                  >
-                    <Trash2 className="w-4 h-4 ml-2" />
-                    מחק לא נבחרו
-                  </Button>
-                )}
+              <div className="w-24 h-24 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                <CheckCircle className="w-12 h-12 text-green-600" />
               </div>
-
-              <div className="mb-6">
-                {selectedVersions.length >= 2 && (
-                  <div className="mb-4 flex gap-2">
-                    <Button
-                      onClick={() => {
-                        const selected = generatedSurveys.filter((_, idx) => selectedVersions.includes(idx));
-                        if (selected.length >= 2) {
-                          setViewingVersion({ compare: true, versions: selected });
-                        }
-                      }}
-                      className="bg-blue-600 hover:bg-blue-700 text-white"
-                    >
-                      השווה {selectedVersions.length} גרסאות נבחרות
-                    </Button>
-                  </div>
-                )}
-                
-                <div className="grid gap-4">
-                  {generatedSurveys.map(({ prompt, survey }, idx) => {
-                    const isSelected = selectedVersions.includes(idx);
-                    return (
-                      <Card 
-                        key={survey.id} 
-                        className={`border-2 transition-all ${isSelected ? 'border-green-400 bg-green-50' : 'border-gray-200 opacity-60'}`}
-                      >
-                        <CardHeader>
-                          <div className="flex items-start justify-between gap-4">
-                            <div className="flex items-start gap-3 flex-1">
-                              <Switch
-                                checked={isSelected}
-                                onCheckedChange={() => toggleVersion(idx)}
-                                className="mt-1"
-                              />
-                              <div className="flex-1">
-                                <div className="flex items-center gap-2 mb-1">
-                                  <CardTitle className="text-lg">גרסה {idx + 1}</CardTitle>
-                                  <span className="text-xs text-white bg-[#E85A24] px-2 py-1 rounded-full">
-                                    {prompt}
-                                  </span>
-                                  {isSelected && (
-                                    <Check className="w-4 h-4 text-green-600" />
-                                  )}
-                                </div>
-                                <p className="text-sm text-gray-600 mt-1">{survey.title}</p>
-                                {generatedSurveys[idx].promptNotes && (
-                                  <p className="text-xs text-gray-500 mt-1 bg-gray-50 p-2 rounded">
-                                    {generatedSurveys[idx].promptNotes}
-                                  </p>
-                                )}
-                              </div>
-                            </div>
-                          </div>
-                        </CardHeader>
-                        <CardContent className="flex gap-2">
-                          <Button
-                            onClick={() => viewVersion({ prompt, survey, promptNotes: generatedSurveys[idx].promptNotes })}
-                            variant="outline"
-                            className="flex-1"
-                          >
-                            <Eye className="w-4 h-4 ml-2" />
-                            צפה בגרסה
-                          </Button>
-                          <Button
-                            onClick={() => navigate(createPageUrl('SurveyEditor') + `?surveyId=${survey.id}`)}
-                            className="flex-1 bg-[#E85A24] hover:bg-[#D14A1A]"
-                          >
-                            <FileText className="w-4 h-4 ml-2" />
-                            ערוך
-                          </Button>
-                        </CardContent>
-                      </Card>
-                    );
-                  })}
-                </div>
-              </div>
-
-              <Button
-                onClick={() => navigate(createPageUrl('Home'))}
-                variant="outline"
-                className="mx-auto block"
-              >
-                חזור לדף הבית
-              </Button>
+              <h1 className="text-2xl font-bold text-[#6B2D4A] mb-4">
+                הסקר נוצר בהצלחה!
+              </h1>
+              <p className="text-gray-500">
+                מעביר אותך לעורך השאלון...
+              </p>
             </motion.div>
           )}
         </AnimatePresence>
