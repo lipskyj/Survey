@@ -55,20 +55,18 @@ export default function GenerateSurveyMultiple() {
         setSurvey(loadedSurvey);
         console.log('Survey loaded:', loadedSurvey);
         
-        // Load active prompts
-        const prompts = await base44.entities.AdminPrompt.filter({ is_active: true });
-        console.log('Active prompts loaded:', prompts.length);
-        setActivePrompts(prompts);
+        // Use built-in 4-step system (no external prompts)
+        const builtInPrompt = {
+          name: '4 Steps - Built-in System',
+          notes: 'מערכת 4 שלבים עם Locks קשיחים'
+        };
+        setActivePrompts([builtInPrompt]);
         
-        // Auto-start generation after state is set
-        if (prompts.length > 0) {
-          setTimeout(() => {
-            console.log('Starting auto-generation');
-            startGeneration(prompts, loadedSurvey);
-          }, 500);
-        } else {
-          toast.error('אין פרומפטים פעילים');
-        }
+        // Auto-start generation
+        setTimeout(() => {
+          console.log('Starting auto-generation with 4-step system');
+          startGeneration([builtInPrompt], loadedSurvey);
+        }, 500);
       } catch (error) {
         console.error('Load error:', error);
         toast.error('שגיאה בטעינת נתונים');
@@ -599,203 +597,11 @@ Duplication check:
   const generateWithPrompt = async (prompt, surveyData) => {
     const useSurvey = surveyData || survey;
     
-    // Check if this is a 4-step prompt
-    const is4Step = prompt.name.includes('4 Steps') || prompt.name.includes('4 שלבים');
-    
-    if (is4Step) {
-      return await generateWith4Steps(prompt, useSurvey);
-    }
-    
-    const builtPrompt = buildPromptFromTemplate(prompt.prompt_text, useSurvey);
-    
-    // Check if unified prompt (has both scale_questions and open_questions)
-    const isUnified = prompt.prompt_text.includes('scale_questions') && prompt.prompt_text.includes('open_questions');
-    
-    console.log(`Generating with prompt: ${prompt.name}, unified: ${isUnified}`);
-    
-    let scaleResponse, openResponse;
-    
-    if (isUnified) {
-      // Unified prompt format
-      const response = await base44.integrations.Core.InvokeLLM({
-        prompt: builtPrompt,
-        response_json_schema: {
-          type: "object",
-          properties: {
-            scale_questions: {
-              type: "array",
-              items: {
-                type: "object",
-                properties: {
-                  prompt: { type: "string" },
-                  kit_domain: { type: "string" },
-                  scale_labels: {
-                    type: "object",
-                    properties: {
-                      low: { type: "string" },
-                      high: { type: "string" }
-                    }
-                  }
-                }
-              }
-            },
-            open_questions: {
-              type: "array",
-              items: {
-                type: "object",
-                properties: {
-                  prompt: { type: "string" }
-                }
-              }
-            }
-          }
-        }
-      });
-      
-      console.log('Unified response received:', response);
-      scaleResponse = { questions: response.scale_questions || [] };
-      openResponse = { questions: response.open_questions || [] };
-    } else {
-      // Legacy format
-      scaleResponse = await base44.integrations.Core.InvokeLLM({
-        prompt: builtPrompt,
-        response_json_schema: {
-          type: "object",
-          properties: {
-            questions: {
-              type: "array",
-              items: {
-                type: "object",
-                properties: {
-                  prompt: { type: "string" },
-                  kit_domain: { type: "string" },
-                  scale_labels: {
-                    type: "object",
-                    properties: {
-                      low: { type: "string" },
-                      high: { type: "string" }
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      });
-      console.log('Legacy response received:', scaleResponse);
-      openResponse = { questions: [] }; // No open questions for legacy prompts
-    }
-
-    // Create a duplicate survey
-    const newSurvey = await base44.entities.Survey.create({
-      ...useSurvey,
-      title: `${useSurvey.activity_description?.slice(0, 30) || 'סקר'} - ${prompt.name}`,
-      prompt_version: prompt.name,
-      status: 'draft'
-    });
-
-    // Create questions
-    let orderIndex = 0;
-    const questionsToCreate = [];
-    const bgQuestions = useSurvey.background_questions || {};
-
-    if (useSurvey.is_anonymous === false) {
-      questionsToCreate.push({
-        survey_id: newSurvey.id,
-        order_index: orderIndex++,
-        question_type: 'open_text',
-        kit_domain: 'none',
-        prompt_hebrew: 'מה שמך?',
-        is_required: true,
-        is_generated: true
-      });
-    }
-
-    if (bgQuestions.include_class) {
-      const selectedGradeRanges = useSurvey.grade_range?.selected_grades || [];
-      const gradeChoicesMap = {
-        middle: [{ value: 'z', label: 'ז׳' }, { value: 'h', label: 'ח׳' }, { value: 't', label: 'ט׳' }],
-        high: [{ value: 'y', label: 'י׳' }, { value: 'ya', label: 'י״א' }, { value: 'yb', label: 'י״ב' }],
-        college: [{ value: 'yg', label: 'י״ג' }, { value: 'yd', label: 'י״ד' }]
-      };
-      const relevantChoices = selectedGradeRanges.flatMap(range => gradeChoicesMap[range] || []);
-      questionsToCreate.push({
-        survey_id: newSurvey.id,
-        order_index: orderIndex++,
-        question_type: 'single_choice',
-        kit_domain: 'none',
-        prompt_hebrew: useSurvey.audience === 'parents' ? 'באיזו כיתה ילדך/ילדתך?' : 'באיזו כיתה את/ה?',
-        is_required: true,
-        choices: relevantChoices.length > 0 ? relevantChoices : [{ value: 'z', label: 'ז׳' }],
-        is_generated: true
-      });
-    }
-
-    if (bgQuestions.include_gender) {
-      questionsToCreate.push({
-        survey_id: newSurvey.id,
-        order_index: orderIndex++,
-        question_type: 'single_choice',
-        kit_domain: 'none',
-        prompt_hebrew: 'מה המגדר שלך?',
-        is_required: true,
-        choices: [{ value: 'male', label: 'זכר' }, { value: 'female', label: 'נקבה' }, { value: 'other', label: 'אחר' }],
-        is_generated: true
-      });
-    }
-
-    for (const q of scaleResponse.questions || []) {
-      questionsToCreate.push({
-        survey_id: newSurvey.id,
-        order_index: orderIndex++,
-        question_type: 'scale_5',
-        kit_domain: q.kit_domain || 'relevance',
-        prompt_hebrew: q.prompt,
-        is_required: true,
-        scale_labels: q.scale_labels || { low: 'לא מסכים כלל', high: 'מסכים לחלוטין' },
-        is_generated: true
-      });
-    }
-
-    // Add open questions
-    for (const q of openResponse.questions || []) {
-      questionsToCreate.push({
-        survey_id: newSurvey.id,
-        order_index: orderIndex++,
-        question_type: 'open_text',
-        kit_domain: 'none',
-        prompt_hebrew: q.prompt,
-        is_required: false,
-        is_generated: true
-      });
-    }
-
-    const bottomLinePrompts = {
-      students: 'האם היית ממליץ/ה לחברים להשתתף בפעילות כזו?',
-      parents: 'האם הייתם רוצים שילדכם ישתתף בפעילויות דומות בעתיד?',
-      teachers: 'האם הייתם ממליצים להמשיך את הפעילות הזו?',
-      management: 'האם יש ערך מוסף לפעילות זו בהשוואה למשאבים המושקעים?'
-    };
-
-    questionsToCreate.push({
-      survey_id: newSurvey.id,
-      order_index: orderIndex++,
-      question_type: 'bottom_line',
-      kit_domain: 'none',
-      prompt_hebrew: bottomLinePrompts[useSurvey.audience] || bottomLinePrompts.students,
-      is_required: true,
-      choices: [
-        { value: 'yes', label: 'כן, בהחלט' },
-        { value: 'maybe', label: 'אולי' },
-        { value: 'no', label: 'לא' }
-      ],
-      is_generated: true
-    });
-
-    await base44.entities.SurveyQuestion.bulkCreate(questionsToCreate);
-
-    return newSurvey;
+    // Always use 4-step system
+    return await generateWith4Steps(prompt, useSurvey);
   };
+    
+
 
   const startGeneration = async (prompts, surveyData) => {
     if (!prompts || prompts.length === 0 || !surveyData) {
