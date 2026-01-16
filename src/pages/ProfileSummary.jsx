@@ -159,16 +159,8 @@ export default function ProfileSummary() {
   ] : [];
 
   const handleContinue = async () => {
-    // Check if there are multiple active prompts
-    const activePrompts = await base44.entities.AdminPrompt.filter({ is_active: true });
-    
-    if (activePrompts.length > 1) {
-      // Multiple prompts - go to multi-generation page
-      navigate(createPageUrl('GenerateSurveyMultiple') + `?surveyId=${surveyId}`);
-    } else {
-      // Single or no active prompts - go to regular generation
-      navigate(createPageUrl('GenerateSurvey') + `?surveyId=${surveyId}`);
-    }
+    // Always use built-in 4-step system
+    navigate(createPageUrl('GenerateSurveyMultiple') + `?surveyId=${surveyId}`);
   };
 
   if (!survey) {
