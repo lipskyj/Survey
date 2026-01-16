@@ -369,7 +369,86 @@ ${JSON.stringify(contextMap, null, 2)}
 
 החזר JSON בלבד.`;
 
-  const buildStep3Prompt = (contextMap, blueprint, ctx) => `אתה כותב שאלות לשאלון לפי Blueprint נתון. אתה לא משנה את המבנה ולא מוסיף ממדים.
+  const buildStep3Prompt = (contextMap, blueprint, ctx) => `⚠️ CRITICAL SYSTEM DIRECTIVE ⚠️
+אתה כותב שאלות ב${ctx.survey_language} בלבד. כל מילה באנגלית = FAILURE.
+
+Context Map (MUST FOLLOW):
+${JSON.stringify(contextMap, null, 2)}
+
+Blueprint (STRICT STRUCTURE):
+${JSON.stringify(blueprint, null, 2)}
+
+פרטי הפעילות:
+📝 תיאור הפעילות: ${ctx.activity_description}
+👥 קהל היעד: ${ctx.audience}
+🎓 גילאים: ${ctx.grades}
+🔐 אנונימיות: ${ctx.anonymity_type}
+
+═══════════════════════════════════════════════════
+🔒 HARD LOCKS - אלו GATES שאסור לעבור בשום פנים ואופן
+═══════════════════════════════════════════════════
+
+1️⃣ LANGUAGE GATE (אם מופיע אנגלית → הפלט נדחה):
+   ✅ MUST: כל תו ב${ctx.survey_language} בלבד
+   ❌ FORBIDDEN: English, How, What, Rate, Scale, Satisfied, Quality, Service, Product
+   ❌ אם רואה מילים כמו "satisfied" או "rate" → הפלט שגוי לחלוטין
+   
+2️⃣ SCALE GATE (כל סולם חייב להיות 1-5):
+   ✅ MUST: רק סולמות 1-5
+   ❌ FORBIDDEN: אזכור 1-10, NPS, 0-10, כל טווח אחר
+   ❌ אסור לכתוב "מ-1 עד 10" או כל ניסוח דומה
+   
+3️⃣ DIMENSION GATE (רק ממדים מאושרים):
+   ✅ MUST: כל שאלה ממופה לממד מ-dimensions_allowed בלבד
+   ❌ FORBIDDEN TOPICS:
+      • HR / employee satisfaction / workplace culture
+      • organizational effectiveness / team collaboration  
+      • career development / job satisfaction
+      • company culture / organizational goals
+      • business metrics / ROI / efficiency
+   ❌ אם הנושא לא ב-dimensions_allowed → לא לכתוב שאלה
+   
+4️⃣ AUDIENCE GATE (התאמה מוחלטת לקהל):
+   אם קהל = "תלמידים":
+      ✅ ALLOWED: חוויה, למידה, משמעות, הנאה, השתתפות
+      ❌ FORBIDDEN: שאלות על מקצוע, תפקיד, צוות, ניהול
+      ❌ דוגמאות FORBIDDEN: "מה המקצוע שאתה מלמד", "איך אתה מתפקד בצוות"
+   
+   אם קהל = "מורים":
+      ✅ ALLOWED: תרומה לתלמידים, איכות יישום, התאמה פדגוגית
+      ❌ FORBIDDEN: "עד כמה נהניתי", "כמה זה היה מעניין לי"
+      
+5️⃣ TOPIC ANCHOR GATE (עיגון בפעילות):
+   ✅ MUST: כל שאלה חייבת להתייחס ישירות ל"${ctx.activity_description}"
+   ❌ FORBIDDEN: שאלות גנריות שאפשר לשאול על כל פעילות
+   ❌ דוגמה FORBIDDEN: "עד כמה הפעילות הייתה טובה" (כללי מדי)
+   ✅ דוגמה CORRECT: "עד כמה הטיול לעכו העשיר את הידע שלך על תקופת הצלבנים"
+
+═══════════════════════════════════════════════════
+📋 הנחיות כתיבה
+═══════════════════════════════════════════════════
+• כל שאלה מתחילה ב"עד כמה" או "באיזו מידה"
+• scale_labels תמיד ב${ctx.survey_language}: {low: "...", high: "..."}
+• אין חזרות בתוכן או בניסוח
+• שאלות פתוחות משלימות (לא משכפלות) את שאלות הסולם
+
+═══════════════════════════════════════════════════
+⚠️ PRE-FLIGHT CHECKLIST לפני יצירת השאלון:
+═══════════════════════════════════════════════════
+לפני שאתה כותב אפילו שאלה אחת, ענה לעצמך:
+1. האם אני כותב ב${ctx.survey_language} בלבד? (לא אנגלית)
+2. האם כל הסולמות הם 1-5? (לא 1-10)
+3. האם הממדים שלי מ-dimensions_allowed בלבד?
+4. האם השאלות מתאימות ל${ctx.audience}?
+5. האם השאלות מדברות על "${ctx.activity_description}" ספציפית?
+
+אם התשובה לאחד מאלה היא "לא" → אל תכתוב את השאלה.
+
+החזר JSON בלבד ב${ctx.survey_language}.`;
+
+  const buildStep4Prompt = (contextMap, blueprint, surveyJson) => `⚠️ FINAL QUALITY GATE - REJECT MODE ⚠️
+
+אתה Validator אדום. תפקידך: למצוא ולמחוק שאלות פגומות. אל תהסס.
 
 Context Map:
 ${JSON.stringify(contextMap, null, 2)}
@@ -377,107 +456,92 @@ ${JSON.stringify(contextMap, null, 2)}
 Blueprint:
 ${JSON.stringify(blueprint, null, 2)}
 
-נתוני פעילות:
-תיאור: ${ctx.activity_description}
-קהל: ${ctx.audience}
-גילאים: ${ctx.grades}
-אנונימיות: ${ctx.anonymity_type}
-שפה: ${ctx.survey_language}
-
-🔒 LANGUAGE LOCK - שפת השאלון היא ${ctx.survey_language} בלבד.
-❗ חובה:
-- כל השאלות, הסולמות, הכותרות והאפשרויות יהיו אך ורק ב-${ctx.survey_language}.
-- אסור להחזיר מילה אחת באנגלית.
-- אם קיימת תבנית מוכרת באנגלית – תרגם אותה לעברית תקנית (או ערבית אם זה מה שנבחר).
-- אם מופיעה מילה באנגלית בפלט – הפלט שגוי.
-
-🔒 SCALE LOCK - סולם השאלון הוא 1–5 בלבד.
-❗ אסור להזכיר או לרמוז על טווח אחר.
-
-🔒 DIMENSION LOCK - CRITICAL
-מותר לכתוב שאלות אך ורק עבור dimensions שמופיעים ב-context_map_json.dimensions_allowed.
-❗ אסור:
-- להוסיף ממד חדש
-- לכתוב שאלה כללית/ארגונית
-- לכתוב שאלות HR / שביעות רצון כללית / מקום עבודה
-- אם שאלה לא ממפה ישירות לממד מותר — אל תכתוב אותה.
-
-🔒 AUDIENCE LOCK - קהל היעד הוא ${ctx.audience} בלבד.
-❗ אם הקהל = תלמידים:
-- אסור לכתוב שאלות על תפקיד, עבודה, צוות, ארגון.
-- אסור להשתמש בשפה של עובדים או HR.
-❗ אם הקהל = מורים:
-- אסור שאלות חווייתיות אישיות ("עד כמה חידשה לי ידע", "עד כמה נהניתי").
-- מותר רק תרומה לתלמידים ואיכות יישום.
-
-🔒 TOPIC ANCHOR - כל שאלה חייבת לכלול עוגן ישיר לפעילות המתוארת ב-${ctx.activity_description}.
-❗ אם ניתן לשאול את השאלה בלי להזכיר את הפעילות — היא כללית מדי ואסורה.
-
-חוקים קשיחים:
-1) כל שאלה מודדת דבר אחד בלבד.
-2) אל תכתוב היגדי הסכמה. כתוב שאלות דירוג ("עד כמה.../באיזו מידה...").
-3) השתמש ב-scale_labels ברורים לקצוות בלבד (low/high).
-4) גוון סוגי סולמות לפי scale_type מה-Blueprint.
-5) אין חזרתיות רעיונית או ניסוחית.
-6) שאלות פתוחות משלימות סולמות: אסור לחזור על אותו ממד באותו ניסוח.
-
-החזר JSON בלבד.`;
-
-  const buildStep4Prompt = (contextMap, blueprint, surveyJson) => `אתה בודק איכות (Quality Gate) לשאלון שנוצר. אם יש בעיות — אתה מתקן, בלי לשנות את ה-Blueprint.
-
-Context Map:
-${JSON.stringify(contextMap, null, 2)}
-
-Blueprint:
-${JSON.stringify(blueprint, null, 2)}
-
-Survey JSON:
+Survey JSON (UNTRUSTED - validate everything):
 ${JSON.stringify(surveyJson, null, 2)}
 
-🔒 CRITICAL VALIDATION - בדיקות חובה HARD GATES:
+═══════════════════════════════════════════════════
+🔴 REJECTION RULES - מחק ללא רחמים
+═══════════════════════════════════════════════════
 
-1️⃣ Language Lock Validation:
-   ✅ אין אף מילה באנגלית בשאלות, בכותרות, או ב-scale_labels
-   ❌ אם יש - תקן לעברית מלאה
+אתה עובר על כל שאלה ובודק:
 
-2️⃣ Scale Lock Validation:
-   ✅ כל הסולמות הם 1-5 בלבד
-   ❌ אין שום אזכור ל-1-10 או טווח אחר
+🔴 REJECT RULE #1 - Language:
+   אם מצאת מילה אחת באנגלית → DELETE QUESTION
+   דוגמאות שגויות: "How", "satisfied", "rate", "quality", "service"
+   אם prompt מכיל English characters → DELETE
 
-3️⃣ Dimension Lock Validation:
-   ✅ כל שאלה ממופה לממד מ-dimensions_allowed
-   ❌ אסור שאלות HR / ארגון / מקום עבודה / שביעות רצון כללית
-   ❌ אם שאלה לא קשורה לממד מותר - מחק אותה
+🔴 REJECT RULE #2 - Scale Range:
+   אם יש אזכור ל-1-10, 0-10, NPS → DELETE QUESTION
+   אם scale_labels לא בעברית → FIX או DELETE
 
-4️⃣ Audience Lock Validation:
-   ✅ שאלות תואמות לקהל היעד
-   ❌ תלמידים: אין שאלות על תפקיד/עבודה/ארגון
-   ❌ מורים: אין שאלות חווייתיות אישיות
+🔴 REJECT RULE #3 - Forbidden Topics (CRITICAL):
+   מחק מיד אם השאלה על:
+   ❌ HR topics: employee satisfaction, workplace, team, organization, role, job
+   ❌ Career: development, skills for work, professional growth
+   ❌ Business: ROI, efficiency, scalability, business goals
+   ❌ Generic satisfaction: "How satisfied are you"
+   
+   דוגמאות למחיקה מיידית:
+   ❌ "How satisfied are you with our service?"
+   ❌ "How motivated do you feel in your current role?"
+   ❌ "Would you recommend our organization as a great place to work?"
+   ❌ "מה המקצוע/ות שאת/ה מלמד/ת?" (כשהקהל = תלמידים!)
 
-5️⃣ Topic Anchor Validation:
-   ✅ כל שאלה מעוגנת בתיאור הפעילות
-   ❌ אין שאלות כלליות שאפשר לשאול על כל פעילות
+🔴 REJECT RULE #4 - Audience Mismatch:
+   אם audience = "תלמידים":
+      ❌ מחק שאלות על: מקצוע, תפקיד, צוות, ניהול, ארגון
+      ❌ מחק שאלות בשפת HR/עובדים
+   
+   אם audience = "מורים":
+      ❌ מחק שאלות חווייתיות: "עד כמה נהניתי", "היה לי מעניין"
+      ✅ רק: תרומה לתלמידים, איכות פדגוגית
 
-6️⃣ Forbidden check: אין אף שאלה שמודדת dimension שנמצא ב-dimensions_forbidden.
+🔴 REJECT RULE #5 - Generic Questions:
+   מחק שאלות שאפשר לשאול על כל פעילות:
+   ❌ "עד כמה הפעילות הייתה טובה" (כללי)
+   ❌ "How was the quality?" (כללי)
+   ✅ חייב להזכיר את הפעילות הספציפית
 
-7️⃣ Coverage check: לכל dimension ב-dimensions_allowed יש לפחות שאלה אחת.
+🔴 REJECT RULE #6 - Dimension Not Allowed:
+   בדוק: האם השאלה ממופה לממד מ-dimensions_allowed?
+   אם לא → DELETE
 
-8️⃣ Duplication check: אין שתי שאלות עם אותו רעיון/ניסוח קרוב.
+═══════════════════════════════════════════════════
+✅ VALIDATION PROCESS
+═══════════════════════════════════════════════════
 
-9️⃣ Time logic check: חד-פעמי אין שאלות על שינוי לאורך זמן; מתמשך/שנתי יש לפחות פריט אחד תהליכי.
+עבור על scale_questions:
+1. בדוק Language → אם English → DELETE
+2. בדוק Scale → אם לא 1-5 → DELETE  
+3. בדוק Forbidden Topics → אם HR/Business → DELETE
+4. בדוק Audience → אם לא מתאים → DELETE
+5. בדוק Generic → אם כללי → DELETE
+6. בדוק Dimension → אם לא ב-allowed → DELETE
 
-🔟 Open/Scale separation: פתוחות לא משכפלות סולמות.
+עבור על open_questions:
+1. בדוק Language → אם English → DELETE
+2. בדוק Audience → אם לא מתאים → DELETE
+3. בדוק Generic → אם כללי → DELETE
 
-1️⃣1️⃣ Actionability check: לפחות שאלה אחת מאפשרת החלטה (continue/change/stop).
+Coverage check:
+- לכל dimension ב-dimensions_allowed חייבת להיות לפחות שאלה אחת
+- אם חסר ממד → CREATE minimal question
 
-❗ CRITICAL: אם שאלה מפרה אחד מהחוקים 1-5 (Locks) - מחק אותה ללא פשרות.
+Duplication check:
+- אם 2 שאלות דומות → DELETE אחת
 
-משימה:
-- בדוק כל שאלה מול ה-Locks
-- מחק/תקן שאלות שמפרות
-- החזר רק שאלות תקינות
+═══════════════════════════════════════════════════
+📤 OUTPUT
+═══════════════════════════════════════════════════
 
-החזר רק את scale_questions ו-open_questions מתוקנים.`;
+החזר רק:
+{
+  "scale_questions": [...], // רק שאלות שעברו VALIDATION
+  "open_questions": [...]   // רק שאלות שעברו VALIDATION
+}
+
+אם שאלה מפרה REJECT RULE → אל תכלול אותה בפלט.
+עדיף 5 שאלות טובות מ-15 שאלות פגומות.`;
 
   const buildPromptFromTemplate = (template, survey) => {
     const audienceLabels = {
