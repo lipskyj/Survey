@@ -91,6 +91,22 @@ export default function ProfileSummary() {
     return selected.length > 0 ? selected.join(', ') : null;
   };
 
+  const getSuccessDefinition = () => {
+    if (!survey?.success_definition) return 'לא הוגדר';
+    const def = survey.success_definition;
+    const parts = [];
+    
+    if (def.selected_ideas && def.selected_ideas.length > 0) {
+      parts.push(def.selected_ideas.join(', '));
+    }
+    
+    if (def.custom_text && def.custom_text.trim()) {
+      parts.push(def.custom_text);
+    }
+    
+    return parts.length > 0 ? parts.join(' + ') : 'לא הוגדר';
+  };
+
   const summaryItems = survey ? [
     { 
       icon: FileText, 
@@ -151,9 +167,7 @@ export default function ProfileSummary() {
     { 
       icon: CheckCircle, 
       label: 'הגדרת הצלחה', 
-      value: survey.success_definition?.type === 'custom' 
-        ? survey.success_definition.custom_text?.slice(0, 50) + '...'
-        : survey.success_definition?.selected_ideas?.join(', ')?.slice(0, 50) + '...' || 'לא הוגדר',
+      value: getSuccessDefinition(),
       step: 'SuccessDefinition'
     }
   ] : [];
