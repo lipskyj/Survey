@@ -85,13 +85,32 @@ export default function GenerateSurveyMultiple() {
           success_definition: useSurvey.success_definition
         };
 
-        // Step 2: Meta-prompt to generate the survey
-        const metaPrompt = `Act like a senior prompt engineer and survey-methodology lead building an intake-driven survey generator.
+        // Step 2: Simplified direct prompt
+        const directPrompt = `אתה מומחה ליצירת שאלוני הערכה בית-ספריים בעברית.
 
-  Your goal is to create the best possible survey, perfectly aligned to the user's chosen options, while ignoring every option not chosen.
+פרטי הפעילות:
+${useSurvey.activity_description}
 
-  Survey Intake (USER'S CHOICES):
-  ${JSON.stringify(surveyIntake, null, 2)}
+קהל יעד: ${useSurvey.audience}
+גילאים: ${useSurvey.grade_range?.selected_grades?.join(', ') || 'לא צוין'}
+סוג: ${useSurvey.event_type}
+תחומי מיקוד: ${useSurvey.content_focus?.join(', ') || 'לא צוין'}
+
+⚠️ חובה:
+1. צור בדיוק 10 שאלות דירוג (סולם 1-5) + 3 שאלות פתוחות
+2. כל שאלה בעברית בלבד - אף מילה באנגלית
+3. כל שאלה ספציפית לפעילות "${useSurvey.activity_description}" - לא שאלות גנריות
+4. שאלות דירוג מתחילות ב"עד כמה" או "באיזו מידה"
+5. התאמה מלאה לקהל ${useSurvey.audience}
+
+${useSurvey.audience === 'students' ? `
+הנחיות לתלמידים:
+• גוף שני (את/ה) - לא גוף ראשון
+• שפה פשוטה - לא מקצועית
+• חוויה, למידה, הנאה, משמעות
+` : ''}
+
+החזר JSON בדיוק עם 10 scale_questions ו-3 open_questions.`;
 
   Rules JSON (DO/DON'T CONSTRAINTS):
   {
