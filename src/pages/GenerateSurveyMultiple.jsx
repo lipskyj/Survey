@@ -67,95 +67,200 @@ export default function GenerateSurveyMultiple() {
   }, []);
 
   const generateDirectly = async (useSurvey) => {
-    setIsGenerating(true);
-    
-    try {
-      const ctx = buildSurveyContext(useSurvey);
-      
-      // Single comprehensive prompt
-      const prompt = `אתה מומחה ליצירת שאלוני הערכה בית-ספריים בעברית.
+      setIsGenerating(true);
 
-📋 פרטי הפעילות:
-${ctx.activity_description}
+      try {
+        // Step 1: Build survey intake JSON
+        const surveyIntake = {
+          language: useSurvey.language,
+          activity_description: useSurvey.activity_description,
+          activity_file_url: useSurvey.activity_file_url || null,
+          audience: useSurvey.audience,
+          grade_range: useSurvey.grade_range,
+          background_questions: useSurvey.background_questions,
+          event_type: useSurvey.event_type,
+          content_focus: useSurvey.content_focus,
+          measurement_targets: useSurvey.measurement_targets,
+          evaluation_goal: useSurvey.evaluation_goal,
+          success_definition: useSurvey.success_definition
+        };
 
-קהל יעד: ${ctx.audience}
-גילאים: ${ctx.grades}
-סוג: ${ctx.event_type}
-תחומי מיקוד: ${ctx.content_focus}
-${ctx.values_section ? ctx.values_section : ''}
-${ctx.knowledge_section ? ctx.knowledge_section : ''}
-${ctx.skills_section ? ctx.skills_section : ''}
-${ctx.goals_section ? ctx.goals_section : ''}
-${ctx.success_section ? ctx.success_section : ''}
+        // Step 2: Meta-prompt to generate the survey
+        const metaPrompt = `Act like a senior prompt engineer and survey-methodology lead building an intake-driven survey generator.
 
-🎯 יצירת שאלון איכותי:
+  Your goal is to create the best possible survey, perfectly aligned to the user's chosen options, while ignoring every option not chosen.
 
-צור שאלון משוב עם:
-• 8-12 שאלות דירוג (סולם 1-5 בלבד)
-• 3-4 שאלות פתוחות
+  Survey Intake (USER'S CHOICES):
+  ${JSON.stringify(surveyIntake, null, 2)}
 
-הנחיות קריטיות:
-1. כל שאלה בעברית בלבד
-2. כל שאלת דירוג בסולם 1-5 (לא 1-10!)
-3. שאלות ספציפיות לפעילות "${ctx.activity_description}" - לא גנריות
-4. התאמה מלאה לקהל ${ctx.audience}
-5. כיסוי תחומי המיקוד: ${ctx.content_focus}
+  Rules JSON (DO/DON'T CONSTRAINTS):
+  {
+  "SurveyLanguage": {
+  "field": "language",
+  "options": {
+  "hebrew": [
+    {"type": "DO", "instruction": "Generate all questions ONLY in Hebrew."},
+    {"type": "DO", "instruction": "Use natural, idiomatic Hebrew phrasing."},
+    {"type": "DON'T", "instruction": "Use any English words, phrases, or characters."},
+    {"type": "DO", "instruction": "Ensure proper Hebrew grammar and syntax."}
+  ]
+  }
+  },
+  "ActivityDescription": {
+  "field": "activity_description",
+  "rules": [
+  {"type": "DO", "instruction": "Ensure all generated questions are directly relevant to, and reference, the provided 'activity_description'."},
+  {"type": "DO", "instruction": "Extract key concepts, themes, and specifics from 'activity_description' to make questions highly targeted."},
+  {"type": "DON'T", "instruction": "Generate generic questions that could apply to any activity."}
+  ]
+  },
+  "Audience": {
+  "field": "audience",
+  "options": {
+  "students": [
+    {"type": "DO", "instruction": "Use simple, direct, and age-appropriate language."},
+    {"type": "DO", "instruction": "Focus questions on personal experience, learning, enjoyment, participation, feelings of belonging, and individual growth."},
+    {"type": "DO", "instruction": "Address the student in the second person ('את/ה', 'אתם/אתן')."},
+    {"type": "DON'T", "instruction": "Ask about professional, organizational management, teaching methodologies, or administrative topics."},
+    {"type": "DON'T", "instruction": "Use academic jargon or complex vocabulary."},
+    {"type": "DON'T", "instruction": "Use first-person phrasing ('אני', 'אנחנו')."}
+  ],
+  "parents": [
+    {"type": "DO", "instruction": "Focus questions on the child's experience, perceived benefit for the child, communication from the institution."},
+    {"type": "DON'T", "instruction": "Ask direct questions about the parent's personal learning or professional aspects."},
+    {"type": "DON'T", "instruction": "Use overly technical pedagogical terms."}
+  ],
+  "teachers": [
+    {"type": "DO", "instruction": "Focus questions on pedagogical effectiveness, quality of implementation, contribution to students' learning/development."},
+    {"type": "DON'T", "instruction": "Ask subjective experiential questions like 'עד כמה נהניתי' (How much did I enjoy it)."},
+    {"type": "DO", "instruction": "Focus on actionable feedback for improving the activity."}
+  ],
+  "management": [
+    {"type": "DO", "instruction": "Focus questions on strategic impact, resource allocation, sustainability, scalability, cost-effectiveness (ROI)."},
+    {"type": "DON'T", "instruction": "Ask subjective personal experience questions."}
+  ]
+  }
+  },
+  "GradeRange": {
+  "rules": [
+  {"type": "DO", "condition": "selected_grades includes 'middle'", "instruction": "Tailor language and complexity to middle school students (grades 7-9). Use concrete examples."},
+  {"type": "DO", "condition": "selected_grades includes 'high'", "instruction": "Tailor language and complexity to high school students (grades 10-12). Can introduce slightly more abstract concepts."},
+  {"type": "DO", "condition": "selected_grades includes 'college'", "instruction": "Tailor language and complexity to college students (grades 13-14). Can use more complex, abstract, and academic language."}
+  ]
+  },
+  "EventType": {
+  "options": {
+  "single_event": [
+    {"type": "DO", "instruction": "Focus questions on the immediate experience, direct outcomes, and specific aspects of this one-time event."},
+    {"type": "DON'T", "instruction": "Ask about long-term change, progress over time, or future continuity beyond the scope of this single event."}
+  ],
+  "ongoing_program": [
+    {"type": "DO", "instruction": "Include questions about progress, development, evolving impact, continuity, and consistency of the program over time."},
+    {"type": "DON'T", "instruction": "Limit questions solely to a single, isolated experience within the program."}
+  ],
+  "annual_activity": [
+    {"type": "DO", "instruction": "Include questions about the recurring nature, year-over-year changes, long-term impact, and consistency."},
+    {"type": "DON'T", "instruction": "Treat the activity as a one-off event in question design."}
+  ],
+  "special_project": [
+    {"type": "DO", "instruction": "Focus on unique aspects, innovation, specific challenges, and specific outcomes related to the project's goals."},
+    {"type": "DON'T", "instruction": "Generate generic program evaluation questions; emphasize the 'special' nature."}
+  ]
+  }
+  },
+  "ContentFocus": {
+  "rules": [
+  {"type": "DO", "condition": "includes 'pedagogical'", "instruction": "Generate questions related to learning outcomes, knowledge acquisition, academic skills, teaching methods."},
+  {"type": "DO", "condition": "includes 'social_emotional'", "instruction": "Generate questions about feelings, social interactions, emotional development, self-awareness, empathy, relationships."},
+  {"type": "DO", "condition": "includes 'values'", "instruction": "Generate questions about ethical considerations, moral development, citizenship, social responsibility, personal values alignment."},
+  {"type": "DO", "condition": "includes 'organizational'", "instruction": "Generate questions about logistics, organization, efficiency, resource utilization, infrastructure."},
+  {"type": "DO", "condition": "includes 'community'", "instruction": "Generate questions about collaboration, partnerships, parental involvement, community engagement."},
+  {"type": "DON'T", "instruction": "Generate questions that fall outside of the selected 'content_focus' domains."}
+  ]
+  },
+  "MeasurementTargets": {
+  "rules": [
+  {"type": "DO", "condition": "selected_values is not empty", "instruction": "Incorporate the specific 'selected_values' directly into questions to assess their achievement/development."},
+  {"type": "DO", "condition": "selected_knowledge is not empty", "instruction": "Incorporate the specific 'selected_knowledge' directly into questions to assess their acquisition/understanding."},
+  {"type": "DO", "condition": "selected_skills is not empty", "instruction": "Incorporate the specific 'selected_skills' directly into questions to assess their development/application."}
+  ]
+  },
+  "EvaluationGoal": {
+  "rules": [
+  {"type": "DO", "condition": "includes 'improve_activity'", "instruction": "Generate questions that identify areas for improvement, gather suggestions for change. Focus on actionable feedback."},
+  {"type": "DO", "condition": "includes 'measure_impact'", "instruction": "Generate questions that assess direct and indirect effects, changes in behavior/knowledge/attitudes."},
+  {"type": "DO", "condition": "includes 'stakeholder_feedback'", "instruction": "Generate questions that elicit opinions, perceptions, and experiences from the stakeholder's perspective."}
+  ]
+  },
+  "SuccessDefinition": {
+  "rules": [
+  {"type": "DO", "instruction": "Frame questions to assess whether the activity achieved the specific success criteria defined in 'selected_ideas' and/or 'custom_text'."},
+  {"type": "DO", "instruction": "Translate the chosen success definitions into measurable or observable indicators presented in question format."}
+  ]
+  }
+  }
 
-כללי תוכן:
-• כל שאלת דירוג מתחילה ב"עד כמה" או "באיזו מידה"
-• שאלות פתוחות משלימות (לא משכפלות) את שאלות הדירוג
-• אין חזרתיות
-• התמקדות בנושאים רלוונטיים בלבד
+  Task (follow steps exactly):
+  1) Parse survey_intake and list the chosen option(s) per category.
+  2) From rules_json, compile an "active constraints set":
+  - Include every DO/DON'T rule that matches the chosen option(s) and conditions.
+  - Exclude every rule that belongs to any non-chosen option.
+  3) Generate the final survey with:
+  • 8-12 scale questions (1-5 Likert scale ONLY, NOT 1-10)
+  • 3-4 open-ended questions
+  • All questions in ${useSurvey.language === 'hebrew' ? 'Hebrew' : 'Arabic'} ONLY
+  • Questions specific to: "${useSurvey.activity_description}"
+  • Aligned to audience: ${useSurvey.audience}
+  4) Self-check: verify every question follows at least one active DO rule and violates no active DON'T rule.
 
-${ctx.audience === 'students' ? `
-שפה לתלמידים:
-• גוף שני (את/ה) - לא גוף ראשון
-• שפה פשוטה - לא מקצועית
-• ✅ מעניין, למדתי, הרגשתי
-• ❌ פדגוגי, הקנייה, טיפוח ערכים
-` : ''}
+  Output ONLY the survey JSON (no explanation):`;
 
-החזר JSON בעברית בלבד.`;
-
-      const response = await base44.integrations.Core.InvokeLLM({
-        prompt,
-        response_json_schema: {
-          type: "object",
-          properties: {
-            title: { type: "string" },
-            intro: { type: "string" },
-            scale_questions: {
-              type: "array",
-              items: {
-                type: "object",
-                properties: {
-                  prompt: { type: "string" },
-                  dimension: { 
-                    type: "string",
-                    enum: ["relevance", "skills", "delivery_quality", "belonging"]
-                  },
-                  scale_labels: {
-                    type: "object",
-                    properties: {
-                      low: { type: "string" },
-                      high: { type: "string" }
+        const response = await base44.integrations.Core.InvokeLLM({
+          prompt: metaPrompt,
+          response_json_schema: {
+            type: "object",
+            properties: {
+              title: { type: "string" },
+              intro: { type: "string" },
+              scale_questions: {
+                type: "array",
+                minItems: 8,
+                maxItems: 12,
+                items: {
+                  type: "object",
+                  properties: {
+                    prompt: { type: "string" },
+                    dimension: { 
+                      type: "string",
+                      enum: ["relevance", "skills", "delivery_quality", "belonging"]
+                    },
+                    scale_labels: {
+                      type: "object",
+                      properties: {
+                        low: { type: "string" },
+                        high: { type: "string" }
+                      }
                     }
-                  }
+                  },
+                  required: ["prompt", "dimension", "scale_labels"]
+                }
+              },
+              open_questions: {
+                type: "array",
+                minItems: 3,
+                maxItems: 4,
+                items: {
+                  type: "object",
+                  properties: {
+                    prompt: { type: "string" }
+                  },
+                  required: ["prompt"]
                 }
               }
             },
-            open_questions: {
-              type: "array",
-              items: {
-                type: "object",
-                properties: {
-                  prompt: { type: "string" }
-                }
-              }
-            }
+            required: ["title", "intro", "scale_questions", "open_questions"]
           }
-        }
-      });
+        });
 
       // Create survey
       const newSurvey = await base44.entities.Survey.create({
