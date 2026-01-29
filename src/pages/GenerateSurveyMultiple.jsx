@@ -117,26 +117,27 @@ ${useSurvey.audience === 'students' ? `
           response_json_schema: {
             type: "object",
             properties: {
-              title: { type: "string" },
-              intro: { type: "string" },
+              title: { type: "string", description: "כותרת השאלון" },
+              intro: { type: "string", description: "פסקת פתיחה לשאלון" },
               scale_questions: {
                 type: "array",
-                minItems: 8,
-                maxItems: 12,
+                description: "בדיוק 10 שאלות דירוג - לא פחות ולא יותר",
                 items: {
                   type: "object",
                   properties: {
-                    prompt: { type: "string" },
+                    prompt: { type: "string", description: "נוסח השאלה בעברית" },
                     dimension: { 
                       type: "string",
-                      enum: ["relevance", "skills", "delivery_quality", "belonging"]
+                      enum: ["relevance", "skills", "delivery_quality", "belonging"],
+                      description: "ממד KIT"
                     },
                     scale_labels: {
                       type: "object",
                       properties: {
-                        low: { type: "string" },
-                        high: { type: "string" }
-                      }
+                        low: { type: "string", description: "תווית לדרגה 1" },
+                        high: { type: "string", description: "תווית לדרגה 5" }
+                      },
+                      required: ["low", "high"]
                     }
                   },
                   required: ["prompt", "dimension", "scale_labels"]
@@ -144,12 +145,11 @@ ${useSurvey.audience === 'students' ? `
               },
               open_questions: {
                 type: "array",
-                minItems: 3,
-                maxItems: 4,
+                description: "בדיוק 3 שאלות פתוחות - לא פחות ולא יותר",
                 items: {
                   type: "object",
                   properties: {
-                    prompt: { type: "string" }
+                    prompt: { type: "string", description: "נוסח השאלה הפתוחה בעברית" }
                   },
                   required: ["prompt"]
                 }
