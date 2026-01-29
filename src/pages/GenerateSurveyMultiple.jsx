@@ -227,31 +227,46 @@ ${useSurvey.audience === 'students' ? `
         });
       }
 
+      // Debug: Log the response
+      console.log('LLM Response:', JSON.stringify(response, null, 2));
+      console.log('Scale questions count:', response.scale_questions?.length || 0);
+      console.log('Open questions count:', response.open_questions?.length || 0);
+
       // Scale questions
-      for (const q of response.scale_questions || []) {
-        questionsToCreate.push({
-          survey_id: newSurvey.id,
-          order_index: orderIndex++,
-          question_type: 'scale_5',
-          kit_domain: q.dimension || 'relevance',
-          prompt_hebrew: q.prompt,
-          is_required: true,
-          scale_labels: q.scale_labels || { low: 'לא מסכים כלל', high: 'מסכים לחלוטין' },
-          is_generated: true
-        });
+      if (response.scale_questions && response.scale_questions.length > 0) {
+        for (const q of response.scale_questions) {
+          questionsToCreate.push({
+            survey_id: newSurvey.id,
+            order_index: orderIndex++,
+            question_type: 'scale_5',
+            kit_domain: q.dimension || 'relevance',
+            prompt_hebrew: q.prompt,
+            is_required: true,
+            scale_labels: q.scale_labels || { low: 'לא מסכים כלל', high: 'מסכים לחלוטין' },
+            is_generated: true
+          });
+        }
+      } else {
+        console.error('No scale questions in response!');
+        toast.error('לא נוצרו שאלות דירוג');
       }
 
       // Open questions
-      for (const q of response.open_questions || []) {
-        questionsToCreate.push({
-          survey_id: newSurvey.id,
-          order_index: orderIndex++,
-          question_type: 'open_text',
-          kit_domain: 'none',
-          prompt_hebrew: q.prompt,
-          is_required: false,
-          is_generated: true
-        });
+      if (response.open_questions && response.open_questions.length > 0) {
+        for (const q of response.open_questions) {
+          questionsToCreate.push({
+            survey_id: newSurvey.id,
+            order_index: orderIndex++,
+            question_type: 'open_text',
+            kit_domain: 'none',
+            prompt_hebrew: q.prompt,
+            is_required: false,
+            is_generated: true
+          });
+        }
+      } else {
+        console.error('No open questions in response!');
+        toast.error('לא נוצרו שאלות פתוחות');
       }
 
       // Bottom line question
