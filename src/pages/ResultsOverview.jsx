@@ -28,7 +28,7 @@ export default function ResultsOverview() {
   const { data: surveys = [], isLoading: surveysLoading } = useQuery({
     queryKey: ['surveys-for-results', currentUser?.email],
     queryFn: () => base44.entities.Survey.filter(
-      { created_by: currentUser.email, status: { $in: ['published', 'closed'] } },
+      { created_by: currentUser.email, status: { $in: ['published', 'closed', 'draft'] } },
       '-published_at'
     ),
     enabled: !!currentUser,
