@@ -6,14 +6,21 @@ import { Star, CheckCircle, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'framer-motion';
 
-export default function PromptFeedbackBox({ survey }) {
+// Supports two call signatures:
+// 1. <PromptFeedbackBox survey={surveyObj} />  (from SurveyEditor)
+// 2. <PromptFeedbackBox surveyId="..." promptName="..." audience="..." activityDescription="..." />  (from GenerateSurvey)
+export default function PromptFeedbackBox({ survey, surveyId, promptName: promptNameProp, audience: audienceProp, activityDescription: activityProp }) {
   const [stars, setStars] = useState(0);
   const [hovered, setHovered] = useState(0);
   const [comment, setComment] = useState('');
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  const promptName = survey?.prompt_version;
+  const resolvedSurveyId = survey?.id || surveyId;
+  const promptName = survey?.prompt_version || promptNameProp;
+  const audience = survey?.audience || audienceProp;
+  const activityDescription = survey?.activity_description || activityProp;
+
   if (!promptName) return null;
 
   const handleSubmit = async () => {
@@ -23,12 +30,12 @@ export default function PromptFeedbackBox({ survey }) {
     }
     setLoading(true);
     await base44.entities.PromptFeedback.create({
-      survey_id: survey.id,
+      survey_id: resolvedSurveyId,
       prompt_name: promptName,
       stars,
       comment,
-      audience: survey.audience,
-      activity_description: survey.activity_description?.slice(0, 100)
+      audience,
+      activity_description: activityDescription?.slice(0, 100)
     });
     setSubmitted(true);
     setLoading(false);
