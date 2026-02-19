@@ -4,7 +4,7 @@ import { createPageUrl } from '@/utils';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { motion } from 'framer-motion';
-import { Plus, FileText, Edit3, CheckCircle2, Settings } from 'lucide-react';
+import { Plus, FileText, Edit3, CheckCircle2, Settings, Layers } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import OnboardingCarousel from '@/components/OnboardingCarousel';
