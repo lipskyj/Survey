@@ -72,8 +72,26 @@ function buildPromptFromSurvey(promptTemplate, survey) {
 async function generateSurveyForPrompt(survey, promptObj) {
   const prompt = buildPromptFromSurvey(promptObj.prompt_text, survey);
 
+  // Ask LLM to always output in a normalized format regardless of prompt style
+  const normalizedPrompt = prompt + `
+
+---
+‼️ IMPORTANT OUTPUT INSTRUCTION (OVERRIDE ALL ABOVE FORMAT INSTRUCTIONS):
+Regardless of any output format mentioned above, you MUST return a JSON object with exactly these two keys:
+{
+  "scale_questions": [
+    { "prompt": "question text", "scale_labels": {"low": "label", "high": "label"}, "kit_domain": "relevance|skills|delivery_quality|belonging" }
+    // exactly 10 items
+  ],
+  "open_questions": [
+    { "prompt": "open question text" }
+    // 3-4 items
+  ]
+}
+Do not wrap in SURVEY_JSON, SURVEY_CONTENT, or any other key. Only scale_questions and open_questions at the root level.`;
+
   const result = await base44.integrations.Core.InvokeLLM({
-    prompt,
+    prompt: normalizedPrompt,
     response_json_schema: {
       type: "object",
       properties: {
@@ -84,7 +102,6 @@ async function generateSurveyForPrompt(survey, promptObj) {
             properties: {
               prompt: { type: "string" },
               kit_domain: { type: "string" },
-              dimension: { type: "string" },
               scale_labels: {
                 type: "object",
                 properties: { low: { type: "string" }, high: { type: "string" } }
@@ -94,44 +111,7 @@ async function generateSurveyForPrompt(survey, promptObj) {
         },
         open_questions: {
           type: "array",
-          items: { type: "object", properties: { prompt: { type: "string" }, text: { type: "string" } } }
-        },
-        SURVEY_CONTENT: {
-          type: "object",
-          properties: {
-            questions: {
-              type: "array",
-              items: {
-                type: "object",
-                properties: {
-                  id: { type: "string" },
-                  text: { type: "string" },
-                  type: { type: "string" },
-                  section: { type: "string" },
-                  scale_labels: { type: "object" },
-                  tags: { type: "array", items: { type: "string" } }
-                }
-              }
-            }
-          }
-        },
-        SURVEY_JSON: {
-          type: "object",
-          properties: {
-            questions: {
-              type: "array",
-              items: {
-                type: "object",
-                properties: {
-                  id: { type: "string" },
-                  text: { type: "string" },
-                  type: { type: "string" },
-                  options: { type: "array", items: { type: "string" } },
-                  tags: { type: "array", items: { type: "string" } }
-                }
-              }
-            }
-          }
+          items: { type: "object", properties: { prompt: { type: "string" } } }
         }
       }
     }
