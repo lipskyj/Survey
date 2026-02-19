@@ -144,8 +144,8 @@ export default function Home() {
           </Link>
         </motion.div>
 
-        {/* Candidate Surveys — only for admins */}
-        {currentUser?.role === 'admin' && candidateSurveys.length > 0 && (
+        {/* Candidate Surveys — shown to all users when they have unchosen versions */}
+        {candidateSurveys.length > 0 && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
