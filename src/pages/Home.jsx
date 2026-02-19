@@ -17,35 +17,32 @@ export default function Home() {
     base44.auth.me().then(u => setCurrentUser(u)).catch(() => {});
   }, []);
 
-  const { data: surveys = [] } = useQuery({
+  const { data: allSurveys = [] } = useQuery({
     queryKey: ['surveys-home', currentUser?.email],
     queryFn: () => currentUser
-      ? base44.entities.Survey.filter(
-          { created_by: currentUser.email, status: { $in: ['draft', 'published', 'closed', 'candidate'] } },
-          '-created_date'
-        )
+      ? base44.entities.Survey.filter({ created_by: currentUser.email }, '-created_date')
       : [],
     enabled: currentUser !== null,
   });
+
+  const publishedSurveys = allSurveys.filter(s => s.status === 'published');
+  const draftSurveys = allSurveys.filter(s => s.status === 'draft');
+  const candidateSurveys = allSurveys.filter(s => s.status === 'candidate');
 
   useEffect(() => {
     if (!currentUser) return;
     const key = `hasSeenOnboarding_${currentUser.email}`;
     const hasSeenOnboarding = localStorage.getItem(key);
-    const nonCandidateSurveys = surveys.filter(s => s.status !== 'candidate');
-    if (!hasSeenOnboarding && nonCandidateSurveys.length === 0) {
+    const visibleSurveys = allSurveys.filter(s => s.status !== 'candidate');
+    if (!hasSeenOnboarding && visibleSurveys.length === 0) {
       setShowOnboarding(true);
     }
-  }, [surveys, currentUser]);
+  }, [allSurveys, currentUser]);
 
   const handleDismissOnboarding = () => {
     if (currentUser) localStorage.setItem(`hasSeenOnboarding_${currentUser.email}`, 'true');
     setShowOnboarding(false);
   };
-
-  const publishedSurveys = surveys.filter(s => s.status === 'published');
-  const draftSurveys = surveys.filter(s => s.status === 'draft');
-  const candidateSurveys = surveys.filter(s => s.status === 'candidate');
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-8 sm:py-16">
