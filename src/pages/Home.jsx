@@ -20,7 +20,10 @@ export default function Home() {
   const { data: surveys = [] } = useQuery({
     queryKey: ['surveys-home', currentUser?.email],
     queryFn: () => currentUser
-      ? base44.entities.Survey.filter({ created_by: currentUser.email }, '-created_date')
+      ? base44.entities.Survey.filter(
+          { created_by: currentUser.email, status: { $in: ['draft', 'published', 'closed', 'candidate'] } },
+          '-created_date'
+        )
       : [],
     enabled: currentUser !== null,
   });
@@ -29,7 +32,8 @@ export default function Home() {
     if (!currentUser) return;
     const key = `hasSeenOnboarding_${currentUser.email}`;
     const hasSeenOnboarding = localStorage.getItem(key);
-    if (!hasSeenOnboarding && surveys.length === 0) {
+    const nonCandidateSurveys = surveys.filter(s => s.status !== 'candidate');
+    if (!hasSeenOnboarding && nonCandidateSurveys.length === 0) {
       setShowOnboarding(true);
     }
   }, [surveys, currentUser]);
