@@ -173,8 +173,7 @@ export default function ProfileSummary() {
   ] : [];
 
   const handleContinue = async () => {
-    // Always use built-in 4-step system
-    navigate(createPageUrl('GenerateSurveyMultiple') + `?surveyId=${surveyId}`);
+    navigate(createPageUrl('GenerateSurvey') + `?surveyId=${surveyId}`);
   };
 
   if (!survey) {
