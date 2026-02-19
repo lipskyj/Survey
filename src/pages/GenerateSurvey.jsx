@@ -86,11 +86,13 @@ function buildPromptFromSurvey(promptTemplate, survey) {
 async function generateSurveyForPrompt(baseSurveyId, survey, promptObj) {
   const prompt = buildPromptFromSurvey(promptObj.prompt_text, survey);
 
+  // Use a flexible schema that accommodates both prompt formats
   const result = await base44.integrations.Core.InvokeLLM({
     prompt,
     response_json_schema: {
       type: "object",
       properties: {
+        // Format A: simple (פרומפט מאוחד)
         scale_questions: {
           type: "array",
           items: {
@@ -108,10 +110,51 @@ async function generateSurveyForPrompt(baseSurveyId, survey, promptObj) {
         open_questions: {
           type: "array",
           items: { type: "object", properties: { prompt: { type: "string" } } }
+        },
+        // Format B: structured (3V / YUVAL prompts)
+        SURVEY_CONTENT: {
+          type: "object",
+          properties: {
+            questions: {
+              type: "array",
+              items: {
+                type: "object",
+                properties: {
+                  id: { type: "string" },
+                  text: { type: "string" },
+                  type: { type: "string" },
+                  section: { type: "string" },
+                  scale_labels: { type: "object" },
+                  tags: { type: "array", items: { type: "string" } }
+                }
+              }
+            }
+          }
         }
       }
     }
   });
+
+  // Normalize to scale_questions / open_questions regardless of prompt format
+  let scaleQuestions = result.scale_questions || [];
+  let openQuestions = result.open_questions || [];
+
+  // Handle 3V / YUVAL format: SURVEY_CONTENT.questions array
+  if ((!scaleQuestions.length && !openQuestions.length) && result.SURVEY_CONTENT?.questions?.length) {
+    const allQ = result.SURVEY_CONTENT.questions;
+    scaleQuestions = allQ
+      .filter(q => q.type === 'likert_1_5' || q.type === 'likert' || q.section === 'scale_section')
+      .map(q => ({
+        prompt: q.text,
+        kit_domain: q.tags?.[0] || 'relevance',
+        scale_labels: q.scale_labels
+          ? { low: q.scale_labels['1'] || 'לא מסכים', high: q.scale_labels['5'] || 'מסכים מאוד' }
+          : { low: 'לא מסכים כלל', high: 'מסכים לחלוטין' }
+      }));
+    openQuestions = allQ
+      .filter(q => q.type === 'open_text' && q.section !== 'bottom_line')
+      .map(q => ({ prompt: q.text }));
+  }
 
   // Create a new Survey record (clone of the base survey)
   const newSurvey = await base44.entities.Survey.create({
