@@ -11,7 +11,7 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { motion } from 'framer-motion';
-import { Lock, Sparkles, Save, RotateCcw, Copy, CheckCircle, Settings, Eye, EyeOff, Plus, Trash2, Edit2, Home, BookOpen } from 'lucide-react';
+import { Lock, Sparkles, Save, RotateCcw, Copy, CheckCircle, Settings, Eye, EyeOff, Plus, Trash2, Edit2, Home, BookOpen, BarChart3 } from 'lucide-react';
 import { toast } from 'sonner';
 import QuestionLogicGuidelines from '../components/QuestionLogicGuidelines';
 
