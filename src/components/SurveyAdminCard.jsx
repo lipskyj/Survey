@@ -71,7 +71,7 @@ export default function SurveyAdminCard({ survey, responses, responseCount }) {
                 survey.status === 'closed' ? 'bg-red-100 text-red-700' :
                 'bg-gray-100 text-gray-600'
               }`}>{
-                survey.status === 'candidate' ? 'גרסה לא נבחרה' :
+                survey.status === 'candidate' ? 'לא נבחר' :
                 survey.status === 'draft' ? 'טיוטה' :
                 survey.status === 'published' ? 'פורסם' :
                 survey.status === 'closed' ? 'סגור' : survey.status
