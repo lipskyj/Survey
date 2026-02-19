@@ -14,6 +14,7 @@ import { motion } from 'framer-motion';
 import { Lock, Sparkles, Save, Copy, CheckCircle, Settings, Eye, EyeOff, Plus, Trash2, Edit2, Home, BookOpen, BarChart3, Star, MessageSquare, Users, FileText, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import QuestionLogicGuidelines from '../components/QuestionLogicGuidelines';
+import SurveyAdminCard from '../components/SurveyAdminCard';
 
 const ADMIN_PASSWORD = '1234';
 
