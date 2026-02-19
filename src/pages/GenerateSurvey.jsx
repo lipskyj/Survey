@@ -315,9 +315,11 @@ export default function GenerateSurvey() {
     setChosenIndex(index);
   };
 
-  const handlePublishChosen = () => {
+  const handlePublishChosen = async () => {
     if (chosenIndex === null) return;
     const chosen = versions[chosenIndex];
+    // Promote chosen to 'draft', keep others as 'candidate'
+    await base44.entities.Survey.update(chosen.surveyId, { status: 'draft' });
     navigate(createPageUrl('SurveyEditor') + `?surveyId=${chosen.surveyId}`);
   };
 
