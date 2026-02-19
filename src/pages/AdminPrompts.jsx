@@ -518,10 +518,18 @@ export default function AdminPrompts() {
 
       <div className="max-w-4xl mx-auto px-4 py-6">
         <Tabs defaultValue="prompts" dir="rtl">
-          <TabsList className="mb-6">
+          <TabsList className="mb-6 flex-wrap gap-1">
             <TabsTrigger value="prompts" className="gap-2">
               <Sparkles className="w-4 h-4" />
               פרומפטים
+            </TabsTrigger>
+            <TabsTrigger value="feedbacks" className="gap-2">
+              <BarChart3 className="w-4 h-4" />
+              משובים
+            </TabsTrigger>
+            <TabsTrigger value="surveys" className="gap-2">
+              <FileText className="w-4 h-4" />
+              כל הסקרים
             </TabsTrigger>
             <TabsTrigger value="guidelines" className="gap-2">
               <BookOpen className="w-4 h-4" />
