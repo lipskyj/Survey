@@ -143,6 +143,38 @@ export default function Home() {
           </Link>
         </motion.div>
 
+        {/* Candidate Surveys — only for admins */}
+        {currentUser?.role === 'admin' && candidateSurveys.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: showOnboarding ? 0 : 0.35 }}
+          >
+            <Link to={createPageUrl('AdminPrompts') + '?tab=surveys'}>
+              <Card className="bg-white border border-purple-100 shadow-sm hover:shadow-md transition-all rounded-3xl group cursor-pointer">
+                <CardContent className="p-6 sm:p-8">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-4 sm:gap-5">
+                      <div className="w-14 h-14 sm:w-16 sm:h-16 bg-purple-50 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform">
+                        <Layers className="w-7 h-7 sm:w-8 sm:h-8 text-purple-600" />
+                      </div>
+                      <div>
+                        <h3 className="text-xl sm:text-2xl font-black text-[#6B2D4A] mb-1">גרסאות לא נבחרו</h3>
+                        <p className="text-gray-500 text-sm sm:text-base font-medium">
+                          {candidateSurveys.length} גרסאות AI ממתינות
+                        </p>
+                      </div>
+                    </div>
+                    <div className="text-3xl sm:text-4xl font-black text-purple-600">
+                      {candidateSurveys.length}
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </Link>
+          </motion.div>
+        )}
+
         {/* Admin Settings — only for admins */}
         {currentUser?.role === 'admin' && (
           <motion.div
