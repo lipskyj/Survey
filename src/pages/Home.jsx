@@ -151,7 +151,7 @@ export default function Home() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: showOnboarding ? 0 : 0.35 }}
           >
-            <Link to={createPageUrl('AdminPrompts') + '?tab=surveys'}>
+            <Link to={createPageUrl('SurveyManagement') + '?filter=candidate'}>
               <Card className="bg-white border border-purple-100 shadow-sm hover:shadow-md transition-all rounded-3xl group cursor-pointer">
                 <CardContent className="p-6 sm:p-8">
                   <div className="flex items-center justify-between">
@@ -160,7 +160,7 @@ export default function Home() {
                         <Layers className="w-7 h-7 sm:w-8 sm:h-8 text-purple-600" />
                       </div>
                       <div>
-                        <h3 className="text-xl sm:text-2xl font-black text-[#6B2D4A] mb-1">גרסאות לא נבחרו</h3>
+                        <h3 className="text-xl sm:text-2xl font-black text-[#6B2D4A] mb-1">לא נבחר</h3>
                         <p className="text-gray-500 text-sm sm:text-base font-medium">
                           {candidateSurveys.length} גרסאות AI ממתינות
                         </p>
