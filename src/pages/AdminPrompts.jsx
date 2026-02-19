@@ -745,6 +745,95 @@ export default function AdminPrompts() {
         </div>
           </TabsContent>
 
+          <TabsContent value="feedbacks" className="space-y-6">
+            {feedbacksLoading && <div className="text-center py-12"><Loader2 className="w-8 h-8 text-[#E85A24] animate-spin mx-auto" /></div>}
+            {!feedbacksLoading && feedbacks.length === 0 && (
+              <Card><CardContent className="p-8 text-center text-gray-500">
+                <MessageSquare className="w-12 h-12 text-gray-300 mx-auto mb-4" />
+                <p>עדיין אין משובים</p>
+              </CardContent></Card>
+            )}
+            {promptStats.map((stat) => (
+              <Card key={stat.name} className="border-2 border-gray-200">
+                <CardHeader className="pb-2">
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="text-base text-[#6B2D4A]">{stat.name}</CardTitle>
+                    <div className="flex items-center gap-3">
+                      <span className="text-sm text-gray-500">{stat.count} משובים</span>
+                      <div className="flex items-center gap-1 bg-yellow-50 px-3 py-1 rounded-full">
+                        <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+                        <span className="font-bold text-yellow-700">{stat.avg}</span>
+                        <span className="text-xs text-gray-500">/ 5</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex gap-1 mt-2" dir="ltr">
+                    {[1,2,3,4,5].map(s => {
+                      const cnt = stat.feedbacks.filter(f => f.stars === s).length;
+                      const pct = stat.count > 0 ? (cnt / stat.count) * 100 : 0;
+                      return (
+                        <div key={s} className="flex-1 text-center">
+                          <div className="h-12 bg-gray-100 rounded relative flex items-end">
+                            <div className="bg-yellow-400 rounded w-full" style={{ height: `${Math.max(pct, 4)}%` }} />
+                          </div>
+                          <p className="text-xs text-gray-500 mt-1">{s}★</p>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </CardHeader>
+                <CardContent className="space-y-2 max-h-72 overflow-y-auto">
+                  {stat.feedbacks.filter(f => f.comment).map((fb) => (
+                    <div key={fb.id} className="bg-gray-50 rounded-lg p-3 text-sm">
+                      <div className="flex items-center gap-1 mb-1" dir="ltr">
+                        {[1,2,3,4,5].map(s => (
+                          <Star key={s} className={`w-3 h-3 ${s <= fb.stars ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300'}`} />
+                        ))}
+                        {fb.audience && <span className="text-xs text-gray-400 mr-2">| {fb.audience}</span>}
+                      </div>
+                      <p className="text-gray-700">{fb.comment}</p>
+                    </div>
+                  ))}
+                  {stat.feedbacks.filter(f => !f.comment).length > 0 && (
+                    <p className="text-xs text-gray-400 text-center">{stat.feedbacks.filter(f => !f.comment).length} דירוגים ללא הערה</p>
+                  )}
+                </CardContent>
+              </Card>
+            ))}
+          </TabsContent>
+
+          <TabsContent value="surveys" className="space-y-4">
+            <div className="flex items-center gap-2 mb-2">
+              <Users className="w-5 h-5 text-[#6B2D4A]" />
+              <h2 className="font-bold text-lg text-[#6B2D4A]">כל הסקרים ({allSurveys.length})</h2>
+            </div>
+            {allSurveys.map((s) => {
+              const responseCount = allResponses.filter(r => r.survey_id === s.id && r.is_complete).length;
+              return (
+                <Card key={s.id} className="border border-gray-200">
+                  <CardContent className="p-4">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex-1 text-right">
+                        <p className="font-semibold text-gray-800">{s.title || s.activity_description?.slice(0, 60) || 'סקר ללא כותרת'}</p>
+                        <div className="flex flex-wrap gap-2 mt-1 text-xs text-gray-500">
+                          <span>נוצר: {new Date(s.created_date).toLocaleDateString('he-IL')}</span>
+                          {s.created_by && <span>| {s.created_by}</span>}
+                          {s.audience && <span>| {s.audience}</span>}
+                          {s.prompt_version && <span className="bg-orange-100 text-orange-700 px-1.5 py-0.5 rounded">{s.prompt_version}</span>}
+                          <span className={`px-1.5 py-0.5 rounded ${s.status === 'published' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'}`}>{s.status}</span>
+                          {responseCount > 0 && <span className="bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded">{responseCount} תגובות</span>}
+                        </div>
+                      </div>
+                      <Link to={createPageUrl('SurveyEditor') + `?surveyId=${s.id}`}>
+                        <Button variant="outline" size="sm">פתח</Button>
+                      </Link>
+                    </div>
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </TabsContent>
+
           <TabsContent value="guidelines">
             <QuestionLogicGuidelines />
           </TabsContent>
