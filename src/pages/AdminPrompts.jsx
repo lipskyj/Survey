@@ -390,6 +390,37 @@ export default function AdminPrompts() {
     });
   };
 
+  const { data: feedbacks = [], isLoading: feedbacksLoading } = useQuery({
+    queryKey: ['prompt-feedbacks'],
+    queryFn: () => base44.entities.PromptFeedback.list('-created_date', 200),
+    enabled: isAuthenticated
+  });
+
+  const { data: allSurveys = [] } = useQuery({
+    queryKey: ['admin-all-surveys'],
+    queryFn: () => base44.entities.Survey.list('-created_date', 200),
+    enabled: isAuthenticated
+  });
+
+  const { data: allResponses = [] } = useQuery({
+    queryKey: ['admin-all-responses'],
+    queryFn: () => base44.entities.SurveyResponse.list('-created_date', 500),
+    enabled: isAuthenticated
+  });
+
+  // Group feedbacks by prompt
+  const feedbackGrouped = feedbacks.reduce((acc, fb) => {
+    if (!acc[fb.prompt_name]) acc[fb.prompt_name] = [];
+    acc[fb.prompt_name].push(fb);
+    return acc;
+  }, {});
+  const promptStats = Object.entries(feedbackGrouped).map(([name, items]) => ({
+    name,
+    count: items.length,
+    avg: (items.reduce((s, i) => s + (i.stars || 0), 0) / items.length).toFixed(1),
+    feedbacks: items
+  })).sort((a, b) => b.avg - a.avg);
+
   const activePrompts = prompts.filter(p => p.is_active);
   const activePrompt = activePrompts.length > 0 ? activePrompts[0] : null;
 
