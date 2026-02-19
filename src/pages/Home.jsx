@@ -18,10 +18,14 @@ export default function Home() {
   }, []);
 
   const { data: allSurveys = [] } = useQuery({
-    queryKey: ['surveys-home', currentUser?.email],
-    queryFn: () => currentUser
-      ? base44.entities.Survey.filter({ created_by: currentUser.email }, '-created_date')
-      : [],
+    queryKey: ['surveys-home', currentUser?.email, currentUser?.role],
+    queryFn: async () => {
+      if (!currentUser) return [];
+      if (currentUser.role === 'admin') {
+        return base44.entities.Survey.list('-created_date', 500);
+      }
+      return base44.entities.Survey.filter({ created_by: currentUser.email }, '-created_date');
+    },
     enabled: currentUser !== null,
   });
 
