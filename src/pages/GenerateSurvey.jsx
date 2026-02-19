@@ -199,11 +199,11 @@ async function generateSurveyForPrompt(baseSurveyId, survey, promptObj) {
     questionsToCreate.push({ survey_id: newSurveyId, order_index: orderIndex++, question_type: 'open_text', kit_domain: 'none', prompt_hebrew: 'מה תפקידך בהנהלה?', is_required: true, is_generated: true });
   }
 
-  for (const q of result.scale_questions || []) {
+  for (const q of scaleQuestions) {
     questionsToCreate.push({ survey_id: newSurveyId, order_index: orderIndex++, question_type: 'scale_5', kit_domain: q.kit_domain || 'relevance', prompt_hebrew: q.prompt, is_required: true, scale_labels: q.scale_labels || { low: 'לא מסכים כלל', high: 'מסכים לחלוטין' }, is_generated: true });
   }
 
-  for (const q of result.open_questions || []) {
+  for (const q of openQuestions) {
     questionsToCreate.push({ survey_id: newSurveyId, order_index: orderIndex++, question_type: 'open_text', kit_domain: 'none', prompt_hebrew: q.prompt, is_required: false, is_generated: true });
   }
 
