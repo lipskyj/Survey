@@ -439,20 +439,32 @@ export default function GenerateSurvey() {
                 <Loader2 className="w-12 h-12 text-[#E85A24] animate-spin" />
               </div>
               <h1 className="text-2xl font-bold text-[#6B2D4A] mb-2">
-                יוצר {activePrompts.length} גרסאות במקביל...
+                יוצר {activePrompts.length} גרסאות בזו אחר זו...
               </h1>
-              <p className="text-gray-500 mb-8">זה לוקח כדקה, נא לא לסגור את הדף</p>
+              <p className="text-gray-500 mb-8">זה לוקח 1-2 דקות, נא לא לסגור את הדף</p>
 
               <div className="space-y-3 max-w-xs mx-auto text-right">
-                {activePrompts.map((p, i) => (
-                  <div key={i} className="flex items-center gap-3 bg-white rounded-xl p-3 shadow-sm">
-                    <Loader2 className="w-5 h-5 text-[#E85A24] animate-spin flex-shrink-0" />
-                    <div>
-                      <p className="font-medium text-gray-700 text-sm">גרסה {i + 1}</p>
-                      <p className="text-xs text-gray-400">{p.name}</p>
+                {activePrompts.map((p, i) => {
+                  const v = versions[i];
+                  const isDone = v?.done && !v?.error;
+                  const isError = v?.done && v?.error;
+                  const isRunning = !v?.done && versions.some((vv, ii) => ii < i && vv?.done) || (i === 0 && !v?.done);
+                  return (
+                    <div key={i} className={`flex items-center gap-3 rounded-xl p-3 shadow-sm ${isDone ? 'bg-green-50' : isError ? 'bg-red-50' : 'bg-white'}`}>
+                      {isDone
+                        ? <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0" />
+                        : isError
+                        ? <span className="w-5 h-5 text-red-400 flex-shrink-0 font-bold">✗</span>
+                        : <Loader2 className="w-5 h-5 text-[#E85A24] animate-spin flex-shrink-0" />
+                      }
+                      <div>
+                        <p className="font-medium text-gray-700 text-sm">גרסה {i + 1}</p>
+                        <p className="text-xs text-gray-400">{p.name}</p>
+                        {isError && <p className="text-xs text-red-500">{v?.errorMsg || 'שגיאה'}</p>}
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </motion.div>
           )}
