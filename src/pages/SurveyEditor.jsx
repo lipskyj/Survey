@@ -11,6 +11,7 @@ import {
   ChevronLeft, ChevronRight, Edit2, Trash2, Plus, GripVertical,
   Save, ArrowRight, FileText, Loader2
 } from 'lucide-react';
+import PromptFeedbackBox from '../components/PromptFeedbackBox';
 import { toast } from 'sonner';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import { Switch } from "@/components/ui/switch";

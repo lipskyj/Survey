@@ -75,6 +75,7 @@ import SurveyEditor from './pages/SurveyEditor';
 import SurveyLanguage from './pages/SurveyLanguage';
 import SurveyManagement from './pages/SurveyManagement';
 import SurveyType from './pages/SurveyType';
+import AdminPromptFeedback from './pages/AdminPromptFeedback';
 import __Layout from './Layout.jsx';
 
 
@@ -107,6 +108,7 @@ export const PAGES = {
     "SurveyLanguage": SurveyLanguage,
     "SurveyManagement": SurveyManagement,
     "SurveyType": SurveyType,
+    "AdminPromptFeedback": AdminPromptFeedback,
 }
 
 export const pagesConfig = {
