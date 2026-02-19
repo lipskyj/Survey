@@ -23,10 +23,16 @@ import { he } from 'date-fns/locale';
 
 export default function SurveyManagement() {
   const queryClient = useQueryClient();
+  const [currentUser, setCurrentUser] = useState(null);
+
+  useEffect(() => {
+    base44.auth.me().then(u => setCurrentUser(u)).catch(() => {});
+  }, []);
 
   const { data: surveys = [], isLoading } = useQuery({
-    queryKey: ['surveys'],
-    queryFn: () => base44.entities.Survey.list('-created_date'),
+    queryKey: ['surveys', currentUser?.email],
+    queryFn: () => base44.entities.Survey.filter({ created_by: currentUser.email }, '-created_date'),
+    enabled: !!currentUser,
   });
 
   const closeSurveyMutation = useMutation({
