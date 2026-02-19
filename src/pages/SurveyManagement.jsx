@@ -34,13 +34,13 @@ export default function SurveyManagement() {
 
   const { data: allSurveys = [], isLoading } = useQuery({
     queryKey: ['surveys', currentUser?.email],
-    queryFn: () => base44.entities.Survey.filter({ created_by: currentUser.email, status: { $in: ['draft', 'published', 'closed'] } }, '-created_date'),
+    queryFn: () => base44.entities.Survey.filter({ created_by: currentUser.email, status: { $in: ['draft', 'published', 'closed', 'candidate'] } }, '-created_date'),
     enabled: !!currentUser,
   });
 
   const surveys = filterParam
     ? allSurveys.filter(s => s.status === filterParam)
-    : allSurveys;
+    : allSurveys.filter(s => s.status !== 'candidate');
 
   const closeSurveyMutation = useMutation({
     mutationFn: (surveyId) => base44.entities.Survey.update(surveyId, { 
