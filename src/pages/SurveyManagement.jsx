@@ -116,7 +116,12 @@ export default function SurveyManagement() {
     <div className="max-w-4xl mx-auto px-4 py-8">
       {/* Header */}
       <div className="flex items-center justify-between mb-8">
-        <h1 className="text-2xl font-bold text-[#6B2D4A]">הסקרים שלי</h1>
+        <h1 className="text-2xl font-bold text-[#6B2D4A]">
+          {filterParam === 'candidate' ? 'גרסאות לא נבחרו'
+            : filterParam === 'draft' ? 'טיוטות'
+            : filterParam === 'published' ? 'סקרים פעילים'
+            : 'הסקרים שלי'}
+        </h1>
         <Link to={createPageUrl('ActivityDescription')}>
           <Button className="bg-[#E85A24] hover:bg-[#D14A1A] text-white">
             <Plus className="w-4 h-4 ml-2" />
