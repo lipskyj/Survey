@@ -329,14 +329,7 @@ export default function GenerateSurvey() {
         {/* Header */}
         <div className="sticky top-0 z-40 bg-white border-b border-gray-100 px-4 py-3">
           <div className="max-w-2xl mx-auto flex items-center justify-between">
-            <button
-              onClick={() => setStage('review')}
-              className="flex items-center gap-2 text-gray-600 hover:text-[#E85A24] transition-colors font-medium"
-            >
-              <ArrowRight className="w-5 h-5" />
-              חזרה לכל הגרסאות
-            </button>
-            <div className="text-center">
+            <div className="text-right">
               <p className="font-bold text-[#6B2D4A]">גרסה {viewingIndex + 1}</p>
               <p className="text-xs text-gray-500">{v.promptName}</p>
             </div>
@@ -352,15 +345,16 @@ export default function GenerateSurvey() {
 
         <div className="max-w-2xl mx-auto px-4 py-6">
           <SurveyPreview surveyId={v.surveyId} />
-          <div className="mt-6">
+
+          {/* Feedback + actions at the bottom */}
+          <div className="mt-8 space-y-4">
             <PromptFeedbackBox
               surveyId={v.surveyId}
               promptName={v.promptName}
               audience={survey?.audience}
               activityDescription={survey?.activity_description}
             />
-          </div>
-          <div className="mt-4">
+
             <Button
               onClick={() => navigate(createPageUrl('SurveyEditor') + `?surveyId=${v.surveyId}`)}
               variant="outline"
@@ -368,6 +362,15 @@ export default function GenerateSurvey() {
             >
               <FileText className="w-4 h-4 ml-2" />
               פתח בעורך לעריכה ידנית
+            </Button>
+
+            <Button
+              onClick={() => setStage('review')}
+              variant="ghost"
+              className="w-full text-gray-500 hover:text-[#6B2D4A]"
+            >
+              <ArrowRight className="w-4 h-4 ml-2" />
+              חזרה לכל הגרסאות
             </Button>
           </div>
         </div>
