@@ -21,6 +21,19 @@ export default function PromptFeedbackBox({ survey, surveyId, promptName: prompt
   const audience = survey?.audience || audienceProp;
   const activityDescription = survey?.activity_description || activityProp;
 
+  // Load existing feedback on mount
+  useEffect(() => {
+    if (!resolvedSurveyId) return;
+    base44.entities.PromptFeedback.filter({ survey_id: resolvedSurveyId }).then((existing) => {
+      if (existing.length > 0) {
+        const fb = existing[0];
+        setStars(fb.stars || 0);
+        setComment(fb.comment || '');
+        setSubmitted(true);
+      }
+    }).catch(() => {});
+  }, [resolvedSurveyId]);
+
   if (!promptName) return null;
 
   const handleSubmit = async () => {
