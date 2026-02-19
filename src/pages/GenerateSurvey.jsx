@@ -187,13 +187,13 @@ Do not wrap in SURVEY_JSON, SURVEY_CONTENT, or any other key. Only scale_questio
   // Normalize open_questions (some use "text" instead of "prompt")
   openQuestions = openQuestions.map(q => ({ prompt: q.prompt || q.text || '' })).filter(q => q.prompt);
 
-  // Create a new Survey record
+  // Create a new Survey record as 'candidate' — not yet chosen by the user
   const newSurvey = await base44.entities.Survey.create({
     ...survey,
     id: undefined,
     title: (survey.activity_description?.slice(0, 40) || 'סקר משוב') + ` — ${promptObj.name}`,
     prompt_version: promptObj.name,
-    status: 'draft',
+    status: 'candidate',
     current_step: 'B3',
     last_autosave: new Date().toISOString()
   });
