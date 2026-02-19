@@ -323,6 +323,11 @@ export default function SurveyEditor() {
             <ChevronLeft className="w-5 h-5 mr-2" />
           </Button>
         </div>
+
+        {/* Prompt Feedback — only shown if survey was generated with a specific prompt */}
+        {survey?.prompt_version && (
+          <PromptFeedbackBox survey={survey} />
+        )}
       </div>
     </div>
   );
