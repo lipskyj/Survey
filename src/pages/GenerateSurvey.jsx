@@ -137,45 +137,72 @@ async function generateSurveyForPrompt(survey, promptObj) {
     }
   });
 
+  console.log('LLM raw result keys:', Object.keys(result));
+  console.log('scale_questions count:', result.scale_questions?.length);
+  console.log('SURVEY_CONTENT questions:', result.SURVEY_CONTENT?.questions?.length);
+  console.log('SURVEY_JSON questions:', result.SURVEY_JSON?.questions?.length);
+
   // Normalize to scale_questions / open_questions regardless of prompt format
   let scaleQuestions = result.scale_questions || [];
   let openQuestions = result.open_questions || [];
 
+  const isScaleType = (type) => !type || type === 'likert_1_5' || type === 'likert' || type === 'scale' || type.includes('likert') || type.includes('scale');
+  const isOpenType = (type) => type === 'open_text' || type === 'open' || type === 'text';
+
   // Handle 3V format: SURVEY_CONTENT.questions
-  if ((!scaleQuestions.length) && result.SURVEY_CONTENT?.questions?.length) {
+  if (!scaleQuestions.length && result.SURVEY_CONTENT?.questions?.length) {
     const allQ = result.SURVEY_CONTENT.questions;
     scaleQuestions = allQ
-      .filter(q => q.type === 'likert_1_5' || q.type === 'likert' || q.section === 'scale_section')
+      .filter(q => isScaleType(q.type) || q.section === 'scale_section')
       .map(q => ({
-        prompt: q.text,
+        prompt: q.text || q.prompt,
         kit_domain: q.tags?.[0] || 'relevance',
         scale_labels: q.scale_labels
-          ? { low: q.scale_labels['1'] || 'לא מסכים', high: q.scale_labels['5'] || 'מסכים מאוד' }
+          ? { low: q.scale_labels['1'] || q.scale_labels.low || 'לא מסכים', high: q.scale_labels['5'] || q.scale_labels.high || 'מסכים מאוד' }
           : { low: 'לא מסכים כלל', high: 'מסכים לחלוטין' }
       }));
     if (!openQuestions.length) {
       openQuestions = allQ
-        .filter(q => q.type === 'open_text' && q.section !== 'bottom_line')
-        .map(q => ({ prompt: q.text }));
+        .filter(q => isOpenType(q.type) && q.section !== 'bottom_line')
+        .map(q => ({ prompt: q.text || q.prompt }));
     }
   }
 
   // Handle YUVAL format: SURVEY_JSON.questions
-  if ((!scaleQuestions.length) && result.SURVEY_JSON?.questions?.length) {
+  if (!scaleQuestions.length && result.SURVEY_JSON?.questions?.length) {
     const allQ = result.SURVEY_JSON.questions;
     scaleQuestions = allQ
-      .filter(q => q.type === 'likert' || q.type === 'likert_1_5')
+      .filter(q => isScaleType(q.type))
       .map(q => ({
-        prompt: q.text,
+        prompt: q.text || q.prompt,
         kit_domain: q.tags?.[0] || 'relevance',
         scale_labels: { low: 'לא מסכים כלל', high: 'מסכים לחלוטין' }
       }));
     if (!openQuestions.length) {
       openQuestions = allQ
-        .filter(q => q.type === 'open_text')
-        .map(q => ({ prompt: q.text }));
+        .filter(q => isOpenType(q.type))
+        .map(q => ({ prompt: q.text || q.prompt }));
     }
   }
+
+  // Last resort: if still empty, try to pull any questions from any array in result
+  if (!scaleQuestions.length) {
+    console.warn('No scale questions found via normal paths — trying fallback');
+    const allArrays = Object.values(result).filter(Array.isArray);
+    for (const arr of allArrays) {
+      const candidates = arr.filter(q => q && (q.prompt || q.text));
+      if (candidates.length >= 5) {
+        scaleQuestions = candidates.slice(0, 10).map(q => ({
+          prompt: q.prompt || q.text,
+          kit_domain: q.kit_domain || q.tags?.[0] || 'relevance',
+          scale_labels: q.scale_labels || { low: 'לא מסכים כלל', high: 'מסכים לחלוטין' }
+        }));
+        break;
+      }
+    }
+  }
+
+  console.log(`Resolved: ${scaleQuestions.length} scale, ${openQuestions.length} open`);
 
   // Normalize open_questions (some use "text" instead of "prompt")
   openQuestions = openQuestions.map(q => ({ prompt: q.prompt || q.text || '' })).filter(q => q.prompt);

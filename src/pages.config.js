@@ -50,6 +50,7 @@
 import AIInsights from './pages/AIInsights';
 import ActivityDescription from './pages/ActivityDescription';
 import AddQuestion from './pages/AddQuestion';
+import AdminPromptFeedback from './pages/AdminPromptFeedback';
 import AdminPrompts from './pages/AdminPrompts';
 import Audience from './pages/Audience';
 import BackgroundQuestions from './pages/BackgroundQuestions';
@@ -75,7 +76,6 @@ import SurveyEditor from './pages/SurveyEditor';
 import SurveyLanguage from './pages/SurveyLanguage';
 import SurveyManagement from './pages/SurveyManagement';
 import SurveyType from './pages/SurveyType';
-import AdminPromptFeedback from './pages/AdminPromptFeedback';
 import __Layout from './Layout.jsx';
 
 
@@ -83,6 +83,7 @@ export const PAGES = {
     "AIInsights": AIInsights,
     "ActivityDescription": ActivityDescription,
     "AddQuestion": AddQuestion,
+    "AdminPromptFeedback": AdminPromptFeedback,
     "AdminPrompts": AdminPrompts,
     "Audience": Audience,
     "BackgroundQuestions": BackgroundQuestions,
@@ -108,7 +109,6 @@ export const PAGES = {
     "SurveyLanguage": SurveyLanguage,
     "SurveyManagement": SurveyManagement,
     "SurveyType": SurveyType,
-    "AdminPromptFeedback": AdminPromptFeedback,
 }
 
 export const pagesConfig = {
