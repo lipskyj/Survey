@@ -33,8 +33,13 @@ export default function SurveyManagement() {
   }, []);
 
   const { data: allSurveys = [], isLoading } = useQuery({
-    queryKey: ['surveys', currentUser?.email],
-    queryFn: () => base44.entities.Survey.filter({ created_by: currentUser.email, status: { $in: ['draft', 'published', 'closed', 'candidate'] } }, '-created_date'),
+    queryKey: ['surveys', currentUser?.email, currentUser?.role],
+    queryFn: async () => {
+      if (currentUser.role === 'admin') {
+        return base44.entities.Survey.list('-created_date', 500);
+      }
+      return base44.entities.Survey.filter({ created_by: currentUser.email, status: { $in: ['draft', 'published', 'closed', 'candidate'] } }, '-created_date');
+    },
     enabled: !!currentUser,
   });
 
