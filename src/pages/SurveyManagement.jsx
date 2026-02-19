@@ -92,6 +92,8 @@ export default function SurveyManagement() {
         return <Badge className="bg-amber-100 text-amber-700 border-0">טיוטה</Badge>;
       case 'closed':
         return <Badge className="bg-gray-100 text-gray-700 border-0">סגור</Badge>;
+      case 'candidate':
+        return <Badge className="bg-purple-100 text-purple-700 border-0">לא נבחר</Badge>;
       default:
         return null;
     }
