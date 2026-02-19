@@ -25,15 +25,22 @@ export default function SurveyManagement() {
   const queryClient = useQueryClient();
   const [currentUser, setCurrentUser] = useState(null);
 
+  const urlParams = new URLSearchParams(window.location.search);
+  const filterParam = urlParams.get('filter'); // 'draft', 'published', or null for all
+
   useEffect(() => {
     base44.auth.me().then(u => setCurrentUser(u)).catch(() => {});
   }, []);
 
-  const { data: surveys = [], isLoading } = useQuery({
+  const { data: allSurveys = [], isLoading } = useQuery({
     queryKey: ['surveys', currentUser?.email],
     queryFn: () => base44.entities.Survey.filter({ created_by: currentUser.email, status: { $in: ['draft', 'published', 'closed'] } }, '-created_date'),
     enabled: !!currentUser,
   });
+
+  const surveys = filterParam
+    ? allSurveys.filter(s => s.status === filterParam)
+    : allSurveys;
 
   const closeSurveyMutation = useMutation({
     mutationFn: (surveyId) => base44.entities.Survey.update(surveyId, { 
