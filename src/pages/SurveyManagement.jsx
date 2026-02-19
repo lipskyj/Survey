@@ -213,11 +213,11 @@ export default function SurveyManagement() {
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
-                          {survey.status === 'draft' && (
+                          {(survey.status === 'draft' || survey.status === 'candidate') && (
                             <DropdownMenuItem asChild>
                               <Link to={createPageUrl('SurveyEditor') + `?surveyId=${survey.id}`}>
                                 <FileText className="w-4 h-4 ml-2" />
-                                המשך עריכה
+                                {survey.status === 'candidate' ? 'פתח ועבור לעריכה' : 'המשך עריכה'}
                               </Link>
                             </DropdownMenuItem>
                           )}
