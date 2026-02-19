@@ -11,21 +11,31 @@ import OnboardingCarousel from '@/components/OnboardingCarousel';
 
 export default function Home() {
   const [showOnboarding, setShowOnboarding] = useState(false);
+  const [currentUser, setCurrentUser] = useState(null);
+
+  useEffect(() => {
+    base44.auth.me().then(u => setCurrentUser(u)).catch(() => {});
+  }, []);
 
   const { data: surveys = [] } = useQuery({
-    queryKey: ['surveys-home'],
-    queryFn: () => base44.entities.Survey.list('-created_date'),
+    queryKey: ['surveys-home', currentUser?.email],
+    queryFn: () => currentUser
+      ? base44.entities.Survey.filter({ created_by: currentUser.email }, '-created_date')
+      : [],
+    enabled: currentUser !== null,
   });
 
   useEffect(() => {
-    const hasSeenOnboarding = localStorage.getItem('hasSeenOnboarding');
+    if (!currentUser) return;
+    const key = `hasSeenOnboarding_${currentUser.email}`;
+    const hasSeenOnboarding = localStorage.getItem(key);
     if (!hasSeenOnboarding && surveys.length === 0) {
       setShowOnboarding(true);
     }
-  }, [surveys]);
+  }, [surveys, currentUser]);
 
   const handleDismissOnboarding = () => {
-    localStorage.setItem('hasSeenOnboarding', 'true');
+    if (currentUser) localStorage.setItem(`hasSeenOnboarding_${currentUser.email}`, 'true');
     setShowOnboarding(false);
   };
 
