@@ -463,6 +463,12 @@ export default function AdminPrompts() {
             </div>
           </div>
           <div className="flex items-center gap-2">
+            <Link to={createPageUrl('AdminPromptFeedback')}>
+              <Button variant="outline" size="sm" className="gap-1">
+                <BarChart3 className="w-4 h-4" />
+                משובים
+              </Button>
+            </Link>
             <Link to={createPageUrl('Home')}>
               <Button variant="outline" size="icon">
                 <Home className="w-4 h-4" />
