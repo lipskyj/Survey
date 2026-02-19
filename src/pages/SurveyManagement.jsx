@@ -31,7 +31,7 @@ export default function SurveyManagement() {
 
   const { data: surveys = [], isLoading } = useQuery({
     queryKey: ['surveys', currentUser?.email],
-    queryFn: () => base44.entities.Survey.filter({ created_by: currentUser.email }, '-created_date'),
+    queryFn: () => base44.entities.Survey.filter({ created_by: currentUser.email, status: { $in: ['draft', 'published', 'closed'] } }, '-created_date'),
     enabled: !!currentUser,
   });
 
