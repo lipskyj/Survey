@@ -803,28 +803,10 @@ export default function AdminPrompts() {
               <h2 className="font-bold text-lg text-[#6B2D4A]">כל הסקרים ({allSurveys.length})</h2>
             </div>
             {allSurveys.map((s) => {
-              const responseCount = allResponses.filter(r => r.survey_id === s.id && r.is_complete).length;
+              const surveyResponses = allResponses.filter(r => r.survey_id === s.id && r.is_complete);
+              const responseCount = surveyResponses.length;
               return (
-                <Card key={s.id} className="border border-gray-200">
-                  <CardContent className="p-4">
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="flex-1 text-right">
-                        <p className="font-semibold text-gray-800">{s.title || s.activity_description?.slice(0, 60) || 'סקר ללא כותרת'}</p>
-                        <div className="flex flex-wrap gap-2 mt-1 text-xs text-gray-500">
-                          <span>נוצר: {new Date(s.created_date).toLocaleDateString('he-IL')}</span>
-                          {s.created_by && <span>| {s.created_by}</span>}
-                          {s.audience && <span>| {s.audience}</span>}
-                          {s.prompt_version && <span className="bg-orange-100 text-orange-700 px-1.5 py-0.5 rounded">{s.prompt_version}</span>}
-                          <span className={`px-1.5 py-0.5 rounded ${s.status === 'published' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'}`}>{s.status}</span>
-                          {responseCount > 0 && <span className="bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded">{responseCount} תגובות</span>}
-                        </div>
-                      </div>
-                      <Link to={createPageUrl('SurveyEditor') + `?surveyId=${s.id}`}>
-                        <Button variant="outline" size="sm">פתח</Button>
-                      </Link>
-                    </div>
-                  </CardContent>
-                </Card>
+                <SurveyAdminCard key={s.id} survey={s} responses={surveyResponses} responseCount={responseCount} />
               );
             })}
           </TabsContent>
