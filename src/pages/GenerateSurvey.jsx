@@ -280,26 +280,28 @@ export default function GenerateSurvey() {
   const startGeneration = async () => {
     if (!survey || activePrompts.length === 0) return;
 
-    const initial = activePrompts.map(p => ({ promptName: p.name, surveyId: null, done: false, error: false }));
+    const initial = activePrompts.map(p => ({ promptName: p.name, surveyId: null, done: false, error: false, errorMsg: '' }));
     setVersions(initial);
     setStage('generating');
 
-    const results = await Promise.allSettled(
-      activePrompts.map(p => generateSurveyForPrompt(survey, p))
-    );
-
-    const updated = initial.map((v, i) => {
-      if (results[i].status === 'fulfilled') {
-        return { ...v, surveyId: results[i].value, done: true };
-      } else {
-        console.error(`Error for prompt ${v.promptName}:`, results[i].reason);
-        return { ...v, done: true, error: true };
+    // Generate one at a time to avoid timeout issues with large prompts
+    const updated = [...initial];
+    for (let i = 0; i < activePrompts.length; i++) {
+      try {
+        console.log(`Generating version ${i + 1}: ${activePrompts[i].name}`);
+        const surveyId = await generateSurveyForPrompt(survey, activePrompts[i]);
+        updated[i] = { ...updated[i], surveyId, done: true };
+        console.log(`Version ${i + 1} done: ${surveyId}`);
+      } catch (err) {
+        console.error(`Version ${i + 1} failed:`, err);
+        updated[i] = { ...updated[i], done: true, error: true, errorMsg: err?.message || 'שגיאה לא ידועה' };
       }
-    });
+      setVersions([...updated]);
+    }
 
-    setVersions(updated);
     setStage('review');
-    toast.success('כל הגרסאות נוצרו! בדוק כל אחת ובחר את המועדפת.');
+    const successCount = updated.filter(v => !v.error).length;
+    toast.success(`${successCount} גרסאות נוצרו בהצלחה!`);
   };
 
   const handleChoose = (index) => {
