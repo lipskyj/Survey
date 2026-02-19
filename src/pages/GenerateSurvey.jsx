@@ -4,45 +4,15 @@ import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
 import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from 'framer-motion';
-import { Sparkles, Loader2, CheckCircle, FileText, ChevronLeft } from 'lucide-react';
+import { Sparkles, Loader2, CheckCircle, FileText, ChevronLeft, Star, Eye, Trophy, ArrowRight, Layers } from 'lucide-react';
 import { toast } from 'sonner';
+import SurveyPreview from '../components/SurveyPreview';
+import PromptFeedbackBox from '../components/PromptFeedbackBox';
 
-const KIT_MAPPING = {
-  pedagogical: ['relevance', 'skills', 'delivery_quality'],
-  social_emotional: ['belonging', 'relevance', 'delivery_quality'],
-  values: ['belonging', 'relevance'],
-  organizational: ['relevance', 'delivery_quality'],
-  community: ['belonging', 'relevance']
-};
-
-const audienceLabels = {
-  students: 'תלמידים',
-  parents: 'הורים',
-  teachers: 'מורים',
-  management: 'הנהלה'
-};
-
-const eventTypeLabels = {
-  single_event: 'אירוע חד פעמי',
-  ongoing_program: 'תוכנית מתמשכת',
-  annual_activity: 'פעילות שנתית קבועה',
-  special_project: 'פרויקט מיוחד'
-};
-
-const gradeLabels = {
-  middle: 'חטיבת ביניים (ז׳-ט׳)',
-  high: 'תיכון (י׳-י״ב)',
-  college: 'מכללה (י״ג-י״ד)'
-};
-
-const contentFocusLabels = {
-  pedagogical: 'לימודי-פדגוגי',
-  social_emotional: 'חברתי-רגשי',
-  values: 'ערכי',
-  organizational: 'ארגוני-לוגיסטי',
-  community: 'קהילתי'
-};
-
+const audienceLabels = { students: 'תלמידים', parents: 'הורים', teachers: 'מורים', management: 'הנהלה' };
+const eventTypeLabels = { single_event: 'אירוע חד פעמי', ongoing_program: 'תוכנית מתמשכת', annual_activity: 'פעילות שנתית קבועה', special_project: 'פרויקט מיוחד' };
+const gradeLabels = { middle: 'חטיבת ביניים (ז׳-ט׳)', high: 'תיכון (י׳-י״ב)', college: 'מכללה (י״ג-י״ד)' };
+const contentFocusLabels = { pedagogical: 'לימודי-פדגוגי', social_emotional: 'חברתי-רגשי', values: 'ערכי', organizational: 'ארגוני-לוגיסטי', community: 'קהילתי' };
 const bottomLinePrompts = {
   students: 'האם היית ממליץ/ה לחברים להשתתף בפעילות כזו?',
   parents: 'האם הייתם רוצים שילדכם ישתתף בפעילויות דומות בעתיד?',
@@ -59,7 +29,23 @@ function buildPromptFromSurvey(promptTemplate, survey) {
   const successDef = survey.success_definition?.selected_ideas?.join(', ') || survey.success_definition?.custom_text || '';
   const contentFocusDisplay = (survey.content_focus || []).map(cf => contentFocusLabels[cf] || cf).join(', ');
 
+  // Append survey intake as JSON at end of prompt for structured prompts (3V, YUVAL)
+  const surveyIntakeJson = JSON.stringify({
+    language: survey.language || 'hebrew',
+    activity_description: survey.activity_description || '',
+    audience: audienceLabels[survey.audience] || survey.audience,
+    grade_range: selectedGrades,
+    event_type: eventTypeLabels[survey.event_type] || survey.event_type,
+    content_focus: contentFocusDisplay,
+    measurement_targets: { values: valuesToMeasure, knowledge: knowledgeToMeasure, skills: skillsToMeasure },
+    evaluation_goal: evaluationGoals,
+    success_definition: successDef,
+    is_anonymous: survey.is_anonymous !== false,
+    background_questions: survey.background_questions || {}
+  }, null, 2);
+
   let customPrompt = promptTemplate;
+  // Replace template variables if prompt uses them
   customPrompt = customPrompt.replace(/{activity_description}/g, survey.activity_description || 'לא צוין');
   customPrompt = customPrompt.replace(/{audience}/g, audienceLabels[survey.audience] || survey.audience);
   customPrompt = customPrompt.replace(/{grades}/g, selectedGrades || 'לא צוין');
@@ -70,29 +56,27 @@ function buildPromptFromSurvey(promptTemplate, survey) {
   customPrompt = customPrompt.replace(/{skills_section}/g, skillsToMeasure ? `• מיומנויות למדידה: ${skillsToMeasure}` : '');
   customPrompt = customPrompt.replace(/{goals_section}/g, evaluationGoals ? `• מטרות ההערכה: ${evaluationGoals}` : '');
   customPrompt = customPrompt.replace(/{success_section}/g, successDef ? `• הגדרת הצלחה: ${successDef}` : '');
-
   const studentLanguageSection = survey.audience === 'students' ? `\n• גוף שני (את/ה) - לא גוף ראשון (אני)\n• שפה פשוטה וידידותית` : '';
   customPrompt = customPrompt.replace(/{student_language_section}/g, studentLanguageSection);
-
   const audienceLanguage = survey.audience === 'students' ? 'שפה פשוטה בגוף שני (את/ה)' : 'שפה מקצועית מכבדת';
   customPrompt = customPrompt.replace(/{audience_language}/g, audienceLanguage);
-
   const ongoingNote = survey.event_type === 'ongoing_program' ? 'התייחס לתהליך המתמשך, לא רק לאירוע בודד' : '';
   customPrompt = customPrompt.replace(/{ongoing_note}/g, ongoingNote);
+
+  // Append intake JSON for structured prompts
+  customPrompt += `\n\n---\nSURVEY INTAKE (JSON):\n${surveyIntakeJson}`;
 
   return customPrompt;
 }
 
-async function generateSurveyForPrompt(baseSurveyId, survey, promptObj) {
+async function generateSurveyForPrompt(survey, promptObj) {
   const prompt = buildPromptFromSurvey(promptObj.prompt_text, survey);
 
-  // Use a flexible schema that accommodates both prompt formats
   const result = await base44.integrations.Core.InvokeLLM({
     prompt,
     response_json_schema: {
       type: "object",
       properties: {
-        // Format A: simple (פרומפט מאוחד)
         scale_questions: {
           type: "array",
           items: {
@@ -100,6 +84,7 @@ async function generateSurveyForPrompt(baseSurveyId, survey, promptObj) {
             properties: {
               prompt: { type: "string" },
               kit_domain: { type: "string" },
+              dimension: { type: "string" },
               scale_labels: {
                 type: "object",
                 properties: { low: { type: "string" }, high: { type: "string" } }
@@ -109,9 +94,8 @@ async function generateSurveyForPrompt(baseSurveyId, survey, promptObj) {
         },
         open_questions: {
           type: "array",
-          items: { type: "object", properties: { prompt: { type: "string" } } }
+          items: { type: "object", properties: { prompt: { type: "string" }, text: { type: "string" } } }
         },
-        // Format B: structured (3V / YUVAL prompts)
         SURVEY_CONTENT: {
           type: "object",
           properties: {
@@ -130,6 +114,24 @@ async function generateSurveyForPrompt(baseSurveyId, survey, promptObj) {
               }
             }
           }
+        },
+        SURVEY_JSON: {
+          type: "object",
+          properties: {
+            questions: {
+              type: "array",
+              items: {
+                type: "object",
+                properties: {
+                  id: { type: "string" },
+                  text: { type: "string" },
+                  type: { type: "string" },
+                  options: { type: "array", items: { type: "string" } },
+                  tags: { type: "array", items: { type: "string" } }
+                }
+              }
+            }
+          }
         }
       }
     }
@@ -139,8 +141,8 @@ async function generateSurveyForPrompt(baseSurveyId, survey, promptObj) {
   let scaleQuestions = result.scale_questions || [];
   let openQuestions = result.open_questions || [];
 
-  // Handle 3V / YUVAL format: SURVEY_CONTENT.questions array
-  if ((!scaleQuestions.length && !openQuestions.length) && result.SURVEY_CONTENT?.questions?.length) {
+  // Handle 3V format: SURVEY_CONTENT.questions
+  if ((!scaleQuestions.length) && result.SURVEY_CONTENT?.questions?.length) {
     const allQ = result.SURVEY_CONTENT.questions;
     scaleQuestions = allQ
       .filter(q => q.type === 'likert_1_5' || q.type === 'likert' || q.section === 'scale_section')
@@ -151,12 +153,34 @@ async function generateSurveyForPrompt(baseSurveyId, survey, promptObj) {
           ? { low: q.scale_labels['1'] || 'לא מסכים', high: q.scale_labels['5'] || 'מסכים מאוד' }
           : { low: 'לא מסכים כלל', high: 'מסכים לחלוטין' }
       }));
-    openQuestions = allQ
-      .filter(q => q.type === 'open_text' && q.section !== 'bottom_line')
-      .map(q => ({ prompt: q.text }));
+    if (!openQuestions.length) {
+      openQuestions = allQ
+        .filter(q => q.type === 'open_text' && q.section !== 'bottom_line')
+        .map(q => ({ prompt: q.text }));
+    }
   }
 
-  // Create a new Survey record (clone of the base survey)
+  // Handle YUVAL format: SURVEY_JSON.questions
+  if ((!scaleQuestions.length) && result.SURVEY_JSON?.questions?.length) {
+    const allQ = result.SURVEY_JSON.questions;
+    scaleQuestions = allQ
+      .filter(q => q.type === 'likert' || q.type === 'likert_1_5')
+      .map(q => ({
+        prompt: q.text,
+        kit_domain: q.tags?.[0] || 'relevance',
+        scale_labels: { low: 'לא מסכים כלל', high: 'מסכים לחלוטין' }
+      }));
+    if (!openQuestions.length) {
+      openQuestions = allQ
+        .filter(q => q.type === 'open_text')
+        .map(q => ({ prompt: q.text }));
+    }
+  }
+
+  // Normalize open_questions (some use "text" instead of "prompt")
+  openQuestions = openQuestions.map(q => ({ prompt: q.prompt || q.text || '' })).filter(q => q.prompt);
+
+  // Create a new Survey record
   const newSurvey = await base44.entities.Survey.create({
     ...survey,
     id: undefined,
@@ -200,7 +224,7 @@ async function generateSurveyForPrompt(baseSurveyId, survey, promptObj) {
   }
 
   for (const q of scaleQuestions) {
-    questionsToCreate.push({ survey_id: newSurveyId, order_index: orderIndex++, question_type: 'scale_5', kit_domain: q.kit_domain || 'relevance', prompt_hebrew: q.prompt, is_required: true, scale_labels: q.scale_labels || { low: 'לא מסכים כלל', high: 'מסכים לחלוטין' }, is_generated: true });
+    questionsToCreate.push({ survey_id: newSurveyId, order_index: orderIndex++, question_type: 'scale_5', kit_domain: q.kit_domain || q.dimension || 'relevance', prompt_hebrew: q.prompt, is_required: true, scale_labels: q.scale_labels || { low: 'לא מסכים כלל', high: 'מסכים לחלוטין' }, is_generated: true });
   }
 
   for (const q of openQuestions) {
@@ -212,26 +236,27 @@ async function generateSurveyForPrompt(baseSurveyId, survey, promptObj) {
   await base44.entities.SurveyQuestion.bulkCreate(questionsToCreate);
 
   const introResponse = await base44.integrations.Core.InvokeLLM({
-    prompt: `כתוב פסקת פתיחה קצרה (2-3 משפטים) לסקר משוב על: ${survey.activity_description}. ידידותית, מסבירה מטרת הסקר, מבטיחה אנונימיות. קהל: ${survey.audience}`,
+    prompt: `כתוב פסקת פתיחה קצרה (2-3 משפטים) לסקר משוב על: ${survey.activity_description}. ידידותית, מסבירה מטרת הסקר, מבטיחה אנונימיות. קהל: ${audienceLabels[survey.audience] || survey.audience}`,
     response_json_schema: { type: "object", properties: { intro: { type: "string" } } }
   });
 
-  await base44.entities.Survey.update(newSurveyId, {
-    intro_text: introResponse.intro,
-  });
+  await base44.entities.Survey.update(newSurveyId, { intro_text: introResponse.intro });
 
   return newSurveyId;
 }
 
+// ─── Main component ────────────────────────────────────────────────────────────
 export default function GenerateSurvey() {
   const navigate = useNavigate();
   const [survey, setSurvey] = useState(null);
   const [baseSurveyId, setBaseSurveyId] = useState(null);
   const [activePrompts, setActivePrompts] = useState([]);
-  const [promptReady, setPromptReady] = useState(false);
-  const [isGenerating, setIsGenerating] = useState(false);
-  const [generatedVersions, setGeneratedVersions] = useState([]); // [{surveyId, promptName, done, error}]
-  const [allDone, setAllDone] = useState(false);
+
+  // Stages: 'explain' | 'generating' | 'review' | 'view_version'
+  const [stage, setStage] = useState('loading');
+  const [versions, setVersions] = useState([]); // [{promptName, surveyId, done, error}]
+  const [viewingIndex, setViewingIndex] = useState(null);
+  const [chosenIndex, setChosenIndex] = useState(null);
 
   useEffect(() => {
     const loadData = async () => {
@@ -246,27 +271,24 @@ export default function GenerateSurvey() {
       ]);
 
       if (surveys.length > 0) setSurvey(surveys[0]);
-
-      const active = prompts.filter(p => p.is_active);
-      setActivePrompts(active);
-      setPromptReady(true);
+      setActivePrompts(prompts.filter(p => p.is_active));
+      setStage('explain');
     };
     loadData();
   }, []);
 
-  const generateAll = async () => {
+  const startGeneration = async () => {
     if (!survey || activePrompts.length === 0) return;
-    setIsGenerating(true);
 
-    const versions = activePrompts.map(p => ({ promptId: p.id, promptName: p.name, surveyId: null, done: false, error: false }));
-    setGeneratedVersions(versions);
+    const initial = activePrompts.map(p => ({ promptName: p.name, surveyId: null, done: false, error: false }));
+    setVersions(initial);
+    setStage('generating');
 
-    // Generate all in parallel
     const results = await Promise.allSettled(
-      activePrompts.map((p) => generateSurveyForPrompt(baseSurveyId, survey, p))
+      activePrompts.map(p => generateSurveyForPrompt(survey, p))
     );
 
-    const updated = versions.map((v, i) => {
+    const updated = initial.map((v, i) => {
       if (results[i].status === 'fulfilled') {
         return { ...v, surveyId: results[i].value, done: true };
       } else {
@@ -275,120 +297,245 @@ export default function GenerateSurvey() {
       }
     });
 
-    setGeneratedVersions(updated);
-    setAllDone(true);
-    setIsGenerating(false);
-    toast.success('כל הגרסאות נוצרו!');
+    setVersions(updated);
+    setStage('review');
+    toast.success('כל הגרסאות נוצרו! בדוק כל אחת ובחר את המועדפת.');
   };
 
-  const handleOpenVersion = (surveyId) => {
-    navigate(createPageUrl('SurveyEditor') + `?surveyId=${surveyId}`);
+  const handleChoose = (index) => {
+    setChosenIndex(index);
   };
+
+  const handlePublishChosen = () => {
+    if (chosenIndex === null) return;
+    const chosen = versions[chosenIndex];
+    navigate(createPageUrl('SurveyEditor') + `?surveyId=${chosen.surveyId}`);
+  };
+
+  // ── LOADING ──
+  if (stage === 'loading') {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="w-10 h-10 text-[#E85A24] animate-spin" />
+      </div>
+    );
+  }
+
+  // ── VIEW SINGLE VERSION ──
+  if (stage === 'view_version' && viewingIndex !== null) {
+    const v = versions[viewingIndex];
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-orange-50/50 to-white">
+        {/* Header */}
+        <div className="sticky top-0 z-40 bg-white border-b border-gray-100 px-4 py-3">
+          <div className="max-w-2xl mx-auto flex items-center justify-between">
+            <button
+              onClick={() => setStage('review')}
+              className="flex items-center gap-2 text-gray-600 hover:text-[#E85A24] transition-colors font-medium"
+            >
+              <ArrowRight className="w-5 h-5" />
+              חזרה לכל הגרסאות
+            </button>
+            <div className="text-center">
+              <p className="font-bold text-[#6B2D4A]">גרסה {viewingIndex + 1}</p>
+              <p className="text-xs text-gray-500">{v.promptName}</p>
+            </div>
+            <Button
+              onClick={() => { setChosenIndex(viewingIndex); setStage('review'); }}
+              className="bg-[#E85A24] hover:bg-[#D14A1A] text-white text-sm"
+            >
+              <Trophy className="w-4 h-4 ml-1" />
+              בחר גרסה זו
+            </Button>
+          </div>
+        </div>
+
+        <div className="max-w-2xl mx-auto px-4 py-6">
+          <SurveyPreview surveyId={v.surveyId} />
+          <div className="mt-6">
+            <PromptFeedbackBox
+              surveyId={v.surveyId}
+              promptName={v.promptName}
+              audience={survey?.audience}
+              activityDescription={survey?.activity_description}
+            />
+          </div>
+          <div className="mt-4">
+            <Button
+              onClick={() => navigate(createPageUrl('SurveyEditor') + `?surveyId=${v.surveyId}`)}
+              variant="outline"
+              className="w-full"
+            >
+              <FileText className="w-4 h-4 ml-2" />
+              פתח בעורך לעריכה ידנית
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-orange-50/50 to-white flex items-center justify-center px-4 py-8">
-      <div className="max-w-2xl w-full text-center">
+      <div className="max-w-xl w-full">
         <AnimatePresence mode="wait">
 
-          {/* Loading prompts */}
-          {!promptReady && (
-            <motion.div key="loading" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-              <Loader2 className="w-12 h-12 text-[#E85A24] animate-spin mx-auto" />
-              <p className="text-gray-500 mt-4">טוען נתונים...</p>
-            </motion.div>
-          )}
-
-          {/* Ready state */}
-          {promptReady && !isGenerating && !allDone && (
-            <motion.div key="ready" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} className="w-full">
-              <div className="w-20 h-20 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Sparkles className="w-10 h-10 text-[#E85A24]" />
+          {/* ── EXPLAIN STAGE ── */}
+          {stage === 'explain' && (
+            <motion.div key="explain" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} className="text-center">
+              <div className="w-20 h-20 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                <Layers className="w-10 h-10 text-[#E85A24]" />
               </div>
-              <h1 className="text-2xl md:text-3xl font-bold text-[#6B2D4A] mb-2">הכל מוכן ליצירת הסקר</h1>
+              <h1 className="text-2xl md:text-3xl font-bold text-[#6B2D4A] mb-3">
+                מוכן! הנה מה שיקרה עכשיו
+              </h1>
+              <p className="text-gray-500 text-lg mb-8">
+                המערכת תיצור <strong className="text-[#6B2D4A]">{activePrompts.length} גרסאות</strong> שונות של הסקר במקביל, כל אחת עם גישה ייחודית לשאלות.
+              </p>
 
-              {activePrompts.length > 1 ? (
-                <p className="text-gray-500 mb-2">
-                  נמצאו <strong>{activePrompts.length} פרומפטים פעילים</strong> — המערכת תיצור <strong>{activePrompts.length} גרסאות במקביל</strong> לצורך השוואה.
-                </p>
-              ) : activePrompts.length === 1 ? (
-                <p className="text-gray-500 mb-2">פרומפט פעיל: <strong>{activePrompts[0].name}</strong></p>
-              ) : (
-                <p className="text-gray-500 mb-2">אין פרומפטים פעילים — יש להפעיל פרומפט באזור הניהול.</p>
-              )}
+              <div className="space-y-3 mb-8 text-right">
+                {[
+                  { num: '1', text: 'המערכת מייצרת 3 גרסאות סקר במקביל, כל אחת עם מתודולוגיה שונה' },
+                  { num: '2', text: 'אתה צופה בכל גרסה בנפרד, קורא את השאלות ומדרג' },
+                  { num: '3', text: 'בסוף בוחר את הגרסה שאהבת לפרסום' },
+                ].map(step => (
+                  <div key={step.num} className="flex items-start gap-3 bg-white rounded-xl p-4 shadow-sm border border-orange-100">
+                    <div className="w-8 h-8 bg-[#E85A24] text-white rounded-full flex items-center justify-center font-bold flex-shrink-0 text-sm">
+                      {step.num}
+                    </div>
+                    <p className="text-gray-700 pt-1">{step.text}</p>
+                  </div>
+                ))}
+              </div>
 
-              {activePrompts.length > 0 && (
-                <div className="flex flex-wrap gap-2 justify-center mb-6">
-                  {activePrompts.map((p, i) => (
-                    <span key={p.id} className="bg-orange-100 text-[#E85A24] text-sm px-3 py-1 rounded-full font-medium">
-                      גרסה {i + 1}: {p.name}
-                    </span>
-                  ))}
-                </div>
-              )}
+              <div className="flex flex-wrap gap-2 justify-center mb-8">
+                {activePrompts.map((p, i) => (
+                  <span key={p.id} className="bg-orange-100 text-[#E85A24] text-sm px-3 py-1.5 rounded-full font-medium">
+                    גרסה {i + 1}: {p.name}
+                  </span>
+                ))}
+              </div>
 
               <Button
-                onClick={generateAll}
+                onClick={startGeneration}
                 disabled={activePrompts.length === 0}
-                className="px-8 py-6 bg-[#E85A24] hover:bg-[#D14A1A] text-white text-lg font-medium rounded-xl shadow-lg shadow-orange-200"
+                className="w-full py-6 bg-[#E85A24] hover:bg-[#D14A1A] text-white text-lg font-medium rounded-xl shadow-lg shadow-orange-200"
               >
                 <Sparkles className="w-5 h-5 ml-2" />
-                {activePrompts.length > 1 ? `צור ${activePrompts.length} גרסאות` : 'צור סקר'}
+                צור {activePrompts.length} גרסאות סקר
               </Button>
             </motion.div>
           )}
 
-          {/* Generating */}
-          {isGenerating && (
-            <motion.div key="generating" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}>
+          {/* ── GENERATING STAGE ── */}
+          {stage === 'generating' && (
+            <motion.div key="generating" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} className="text-center">
               <div className="w-24 h-24 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-6">
                 <Loader2 className="w-12 h-12 text-[#E85A24] animate-spin" />
               </div>
-              <h1 className="text-2xl font-bold text-[#6B2D4A] mb-4">
+              <h1 className="text-2xl font-bold text-[#6B2D4A] mb-2">
                 יוצר {activePrompts.length} גרסאות במקביל...
               </h1>
+              <p className="text-gray-500 mb-8">זה לוקח כדקה, נא לא לסגור את הדף</p>
+
               <div className="space-y-3 max-w-xs mx-auto text-right">
-                {generatedVersions.map((v, i) => (
-                  <div key={i} className="flex items-center gap-3">
+                {activePrompts.map((p, i) => (
+                  <div key={i} className="flex items-center gap-3 bg-white rounded-xl p-3 shadow-sm">
                     <Loader2 className="w-5 h-5 text-[#E85A24] animate-spin flex-shrink-0" />
-                    <span className="text-gray-700">גרסה {i + 1}: {v.promptName}</span>
+                    <div>
+                      <p className="font-medium text-gray-700 text-sm">גרסה {i + 1}</p>
+                      <p className="text-xs text-gray-400">{p.name}</p>
+                    </div>
                   </div>
                 ))}
               </div>
             </motion.div>
           )}
 
-          {/* Done */}
-          {allDone && (
-            <motion.div key="done" initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="w-full">
-              <div className="w-24 h-24 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                <CheckCircle className="w-12 h-12 text-green-600" />
+          {/* ── REVIEW STAGE ── */}
+          {stage === 'review' && (
+            <motion.div key="review" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="w-full">
+              <div className="text-center mb-6">
+                <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                  <CheckCircle className="w-8 h-8 text-green-600" />
+                </div>
+                <h1 className="text-2xl font-bold text-[#6B2D4A]">
+                  {versions.filter(v => !v.error).length} גרסאות נוצרו!
+                </h1>
+                <p className="text-gray-500 mt-1">
+                  צפה בכל גרסה, דרג אותה, ואז בחר את המועדפת לפרסום
+                </p>
               </div>
-              <h1 className="text-2xl md:text-3xl font-bold text-[#6B2D4A] mb-2">
-                {generatedVersions.length > 1 ? `${generatedVersions.filter(v => !v.error).length} גרסאות נוצרו!` : 'הסקר נוצר בהצלחה!'}
-              </h1>
-              <p className="text-gray-500 mb-8">בחר גרסה לעריכה — בסוף תוכל לדרג אותה ולשתף משוב</p>
 
-              <div className="space-y-3">
-                {generatedVersions.map((v, i) => (
-                  <div key={i} className={`rounded-xl border-2 p-4 flex items-center justify-between ${v.error ? 'border-red-200 bg-red-50' : 'border-orange-200 bg-white'}`}>
-                    <div className="text-right">
-                      <p className="font-semibold text-[#6B2D4A]">גרסה {i + 1}</p>
-                      <p className="text-sm text-gray-500">{v.promptName}</p>
-                      {v.error && <p className="text-xs text-red-500">שגיאה ביצירה</p>}
+              <div className="space-y-3 mb-6">
+                {versions.map((v, i) => (
+                  <div
+                    key={i}
+                    className={`rounded-xl border-2 p-4 transition-all ${
+                      chosenIndex === i
+                        ? 'border-[#E85A24] bg-orange-50'
+                        : v.error
+                        ? 'border-red-200 bg-red-50'
+                        : 'border-gray-200 bg-white'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="text-right flex-1">
+                        <div className="flex items-center gap-2">
+                          <p className="font-bold text-[#6B2D4A]">גרסה {i + 1}</p>
+                          {chosenIndex === i && (
+                            <span className="bg-[#E85A24] text-white text-xs px-2 py-0.5 rounded-full font-medium">
+                              נבחרה
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-sm text-gray-500">{v.promptName}</p>
+                        {v.error && <p className="text-xs text-red-500 mt-1">שגיאה ביצירה</p>}
+                      </div>
+                      {!v.error && (
+                        <div className="flex gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => { setViewingIndex(i); setStage('view_version'); }}
+                            className="text-[#6B2D4A] border-[#6B2D4A] hover:bg-purple-50"
+                          >
+                            <Eye className="w-4 h-4 ml-1" />
+                            צפה
+                          </Button>
+                          <Button
+                            size="sm"
+                            onClick={() => handleChoose(i)}
+                            className={chosenIndex === i ? 'bg-[#E85A24] text-white' : 'bg-gray-100 text-gray-700 hover:bg-orange-100'}
+                          >
+                            <Trophy className="w-4 h-4 ml-1" />
+                            {chosenIndex === i ? 'נבחרה ✓' : 'בחר'}
+                          </Button>
+                        </div>
+                      )}
                     </div>
-                    {!v.error && (
-                      <Button
-                        onClick={() => handleOpenVersion(v.surveyId)}
-                        className="bg-[#E85A24] hover:bg-[#D14A1A] text-white"
-                      >
-                        <FileText className="w-4 h-4 ml-1" />
-                        פתח
-                        <ChevronLeft className="w-4 h-4 mr-1" />
-                      </Button>
-                    )}
                   </div>
                 ))}
               </div>
+
+              {chosenIndex !== null && (
+                <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
+                  <Button
+                    onClick={handlePublishChosen}
+                    className="w-full py-6 bg-[#E85A24] hover:bg-[#D14A1A] text-white text-lg font-medium rounded-xl shadow-lg shadow-orange-200"
+                  >
+                    <FileText className="w-5 h-5 ml-2" />
+                    המשך לעריכה ופרסום של גרסה {chosenIndex + 1}
+                    <ChevronLeft className="w-5 h-5 mr-2" />
+                  </Button>
+                </motion.div>
+              )}
+
+              {chosenIndex === null && (
+                <p className="text-center text-sm text-gray-400 mt-2">
+                  צפה בגרסאות ובחר את המועדפת לפרסום
+                </p>
+              )}
             </motion.div>
           )}
 
