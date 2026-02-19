@@ -65,7 +65,17 @@ export default function SurveyAdminCard({ survey, responses, responseCount }) {
               {survey.created_by && <span>| {survey.created_by}</span>}
               {survey.audience && <span>| {survey.audience}</span>}
               {survey.prompt_version && <span className="bg-orange-100 text-orange-700 px-1.5 py-0.5 rounded">{survey.prompt_version}</span>}
-              <span className={`px-1.5 py-0.5 rounded ${survey.status === 'published' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'}`}>{survey.status}</span>
+              <span className={`px-1.5 py-0.5 rounded ${
+                survey.status === 'published' ? 'bg-green-100 text-green-700' :
+                survey.status === 'candidate' ? 'bg-purple-100 text-purple-700' :
+                survey.status === 'closed' ? 'bg-red-100 text-red-700' :
+                'bg-gray-100 text-gray-600'
+              }`}>{
+                survey.status === 'candidate' ? 'גרסה לא נבחרה' :
+                survey.status === 'draft' ? 'טיוטה' :
+                survey.status === 'published' ? 'פורסם' :
+                survey.status === 'closed' ? 'סגור' : survey.status
+              }</span>
               {responseCount > 0 && <span className="bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded">{responseCount} תגובות</span>}
             </div>
           </div>
