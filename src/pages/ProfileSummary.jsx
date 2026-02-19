@@ -7,7 +7,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { motion } from 'framer-motion';
 import { 
   ChevronLeft, Edit2, FileText, Users, School, 
-  Calendar, Target, Sparkles, CheckCircle, Home, Shield
+  Calendar, Target, Sparkles, CheckCircle, Home, Shield, Layers, Star
 } from 'lucide-react';
 import { toast } from 'sonner';
 
