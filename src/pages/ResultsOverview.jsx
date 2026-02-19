@@ -18,13 +18,20 @@ import { he } from 'date-fns/locale';
 export default function ResultsOverview() {
   const [selectedSurveyId, setSelectedSurveyId] = useState(null);
 
-  // Load surveys
+  const [currentUser, setCurrentUser] = useState(null);
+
+  useEffect(() => {
+    base44.auth.me().then(u => setCurrentUser(u)).catch(() => {});
+  }, []);
+
+  // Load surveys — only the current user's
   const { data: surveys = [], isLoading: surveysLoading } = useQuery({
-    queryKey: ['surveys-for-results'],
+    queryKey: ['surveys-for-results', currentUser?.email],
     queryFn: () => base44.entities.Survey.filter(
-      { status: { $in: ['published', 'closed'] } },
+      { created_by: currentUser.email, status: { $in: ['published', 'closed'] } },
       '-published_at'
     ),
+    enabled: !!currentUser,
   });
 
   // Set initial survey
