@@ -36,20 +36,17 @@ export default function RespondQuestion() {
       setCurrentIndex(q);
 
       // Load survey
-      const surveys = await base44.entities.Survey.filter({ share_slug: s });
+      const surveys = await publicApi('getSurveyBySlug', { slug: s });
       if (surveys.length > 0) {
         setSurvey(surveys[0]);
         
         // Load questions
-        const qs = await base44.entities.SurveyQuestion.filter(
-          { survey_id: surveys[0].id },
-          'order_index'
-        );
+        const qs = await publicApi('getQuestions', { survey_id: surveys[0].id });
         setQuestions(qs);
 
         // Load existing answers
         if (r) {
-          const responses = await base44.entities.SurveyResponse.filter({ id: r });
+          const responses = await publicApi('getResponse', { id: r });
           if (responses.length > 0 && responses[0].answers) {
             const existingAnswers = {};
             responses[0].answers.forEach(a => {
