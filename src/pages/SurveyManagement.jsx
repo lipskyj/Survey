@@ -180,6 +180,11 @@ export default function SurveyManagement() {
                           <BarChart3 className="w-4 h-4" />
                           {survey.responses_count || 0} תגובות
                         </span>
+                        {currentUser?.role === 'admin' && survey.created_by && (
+                          <span className="text-xs bg-purple-50 text-purple-600 px-2 py-0.5 rounded-full">
+                            {survey.created_by}
+                          </span>
+                        )}
                       </div>
                     </div>
 
