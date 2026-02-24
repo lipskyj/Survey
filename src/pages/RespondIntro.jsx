@@ -146,11 +146,13 @@ export default function RespondIntro() {
           </div>
 
           {/* Privacy Note */}
-          <div className="bg-green-50 rounded-xl p-4 mb-8">
+          <div className={`${survey?.is_anonymous !== false ? 'bg-green-50' : 'bg-blue-50'} rounded-xl p-4 mb-8`}>
             <div className="flex items-center gap-3">
-              <Lock className="w-5 h-5 text-green-600 flex-shrink-0" />
-              <p className="text-sm text-green-800 text-right">
-                התשובות אנונימיות ומשמשות לשיפור בלבד
+              <Lock className={`w-5 h-5 ${survey?.is_anonymous !== false ? 'text-green-600' : 'text-blue-600'} flex-shrink-0`} />
+              <p className={`text-sm ${survey?.is_anonymous !== false ? 'text-green-800' : 'text-blue-800'} text-right`}>
+                {survey?.is_anonymous !== false
+                  ? 'התשובות אנונימיות ומשמשות לשיפור בלבד'
+                  : 'סקר זה הוא נוכחות שמית — התשובות ישמרו עם שמך'}
               </p>
             </div>
           </div>
