@@ -64,7 +64,7 @@ export default function RespondIntro() {
         started_at: new Date().toISOString(),
         answers: [],
         is_complete: false
-      });
+      } });
       
       navigate(createPageUrl('RespondQuestion') + `?s=${survey.share_slug}&r=${response.id}&q=0`);
     } catch (err) {
