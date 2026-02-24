@@ -84,9 +84,7 @@ export default function RespondQuestion() {
       };
     });
 
-    await base44.entities.SurveyResponse.update(responseId, {
-      answers: answersArray
-    });
+    await publicApi('updateResponse', { id: responseId, data: { answers: answersArray } });
   };
 
   const handleNext = async () => {
