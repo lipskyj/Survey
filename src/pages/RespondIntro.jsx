@@ -58,13 +58,15 @@ export default function RespondIntro() {
   const handleStart = async () => {
     // Create response record
     try {
-      const response = await publicApi('createResponse', { data: {
-        survey_id: survey.id,
-        session_id: sessionId,
-        started_at: new Date().toISOString(),
-        answers: [],
-        is_complete: false
-      } });
+      const response = await publicApi('createResponse', {
+        data: {
+          survey_id: survey.id,
+          session_id: sessionId,
+          started_at: new Date().toISOString(),
+          answers: [],
+          is_complete: false
+        }
+      });
       
       navigate(createPageUrl('RespondQuestion') + `?s=${survey.share_slug}&r=${response.id}&q=0`);
     } catch (err) {
