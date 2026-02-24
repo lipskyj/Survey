@@ -30,7 +30,7 @@ export default function RespondIntro() {
       }
 
       try {
-        const surveys = await base44.entities.Survey.filter({ share_slug: slug });
+        const surveys = await publicApi('getSurveyBySlug', { slug });
         
         if (surveys.length === 0) {
           setError('not_found');
@@ -58,7 +58,7 @@ export default function RespondIntro() {
   const handleStart = async () => {
     // Create response record
     try {
-      const response = await base44.entities.SurveyResponse.create({
+      const response = await publicApi('createResponse', { data: {
         survey_id: survey.id,
         session_id: sessionId,
         started_at: new Date().toISOString(),
