@@ -356,6 +356,16 @@ export default function GenerateSurvey() {
         </div>
 
         <div className="max-w-2xl mx-auto px-4 py-6">
+          {/* Edit button at top */}
+          <Button
+            onClick={() => navigate(createPageUrl('SurveyEditor') + `?surveyId=${v.surveyId}`)}
+            variant="outline"
+            className="w-full mb-6"
+          >
+            <FileText className="w-4 h-4 ml-2" />
+            פתח בעורך לעריכה ידנית
+          </Button>
+
           <SurveyPreview surveyId={v.surveyId} />
 
           {/* Feedback + actions at the bottom */}
