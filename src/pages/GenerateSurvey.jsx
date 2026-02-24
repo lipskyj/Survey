@@ -242,8 +242,9 @@ Do not wrap in SURVEY_JSON, SURVEY_CONTENT, or any other key. Only scale_questio
 
   await base44.entities.SurveyQuestion.bulkCreate(questionsToCreate);
 
+  const isAnon = survey.is_anonymous !== false;
   const introResponse = await base44.integrations.Core.InvokeLLM({
-    prompt: `כתוב פסקת פתיחה קצרה (2-3 משפטים) לסקר משוב על: ${survey.activity_description}. ידידותית, מסבירה מטרת הסקר, מבטיחה אנונימיות. קהל: ${audienceLabels[survey.audience] || survey.audience}`,
+    prompt: `כתוב פסקת פתיחה קצרה (2-3 משפטים) לסקר משוב על: ${survey.activity_description}. ידידותית, מסבירה מטרת הסקר${isAnon ? ', מבטיחה שהתשובות אנונימיות' : ', ציין שהסקר הוא נוכחות שמית (לא אנונימי)'}. קהל: ${audienceLabels[survey.audience] || survey.audience}`,
     response_json_schema: { type: "object", properties: { intro: { type: "string" } } }
   });
 
