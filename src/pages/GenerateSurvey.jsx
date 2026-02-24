@@ -242,7 +242,7 @@ Do not wrap in SURVEY_JSON, SURVEY_CONTENT, or any other key. Only scale_questio
   }
 
   for (const q of scaleQuestions) {
-    questionsToCreate.push({ survey_id: newSurveyId, order_index: orderIndex++, question_type: 'scale_5', kit_domain: q.kit_domain || q.dimension || 'relevance', prompt_hebrew: q.prompt, is_required: true, scale_labels: q.scale_labels || { low: 'לא מסכים כלל', high: 'מסכים לחלוטין' }, is_generated: true });
+    questionsToCreate.push({ survey_id: newSurveyId, order_index: orderIndex++, question_type: 'scale_5', kit_domain: q.kit_domain || q.dimension || 'relevance', prompt_hebrew: q.prompt, is_required: true, scale_labels: q.scale_labels || { low: 'כלל לא', high: 'במידה רבה מאוד' }, is_generated: true });
   }
 
   for (const q of openQuestions) {
