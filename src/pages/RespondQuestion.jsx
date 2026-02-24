@@ -96,19 +96,10 @@ export default function RespondQuestion() {
       navigate(createPageUrl('RespondQuestion') + `?s=${slug}&r=${responseId}&q=${currentIndex + 1}`, { replace: true });
     } else {
       // Complete survey
-      await base44.entities.SurveyResponse.update(responseId, {
-        is_complete: true,
-        completed_at: new Date().toISOString()
-      });
+      await publicApi('updateResponse', { id: responseId, data: { is_complete: true, completed_at: new Date().toISOString() } });
       
-      // Update survey response count - count all completed responses
-      const allResponses = await base44.entities.SurveyResponse.filter({ 
-        survey_id: survey.id, 
-        is_complete: true 
-      });
-      await base44.entities.Survey.update(survey.id, {
-        responses_count: allResponses.length
-      });
+      // Update survey response count
+      await publicApi('updateSurveyCount', { survey_id: survey.id });
       
       navigate(createPageUrl('RespondComplete') + `?s=${slug}`);
     }
