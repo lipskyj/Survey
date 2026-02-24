@@ -1,10 +1,22 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from './utils';
 import { Home, FileText, BarChart3, Settings } from 'lucide-react';
+import { base44 } from '@/api/base44Client';
 
 export default function Layout({ children, currentPageName }) {
   const isRespondentFlow = ['RespondIntro', 'RespondQuestion', 'RespondComplete'].includes(currentPageName);
+
+  // Auth guard: redirect to login for all non-respondent pages
+  useEffect(() => {
+    if (!isRespondentFlow) {
+      base44.auth.isAuthenticated().then(isAuth => {
+        if (!isAuth) {
+          base44.auth.redirectToLogin(window.location.href);
+        }
+      });
+    }
+  }, [isRespondentFlow]);
   const isBuilderFlow = [
             'SurveyLanguage', 'ActivityDescription', 'Audience', 'GradeRange', 'EventType', 
             'ContentFocus', 'EvaluationGoal', 'SuccessDefinition',
