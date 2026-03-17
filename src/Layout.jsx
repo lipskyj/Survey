@@ -105,11 +105,18 @@ export default function Layout({ children, currentPageName }) {
       
       {!isBuilderFlow && (
         <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 z-50 shadow-[0_-4px_12px_rgba(0,0,0,0.05)]">
-          <div className="flex items-center justify-center h-20 px-2">
+          <div className="flex items-center justify-center gap-8 h-20 px-2">
             <Link to={createPageUrl('Home')} className="flex flex-col items-center justify-center gap-1.5 text-gray-400 hover:text-[#E85A24] transition-colors min-w-[72px]">
               <Home className="w-6 h-6" />
               <span className="text-xs font-medium">בית</span>
             </Link>
+            <button
+              onClick={() => base44.auth.logout()}
+              className="flex flex-col items-center justify-center gap-1.5 text-gray-400 hover:text-red-500 transition-colors min-w-[72px]"
+            >
+              <LogOut className="w-6 h-6" />
+              <span className="text-xs font-medium">התנתק</span>
+            </button>
           </div>
         </nav>
       )}
