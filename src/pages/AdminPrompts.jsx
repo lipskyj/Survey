@@ -15,6 +15,7 @@ import { Lock, Sparkles, Save, Copy, CheckCircle, Settings, Eye, EyeOff, Plus, T
 import { toast } from 'sonner';
 import QuestionLogicGuidelines from '../components/QuestionLogicGuidelines';
 import SurveyAdminCard from '../components/SurveyAdminCard';
+import AppFeedbackTab from '../components/AppFeedbackTab';
 
 const ADMIN_PASSWORD = '1234';
 
