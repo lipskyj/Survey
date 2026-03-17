@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from './utils';
-import { Home, FileText, BarChart3, Settings } from 'lucide-react';
+import { Home, LogOut } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
+import { Button } from '@/components/ui/button';
 
 export default function Layout({ children, currentPageName }) {
   const isRespondentFlow = ['RespondIntro', 'RespondQuestion', 'RespondComplete'].includes(currentPageName);
