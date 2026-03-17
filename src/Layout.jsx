@@ -138,6 +138,7 @@ export default function Layout({ children, currentPageName }) {
           </div>
         </nav>
       )}
+      <FeedbackModal open={showFeedback} onClose={() => setShowFeedback(false)} />
     </div>
   );
 }
