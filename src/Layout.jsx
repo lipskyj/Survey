@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import FeedbackModal from '@/components/FeedbackModal';
 
 export default function Layout({ children, currentPageName }) {
+  const [showFeedback, setShowFeedback] = useState(false);
   const isRespondentFlow = ['RespondIntro', 'RespondQuestion', 'RespondComplete'].includes(currentPageName);
 
   // Auth guard: redirect to login for all non-respondent pages
