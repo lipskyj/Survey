@@ -551,6 +551,10 @@ export default function AdminPrompts() {
               <BookOpen className="w-4 h-4" />
               הנחיות לוגיקה
             </TabsTrigger>
+            <TabsTrigger value="app_feedback" className="gap-2">
+              <MessageSquare className="w-4 h-4" />
+              משובי מערכת
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="prompts" className="space-y-6">
