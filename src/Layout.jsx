@@ -84,6 +84,15 @@ export default function Layout({ children, currentPageName }) {
                   <Home className="w-4 h-4" />
                   בית
                 </Link>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => base44.auth.logout()}
+                  className="text-gray-500 hover:text-red-500 flex items-center gap-2"
+                >
+                  <LogOut className="w-4 h-4" />
+                  התנתק
+                </Button>
               </nav>
             </div>
           </div>
