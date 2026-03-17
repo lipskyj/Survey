@@ -89,6 +89,15 @@ export default function Layout({ children, currentPageName }) {
                 <Button
                   variant="ghost"
                   size="sm"
+                  onClick={() => setShowFeedback(true)}
+                  className="text-gray-500 hover:text-[#E85A24] flex items-center gap-2"
+                >
+                  <MessageSquarePlus className="w-4 h-4" />
+                  משוב
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
                   onClick={() => base44.auth.logout()}
                   className="text-gray-500 hover:text-red-500 flex items-center gap-2"
                 >
