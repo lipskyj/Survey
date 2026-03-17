@@ -122,6 +122,13 @@ export default function Layout({ children, currentPageName }) {
               <span className="text-xs font-medium">בית</span>
             </Link>
             <button
+              onClick={() => setShowFeedback(true)}
+              className="flex flex-col items-center justify-center gap-1.5 text-gray-400 hover:text-[#E85A24] transition-colors min-w-[72px]"
+            >
+              <MessageSquarePlus className="w-6 h-6" />
+              <span className="text-xs font-medium">משוב</span>
+            </button>
+            <button
               onClick={() => base44.auth.logout()}
               className="flex flex-col items-center justify-center gap-1.5 text-gray-400 hover:text-red-500 transition-colors min-w-[72px]"
             >
