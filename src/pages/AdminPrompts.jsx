@@ -839,6 +839,10 @@ export default function AdminPrompts() {
           <TabsContent value="guidelines">
             <QuestionLogicGuidelines />
           </TabsContent>
+
+          <TabsContent value="app_feedback">
+            <AppFeedbackTab />
+          </TabsContent>
         </Tabs>
         </div>
         </div>
