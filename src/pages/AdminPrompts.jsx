@@ -602,6 +602,19 @@ export default function AdminPrompts() {
           </CardContent>
         </Card>
 
+        {/* Reset default prompt */}
+        <div className="flex justify-end">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleResetDefaultPrompt}
+            className="text-xs text-gray-500 border-gray-300 hover:bg-orange-50 hover:text-[#E85A24] hover:border-[#E85A24]"
+          >
+            <Copy className="w-3 h-3 ml-1" />
+            איפוס פרומפט ברירת מחדל לגרסה המעודכנת
+          </Button>
+        </div>
+
         {/* Info Box */}
         <Card className="bg-blue-50 border-blue-200">
           <CardContent className="p-4">
