@@ -109,6 +109,7 @@ export const PAGES = {
     "SurveyEditor": SurveyEditor,
     "SurveyLanguage": SurveyLanguage,
     "SurveyManagement": SurveyManagement,
+    "SurveyLength": SurveyLength,
     "SurveyType": SurveyType,
 }
 
