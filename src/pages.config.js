@@ -75,6 +75,7 @@ import SuccessDefinition from './pages/SuccessDefinition';
 import SurveyEditor from './pages/SurveyEditor';
 import SurveyLanguage from './pages/SurveyLanguage';
 import SurveyManagement from './pages/SurveyManagement';
+import SurveyLength from './pages/SurveyLength';
 import SurveyType from './pages/SurveyType';
 import __Layout from './Layout.jsx';
 

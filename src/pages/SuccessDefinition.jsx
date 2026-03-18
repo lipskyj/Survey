@@ -166,7 +166,7 @@ export default function SuccessDefinition() {
         current_step: 'B1',
         last_autosave: new Date().toISOString()
       });
-      navigate(createPageUrl('ProfileSummary') + `?surveyId=${surveyId}`);
+      navigate(createPageUrl('SurveyLength') + `?surveyId=${surveyId}`);
     } catch (error) {
       toast.error('שגיאה בשמירה');
     }
