@@ -323,6 +323,29 @@ export default function AdminPrompts() {
     }
   };
 
+  const handleResetDefaultPrompt = async () => {
+    if (!confirm('לאפס את הפרומפט המאוחד לגרסה המעודכנת? הטקסט הנוכחי יוחלף.')) return;
+    try {
+      const allPrompts = await base44.entities.AdminPrompt.list();
+      const existing = allPrompts.find(p => p.name === 'פרומפט מאוחד - ברירת מחדל');
+      if (existing) {
+        await base44.entities.AdminPrompt.update(existing.id, { prompt_text: DEFAULT_UNIFIED_PROMPT_HE });
+      } else {
+        await base44.entities.AdminPrompt.create({
+          name: 'פרומפט מאוחד - ברירת מחדל',
+          prompt_text: DEFAULT_UNIFIED_PROMPT_HE,
+          is_active: false,
+          language: 'hebrew',
+          notes: 'פרומפט מאוחד לשאלות דירוג ושאלות פתוחות - הפרומפט הסטנדרטי של המערכת'
+        });
+      }
+      queryClient.invalidateQueries({ queryKey: ['admin-prompts'] });
+      toast.success('הפרומפט אוּפס לגרסה המעודכנת');
+    } catch (error) {
+      toast.error('שגיאה באיפוס הפרומפט');
+    }
+  };
+
   const createPromptMutation = useMutation({
     mutationFn: (data) => base44.entities.AdminPrompt.create(data),
     onSuccess: () => {
