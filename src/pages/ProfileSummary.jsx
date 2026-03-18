@@ -169,6 +169,12 @@ export default function ProfileSummary() {
       label: 'הגדרת הצלחה', 
       value: getSuccessDefinition(),
       step: 'SuccessDefinition'
+    },
+    {
+      icon: Layers,
+      label: 'אורך השאלון',
+      value: { '5': '5 שאלות', '10': 'עד 10 שאלות', '15': 'עד 15 שאלות', '15plus': 'יותר מ-15 שאלות' }[survey.questions_count] || 'עד 10 שאלות',
+      step: 'SurveyLength'
     }
   ] : [];
 
