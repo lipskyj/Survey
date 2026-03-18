@@ -171,7 +171,7 @@ export default function ProfileSummary() {
       step: 'SuccessDefinition'
     },
     {
-      icon: Layers,
+      icon: Hash,
       label: 'אורך השאלון',
       value: { '5': '5 שאלות', '10': 'עד 10 שאלות', '15': 'עד 15 שאלות', '15plus': 'יותר מ-15 שאלות' }[survey.questions_count] || 'עד 10 שאלות',
       step: 'SurveyLength'
