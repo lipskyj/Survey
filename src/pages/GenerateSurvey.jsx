@@ -72,6 +72,10 @@ function buildPromptFromSurvey(promptTemplate, survey) {
 async function generateSurveyForPrompt(survey, promptObj) {
   const prompt = buildPromptFromSurvey(promptObj.prompt_text, survey);
 
+  // Determine scale questions count based on user preference
+  const countMap = { '5': 5, '10': 10, '15': 15, '15plus': 18 };
+  const scaleCount = countMap[survey.questions_count] || 10;
+
   // Ask LLM to always output in a normalized format regardless of prompt style
   const normalizedPrompt = prompt + `
 
@@ -81,7 +85,7 @@ Regardless of any output format mentioned above, you MUST return a JSON object w
 {
   "scale_questions": [
     { "prompt": "question text", "scale_labels": {"low": "label", "high": "label"}, "kit_domain": "relevance|skills|delivery_quality|belonging" }
-    // exactly 10 items
+    // exactly ${scaleCount} items
   ],
   "open_questions": [
     { "prompt": "open question text" }
