@@ -44,8 +44,37 @@ function buildPromptFromSurvey(promptTemplate, survey) {
     background_questions: survey.background_questions || {}
   }, null, 2);
 
+  // Build dynamic survey length instructions
+  const surveyLengthMap = {
+    '5': `═══════════════════════════════════════
+📊 אורך השאלון: עד 5 שאלות סולם
+═══════════════════════════════════════
+• צור מקסימום 5 שאלות סולם בסה"כ
+• תעדף רק את השאלות הקריטיות ביותר שמודדות ישירות את מטרות ההערכה והגדרת ההצלחה
+• אל תכלול שאלות כפולות, בעדיפות נמוכה, או חקרניות`,
+    '10': `═══════════════════════════════════════
+📊 אורך השאלון: עד 10 שאלות סולם
+═══════════════════════════════════════
+• צור מקסימום 10 שאלות סולם בסה"כ
+• אזן כיסוי על פני ממדים מרכזיים תוך שמירה על תמציתיות
+• אל תרחיב לתחומים משניים או שוליים`,
+    '15': `═══════════════════════════════════════
+📊 אורך השאלון: עד 15 שאלות סולם
+═══════════════════════════════════════
+• צור מקסימום 15 שאלות סולם בסה"כ
+• אפשר כיסוי רחב יותר כולל ממדים משניים ותובנות דקות`,
+    '15plus': `═══════════════════════════════════════
+📊 אורך השאלון: יותר מ-15 שאלות סולם
+═══════════════════════════════════════
+• צור יותר מ-15 שאלות סולם בסה"כ
+• הבטח כיסוי מקיף על פני כל ממדי תחומי המיקוד, יעדי המדידה ומטרות ההערכה שנבחרו
+• אל תוותר על עומק או כיסוי לטובת קצרנות`
+  };
+  const surveyLengthInstructions = surveyLengthMap[survey.questions_count] || surveyLengthMap['10'];
+
   let customPrompt = promptTemplate;
   // Replace template variables if prompt uses them
+  customPrompt = customPrompt.replace(/{survey_length_instructions}/g, surveyLengthInstructions);
   customPrompt = customPrompt.replace(/{activity_description}/g, survey.activity_description || 'לא צוין');
   customPrompt = customPrompt.replace(/{audience}/g, audienceLabels[survey.audience] || survey.audience);
   customPrompt = customPrompt.replace(/{grades}/g, selectedGrades || 'לא צוין');
