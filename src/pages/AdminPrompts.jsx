@@ -629,7 +629,8 @@ export default function AdminPrompts() {
               <code className="bg-blue-100 px-1 rounded">{'{knowledge_section}'}</code>, 
               <code className="bg-blue-100 px-1 rounded">{'{skills_section}'}</code>, 
               <code className="bg-blue-100 px-1 rounded">{'{goals_section}'}</code>, 
-              <code className="bg-blue-100 px-1 rounded">{'{success_section}'}</code>
+              <code className="bg-blue-100 px-1 rounded">{'{success_section}'}</code>,{' '}
+              <code className="bg-blue-100 px-1 rounded font-bold text-blue-900">{'{survey_length_instructions}'}</code>
             </p>
           </CardContent>
         </Card>
