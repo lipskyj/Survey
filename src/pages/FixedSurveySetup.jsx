@@ -29,45 +29,52 @@ const FIXED_SURVEY_TEMPLATE = {
 תודה, צוות ביה"ס`,
     questions: [
       {
+        prompt_hebrew: 'אני שמח/ה לחזור לבית הספר בתקופה הזו.',
+        question_type: 'scale_5',
+        kit_domain: 'belonging',
+        order_index: 0,
+        scale_labels: { low: 'בכלל לא', high: 'במידה רבה מאד' }
+      },
+      {
         prompt_hebrew: 'חשוב לי לסיים את השנה הזו בצורה טובה.',
         question_type: 'scale_5',
         kit_domain: 'relevance',
-        order_index: 0,
+        order_index: 1,
         scale_labels: { low: 'בכלל לא', high: 'במידה רבה מאד' }
       },
       {
         prompt_hebrew: 'אני מאמין/ה שאני מסוגל/ת להצליח בלמידה בחודשים שנשארו.',
         question_type: 'scale_5',
         kit_domain: 'skills',
-        order_index: 1,
+        order_index: 2,
         scale_labels: { low: 'בכלל לא', high: 'במידה רבה מאד' }
       },
       {
         prompt_hebrew: 'אני מבין/ה מה מצופה ממני לימודית בתקופה הקרובה.',
         question_type: 'scale_5',
         kit_domain: 'relevance',
-        order_index: 2,
-        scale_labels: { low: 'בכלל לא', high: 'במידה רבה מאד' }
-      },
-      {
-        prompt_hebrew: 'יש בבית הספר מבוגר שאני יכולה לפנות אליו כשקשה לי.',
-        question_type: 'scale_5',
-        kit_domain: 'belonging',
         order_index: 3,
         scale_labels: { low: 'בכלל לא', high: 'במידה רבה מאד' }
       },
       {
-        prompt_hebrew: 'אני מרגיש/ה שאני עדיין לחוץ/ה, עצבני/ת או מוצף/ת.',
+        prompt_hebrew: 'יש בבית הספר מבוגר שאני יכול/ה לפנות אליו כשקשה לי.',
         question_type: 'scale_5',
         kit_domain: 'belonging',
         order_index: 4,
         scale_labels: { low: 'בכלל לא', high: 'במידה רבה מאד' }
       },
       {
+        prompt_hebrew: 'אני מרגיש/ה שאני עדיין לחוץ/ה, עצבני/ת או מוצף/ת.',
+        question_type: 'scale_5',
+        kit_domain: 'belonging',
+        order_index: 5,
+        scale_labels: { low: 'בכלל לא', high: 'במידה רבה מאד' }
+      },
+      {
         prompt_hebrew: 'חזרה לשגרת למידה אחרי מלחמה ממושכת היא מאתגרת. אילו אתגרים את/ה מזהה אצלך בתקופה זו? ציין/ני את 3 האתגרים המרכזיים עבורך.',
         question_type: 'multi_choice',
         kit_domain: 'none',
-        order_index: 5,
+        order_index: 6,
         choices: [
           { value: 'concentration', label: 'קושי להתרכז' },
           { value: 'fatigue', label: 'עייפות / חוסר אנרגיה' },
@@ -86,7 +93,7 @@ const FIXED_SURVEY_TEMPLATE = {
         prompt_hebrew: 'מה הכי יעזור לך ללמוד טוב יותר עד סוף השנה? אפשר לבחור עד 3.',
         question_type: 'multi_choice',
         kit_domain: 'none',
-        order_index: 6,
+        order_index: 7,
         choices: [
           { value: 'clear_schedule', label: 'סדר ברור וידוע מראש' },
           { value: 'less_load', label: 'הפחתת עומס' },
@@ -106,13 +113,13 @@ const FIXED_SURVEY_TEMPLATE = {
         prompt_hebrew: 'מה הכי חשוב שהמחנכ/ת או הצוות ידעו עליך עכשיו כדי לעזור לך להצליח?',
         question_type: 'open_text',
         kit_domain: 'none',
-        order_index: 7
+        order_index: 8
       },
       {
         prompt_hebrew: 'מה לדעתך בית הספר צריך לעשות בחודשיים הקרובים כדי לעזור לתלמידים?',
         question_type: 'open_text',
         kit_domain: 'none',
-        order_index: 8
+        order_index: 9
       },
     ]
   },
@@ -329,6 +336,37 @@ export default function FixedSurveySetup() {
     onSuccess: () => queryClient.invalidateQueries(['survey-questions', currentFixedSurvey?.id])
   });
 
+  const [isResetting, setIsResetting] = useState(false);
+
+  const handleResetSurvey = async () => {
+    if (!confirm('האם לאפס את השאלון ולבנות אותו מחדש לפי התבנית העדכנית? פעולה זו תמחק את כל השאלות הקיימות.')) return;
+    setIsResetting(true);
+    try {
+      const template = FIXED_SURVEY_TEMPLATE[selectedLanguage];
+      // Delete all existing questions
+      for (const q of questions) {
+        await base44.entities.SurveyQuestion.delete(q.id);
+      }
+      // Update survey intro & title
+      await base44.entities.Survey.update(currentFixedSurvey.id, {
+        title: template.title,
+        intro_text: template.intro,
+      });
+      // Recreate questions from template
+      await base44.entities.SurveyQuestion.bulkCreate(
+        template.questions.map(q => ({ ...q, survey_id: currentFixedSurvey.id, is_required: true, is_generated: false }))
+      );
+      queryClient.invalidateQueries(['survey-questions', currentFixedSurvey.id]);
+      queryClient.invalidateQueries(['survey', currentFixedSurvey.id]);
+      queryClient.invalidateQueries(['fixed-surveys', currentUser?.email]);
+      setIntroText(template.intro);
+      toast.success('השאלון אופס ונבנה מחדש!');
+    } catch (e) {
+      toast.error('שגיאה באיפוס השאלון');
+    }
+    setIsResetting(false);
+  };
+
   const handleDragEnd = (result) => {
     if (!result.destination) return;
     const items = Array.from(questions);
@@ -476,13 +514,23 @@ export default function FixedSurveySetup() {
         </Card>
 
         {/* Questions */}
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between flex-wrap gap-2">
           <h2 className="font-semibold text-[#6B2D4A]">שאלות ({questions.length})</h2>
-          <Link to={createPageUrl('AddQuestion') + `?surveyId=${activeId}&returnTo=FixedSurveySetup&lang=${selectedLanguage}`}>
-            <Button variant="outline" size="sm" className="text-[#E85A24] border-[#E85A24]">
-              <Plus className="w-4 h-4 ml-1" />הוסף שאלה
+          <div className="flex gap-2">
+            <Button
+              variant="outline" size="sm"
+              className="text-red-500 border-red-300 hover:bg-red-50"
+              onClick={handleResetSurvey}
+              disabled={isResetting}
+            >
+              {isResetting ? <Loader2 className="w-4 h-4 animate-spin" /> : '↺ אפס לתבנית'}
             </Button>
-          </Link>
+            <Link to={createPageUrl('AddQuestion') + `?surveyId=${activeId}&returnTo=FixedSurveySetup&lang=${selectedLanguage}`}>
+              <Button variant="outline" size="sm" className="text-[#E85A24] border-[#E85A24]">
+                <Plus className="w-4 h-4 ml-1" />הוסף שאלה
+              </Button>
+            </Link>
+          </div>
         </div>
 
         <DragDropContext onDragEnd={handleDragEnd}>
