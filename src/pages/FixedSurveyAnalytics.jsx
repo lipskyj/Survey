@@ -39,6 +39,7 @@ export default function FixedSurveyAnalytics() {
     queryKey: ['analytics-surveys'],
     queryFn: () => base44.entities.Survey.list('-created_date', 2000),
     enabled: !!currentUser,
+    staleTime: 30_000,
   });
 
   const classSurveys = useMemo(() =>
@@ -47,9 +48,10 @@ export default function FixedSurveyAnalytics() {
   );
 
   const { data: allResponses = [], isLoading: responsesLoading } = useQuery({
-    queryKey: ['analytics-responses', classSurveys.length],
+    queryKey: ['analytics-responses'],
     queryFn: () => base44.entities.SurveyResponse.filter({ is_complete: true }, '-created_date', 5000),
-    enabled: classSurveys.length > 0,
+    enabled: !!currentUser,
+    staleTime: 30_000,
   });
 
   // Get questions from the BASE (non-class) fixed survey — it has the full template
