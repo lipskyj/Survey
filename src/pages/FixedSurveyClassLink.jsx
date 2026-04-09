@@ -5,13 +5,14 @@ import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import { motion, AnimatePresence } from 'framer-motion';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
   ChevronRight, Plus, Copy, Check, Trash2,
-  ExternalLink, QrCode, Loader2, Users, BarChart2
+  ExternalLink, QrCode, Loader2, Users, BarChart2, School
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { SCHOOLS_LIST, GRADE_LEVELS, CLASS_NUMBERS } from '@/lib/schoolsList';
 
 function SimpleQRCode({ value, size = 160 }) {
   const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=${size}x${size}&data=${encodeURIComponent(value)}`;
@@ -25,7 +26,9 @@ function SimpleQRCode({ value, size = 160 }) {
 export default function FixedSurveyClassLink() {
   const queryClient = useQueryClient();
   const [surveyId, setSurveyId] = useState(null);
-  const [newClassName, setNewClassName] = useState('');
+  const [selectedGrade, setSelectedGrade] = useState('');
+  const [selectedNumber, setSelectedNumber] = useState('');
+  const [selectedSchool, setSelectedSchool] = useState('');
   const [copiedSlug, setCopiedSlug] = useState(null);
   const [showQRFor, setShowQRFor] = useState(null);
 
@@ -67,20 +70,24 @@ export default function FixedSurveyClassLink() {
     return Array.from({ length: 8 }, () => chars.charAt(Math.floor(Math.random() * chars.length))).join('');
   };
 
+  const canCreate = selectedGrade && selectedNumber && selectedSchool;
+  const classLabel = canCreate ? `${selectedGrade}׳${selectedNumber}` : '';
+  const fullLabel = canCreate ? `${classLabel} — ${selectedSchool}` : '';
+
   const createClassLink = useMutation({
-    mutationFn: async (className) => {
+    mutationFn: async () => {
       const slug = generateSlug();
+      const classInfo = { grade: selectedGrade, number: selectedNumber, school: selectedSchool };
       // Create a copy of the survey for this class
       const classSurvey = await base44.entities.Survey.create({
-        title: `${baseSurvey?.title} — ${className}`,
+        title: `${baseSurvey?.title} — ${fullLabel}`,
         status: 'published',
         language: baseSurvey?.language || 'hebrew',
         intro_text: baseSurvey?.intro_text || '',
         audience: baseSurvey?.audience || 'students',
         share_slug: slug,
         published_at: new Date().toISOString(),
-        activity_description: `__class_of:${surveyId}`, // marks this as a class copy
-        // store class name in title field for display
+        activity_description: `__class_of:${surveyId}__meta:${JSON.stringify(classInfo)}`,
       });
 
       // Duplicate questions
@@ -104,7 +111,9 @@ export default function FixedSurveyClassLink() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries(['class-surveys', surveyId]);
-      setNewClassName('');
+      setSelectedGrade('');
+      setSelectedNumber('');
+      setSelectedSchool('');
       toast.success('קישור כיתה נוצר בהצלחה!');
     },
     onError: () => toast.error('שגיאה ביצירת הקישור'),
@@ -132,9 +141,20 @@ export default function FixedSurveyClassLink() {
     setTimeout(() => setCopiedSlug(null), 2000);
   };
 
+  const getClassMeta = (survey) => {
+    const desc = survey.activity_description || '';
+    const metaMatch = desc.match(/__meta:(.+)$/);
+    if (metaMatch) {
+      try { return JSON.parse(metaMatch[1]); } catch {}
+    }
+    return null;
+  };
+
   const getClassName = (survey) => {
+    const meta = getClassMeta(survey);
+    if (meta) return `${meta.grade}׳${meta.number} — ${meta.school}`;
     const parts = survey.title?.split(' — ');
-    return parts?.length > 1 ? parts[parts.length - 1] : survey.title;
+    return parts?.length > 1 ? parts.slice(1).join(' — ') : survey.title;
   };
 
   return (
@@ -159,21 +179,57 @@ export default function FixedSurveyClassLink() {
         <Card className="bg-white border-0 shadow-sm">
           <CardContent className="p-6">
             <h2 className="font-semibold text-[#6B2D4A] mb-4">יצירת קישור לכיתה חדשה</h2>
-            <div className="flex gap-3">
-              <Input
-                placeholder="שם הכיתה (למשל: ז׳1, ח׳2...)"
-                value={newClassName}
-                onChange={(e) => setNewClassName(e.target.value)}
-                onKeyDown={(e) => { if (e.key === 'Enter' && newClassName.trim()) createClassLink.mutate(newClassName.trim()); }}
-                className="flex-1"
-                dir="rtl"
-              />
+            <div className="space-y-3">
+              <div className="flex gap-3">
+                {/* Grade level */}
+                <Select value={selectedGrade} onValueChange={setSelectedGrade} dir="rtl">
+                  <SelectTrigger className="w-28">
+                    <SelectValue placeholder="שכבה" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {GRADE_LEVELS.map(g => (
+                      <SelectItem key={g} value={g}>{g}׳</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+
+                {/* Class number */}
+                <Select value={selectedNumber} onValueChange={setSelectedNumber} dir="rtl">
+                  <SelectTrigger className="w-24">
+                    <SelectValue placeholder="מספר" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {CLASS_NUMBERS.map(n => (
+                      <SelectItem key={n} value={n}>{n}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* School */}
+              <Select value={selectedSchool} onValueChange={setSelectedSchool} dir="rtl">
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="בחר/י בית ספר" />
+                </SelectTrigger>
+                <SelectContent>
+                  {SCHOOLS_LIST.map(s => (
+                    <SelectItem key={s} value={s}>{s}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
+              {canCreate && (
+                <div className="text-sm text-gray-500 bg-gray-50 rounded-lg px-3 py-2">
+                  כיתה: <span className="font-medium text-gray-800">{fullLabel}</span>
+                </div>
+              )}
+
               <Button
-                onClick={() => { if (newClassName.trim()) createClassLink.mutate(newClassName.trim()); }}
-                disabled={!newClassName.trim() || createClassLink.isPending}
-                className="bg-[#E85A24] hover:bg-[#D14A1A]"
+                onClick={() => createClassLink.mutate()}
+                disabled={!canCreate || createClassLink.isPending}
+                className="w-full bg-[#E85A24] hover:bg-[#D14A1A]"
               >
-                {createClassLink.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <><Plus className="w-4 h-4 ml-1" />צור</>}
+                {createClassLink.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <><Plus className="w-4 h-4 ml-1" />צור קישור לכיתה</>}
               </Button>
             </div>
           </CardContent>

@@ -25,7 +25,7 @@ export default function Layout({ children, currentPageName }) {
             'ContentFocus', 'EvaluationGoal', 'SuccessDefinition',
             'ProfileSummary', 'GenerateSurvey', 'SurveyEditor', 'PublishShare',
             'EditQuestion', 'AddQuestion', 'ReorderQuestions', 'AdminPrompts',
-            'FixedSurveySetup', 'FixedSurveyClassLink'
+            'FixedSurveySetup', 'FixedSurveyClassLink', 'FixedSurveyAnalytics'
           ].includes(currentPageName);
   
   if (isRespondentFlow) {

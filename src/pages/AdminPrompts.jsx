@@ -541,6 +541,12 @@ export default function AdminPrompts() {
           </div>
           <div className="flex items-center gap-2">
 
+            <Link to={createPageUrl('FixedSurveyAnalytics')}>
+              <Button variant="outline" size="sm" className="text-[#E85A24] border-[#E85A24] text-xs">
+                <BarChart3 className="w-4 h-4 ml-1" />
+                ניתוח "מה נשמע?"
+              </Button>
+            </Link>
             <Link to={createPageUrl('Home')}>
               <Button variant="outline" size="icon">
                 <Home className="w-4 h-4" />
