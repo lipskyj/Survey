@@ -21,7 +21,7 @@ export function avg(nums) {
 
 export function getAnswerValues(responses, questionId) {
   return responses
-    .flatMap(r => r.answers || [])
+    .flatMap(r => r.answers || r.data?.answers || [])
     .filter(a => a.question_id === questionId)
     .map(a => {
       const v = a.numeric_value ?? parseFloat(a.value);
@@ -34,8 +34,14 @@ export function getAnswerValues(responses, questionId) {
 export function buildEnrichedClasses(classSurveys, allResponses) {
   return classSurveys.map(s => {
     const meta = parseClassMeta(s);
-    const responses = allResponses.filter(r => r.survey_id === s.id);
-    return { ...s, meta, responses };
+    const responses = allResponses.filter(r => r.survey_id === s.id || r.data?.survey_id === s.id);
+    // Normalize response shape so answers are always at top level
+    const normalizedResponses = responses.map(r => ({
+      ...r,
+      answers: r.answers || r.data?.answers || [],
+      survey_id: r.survey_id || r.data?.survey_id,
+    }));
+    return { ...s, meta, responses: normalizedResponses };
   });
 }
 
