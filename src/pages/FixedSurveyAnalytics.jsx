@@ -59,7 +59,9 @@ export default function FixedSurveyAnalytics() {
     queryFn: () => base44.entities.SurveyQuestion.filter({ survey_id: repId }, 'order_index'),
     enabled: !!repId,
   });
-  const scaleQuestions = sampleQuestions.filter(q => q.question_type === 'scale_5');
+  const scaleQuestions = sampleQuestions.filter(q =>
+    q.question_type === 'scale_5' || q.question_type === 'scale_7' || q.question_type === 'bottom_line'
+  );
 
   // ── Enriched + filtered ────────────────────────────────────
   const enrichedAll = useMemo(() =>

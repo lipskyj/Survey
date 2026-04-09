@@ -58,8 +58,8 @@ export default function OverviewTab({ enrichedClasses, questionStats, allRespons
                   <span className="text-xs text-gray-400 shrink-0">{q.n} תגובות</span>
                 </div>
                 <div className="space-y-2">
-                  <ScaleBar value={q.avg} />
-                  <DistBar dist={q.dist} total={q.n} />
+                  <ScaleBar value={q.avg} max={q.max || 5} />
+                  <DistBar dist={q.dist} total={q.n} max={q.max || 5} />
                 </div>
               </CardContent>
             </Card>

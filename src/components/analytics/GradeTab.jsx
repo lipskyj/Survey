@@ -43,11 +43,11 @@ function GradeCard({ item, scaleQuestions, responsesForGrade }) {
                   <span className="text-xs font-medium text-gray-700">{q.label}</span>
                   <span className="text-xs text-gray-400">{q.n} תגובות</span>
                 </div>
-                <ScaleBar value={q.avg} />
+                <ScaleBar value={q.avg} max={q.max || 5} />
                 {scaleQuestions[i] && (
                   <div className="mt-1">
                     <DistBar
-                      dist={[1,2,3,4,5].map(v => ({
+                      dist={Array.from({ length: q.max || 5 }, (_, idx) => idx + 1).map(v => ({
                         v,
                         count: responsesForGrade
                           .flatMap(r => r.answers || [])
@@ -56,6 +56,7 @@ function GradeCard({ item, scaleQuestions, responsesForGrade }) {
                           .length
                       }))}
                       total={q.n}
+                      max={q.max || 5}
                     />
                   </div>
                 )}

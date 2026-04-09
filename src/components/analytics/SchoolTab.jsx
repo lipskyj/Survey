@@ -43,7 +43,7 @@ function SchoolRow({ item, scaleQuestions }) {
               <div key={i} className="flex items-center gap-2">
                 <span className="text-xs text-gray-500 w-48 shrink-0 truncate">{q.label}</span>
                 <div className="flex-1">
-                  <ScaleBar value={q.avg} />
+                  <ScaleBar value={q.avg} max={q.max || 5} />
                 </div>
                 <span className="text-xs text-gray-400 w-12 text-left">{q.n} מענ׳</span>
               </div>

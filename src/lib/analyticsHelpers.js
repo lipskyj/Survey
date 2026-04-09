@@ -52,9 +52,13 @@ export function aggregateBy(enrichedClasses, keyFn, scaleQuestions) {
   return Object.entries(map).map(([key, { classes, responses }]) => {
     const qAvgs = scaleQuestions.map(q => {
       const vals = getAnswerValues(responses, q.id);
-      return { questionId: q.id, label: q.prompt_hebrew, avg: avg(vals), n: vals.length };
+      const max = q.question_type === 'scale_7' ? 7 : 5;
+      return { questionId: q.id, label: q.prompt_hebrew, avg: avg(vals), n: vals.length, max };
     });
-    const overallAvg = avg(qAvgs.filter(q => q.avg !== null).map(q => q.avg));
+    // Normalize to 0-100 scale for overall avg
+    const overallAvg = avg(
+      qAvgs.filter(q => q.avg !== null).map(q => (q.avg / q.max) * 5)
+    );
     return { key, classCount: classes.length, responseCount: responses.length, qAvgs, overallAvg };
   });
 }
@@ -63,13 +67,27 @@ export function aggregateBy(enrichedClasses, keyFn, scaleQuestions) {
 export function computeQuestionStats(scaleQuestions, allResponses) {
   return scaleQuestions.map(q => {
     const vals = getAnswerValues(allResponses, q.id);
-    const dist = [1,2,3,4,5].map(v => ({ v, count: vals.filter(x => x === v).length }));
+    const max = q.question_type === 'scale_7' ? 7 : 5;
+    const dist = Array.from({ length: max }, (_, i) => i + 1).map(v => ({
+      v, count: vals.filter(x => x === v).length
+    }));
     return {
       questionId: q.id,
       label: q.prompt_hebrew,
+      questionType: q.question_type,
       avg: avg(vals),
+      max,
       n: vals.length,
       dist,
     };
+  });
+}
+
+// Compute per-question stats for aggregated groups
+export function computeGroupQuestionAvgs(scaleQuestions, responses) {
+  return scaleQuestions.map(q => {
+    const vals = getAnswerValues(responses, q.id);
+    const max = q.question_type === 'scale_7' ? 7 : 5;
+    return { questionId: q.id, label: q.prompt_hebrew, avg: avg(vals), n: vals.length, max };
   });
 }
