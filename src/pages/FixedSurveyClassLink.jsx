@@ -49,14 +49,15 @@ export default function FixedSurveyClassLink() {
   });
 
   // Get all class copies linked to this base survey
-  const { data: classSurveys = [], isLoading } = useQuery({
+  const { data: allSurveysRaw = [], isLoading } = useQuery({
     queryKey: ['class-surveys', surveyId],
-    queryFn: () => base44.entities.Survey.filter(
-      { activity_description: `__class_of:${surveyId}` },
-      '-created_date'
-    ),
+    queryFn: () => base44.entities.Survey.list('-created_date', 500),
     enabled: !!surveyId,
   });
+
+  const classSurveys = allSurveysRaw.filter(s =>
+    (s.activity_description || '').includes(`__class_of:${surveyId}`)
+  );
 
   // Get base questions (to duplicate for each class)
   const { data: baseQuestions = [] } = useQuery({
