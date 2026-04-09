@@ -19,10 +19,20 @@ export function avg(nums) {
   return valid.reduce((a, b) => a + b, 0) / valid.length;
 }
 
-export function getAnswerValues(responses, questionId) {
+export function getAnswerValues(responses, questionId, questionIndex) {
   return responses
-    .flatMap(r => r.answers || r.data?.answers || [])
-    .filter(a => a.question_id === questionId)
+    .flatMap(r => {
+      const answers = r.answers || r.data?.answers || [];
+      // First try exact question_id match
+      const exact = answers.filter(a => a.question_id === questionId);
+      if (exact.length > 0) return exact;
+      // Fallback: match by position (order_index) across different survey copies
+      if (questionIndex !== undefined) {
+        const byPos = answers.filter((_, i) => i === questionIndex);
+        return byPos;
+      }
+      return [];
+    })
     .map(a => {
       const v = a.numeric_value ?? parseFloat(a.value);
       return isNaN(v) ? null : v;
@@ -56,12 +66,11 @@ export function aggregateBy(enrichedClasses, keyFn, scaleQuestions) {
   });
 
   return Object.entries(map).map(([key, { classes, responses }]) => {
-    const qAvgs = scaleQuestions.map(q => {
-      const vals = getAnswerValues(responses, q.id);
+    const qAvgs = scaleQuestions.map((q, idx) => {
+      const vals = getAnswerValues(responses, q.id, idx);
       const max = q.question_type === 'scale_7' ? 7 : 5;
       return { questionId: q.id, label: q.prompt_hebrew, avg: avg(vals), n: vals.length, max };
     });
-    // Normalize to 0-100 scale for overall avg
     const overallAvg = avg(
       qAvgs.filter(q => q.avg !== null).map(q => (q.avg / q.max) * 5)
     );
@@ -71,8 +80,8 @@ export function aggregateBy(enrichedClasses, keyFn, scaleQuestions) {
 
 // Compute per-question stats across all responses
 export function computeQuestionStats(scaleQuestions, allResponses) {
-  return scaleQuestions.map(q => {
-    const vals = getAnswerValues(allResponses, q.id);
+  return scaleQuestions.map((q, idx) => {
+    const vals = getAnswerValues(allResponses, q.id, idx);
     const max = q.question_type === 'scale_7' ? 7 : 5;
     const dist = Array.from({ length: max }, (_, i) => i + 1).map(v => ({
       v, count: vals.filter(x => x === v).length
@@ -91,8 +100,8 @@ export function computeQuestionStats(scaleQuestions, allResponses) {
 
 // Compute per-question stats for aggregated groups
 export function computeGroupQuestionAvgs(scaleQuestions, responses) {
-  return scaleQuestions.map(q => {
-    const vals = getAnswerValues(responses, q.id);
+  return scaleQuestions.map((q, idx) => {
+    const vals = getAnswerValues(responses, q.id, idx);
     const max = q.question_type === 'scale_7' ? 7 : 5;
     return { questionId: q.id, label: q.prompt_hebrew, avg: avg(vals), n: vals.length, max };
   });
