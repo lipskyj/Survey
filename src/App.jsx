@@ -7,6 +7,8 @@ import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import PageNotFound from './lib/PageNotFound';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
+import SchoolAdminDashboard from './pages/SchoolAdminDashboard';
+import ManageSchoolAdmins from './pages/ManageSchoolAdmins';
 
 const { Pages, Layout, mainPage } = pagesConfig;
 const mainPageKey = mainPage ?? Object.keys(Pages)[0];
@@ -58,6 +60,8 @@ const AuthenticatedApp = () => {
           }
         />
       ))}
+      <Route path="/SchoolAdminDashboard" element={<LayoutWrapper currentPageName="SchoolAdminDashboard"><SchoolAdminDashboard /></LayoutWrapper>} />
+      <Route path="/ManageSchoolAdmins" element={<LayoutWrapper currentPageName="ManageSchoolAdmins"><ManageSchoolAdmins /></LayoutWrapper>} />
       <Route path="*" element={<PageNotFound />} />
     </Routes>
   );
