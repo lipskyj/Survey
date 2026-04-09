@@ -37,7 +37,7 @@ export default function FixedSurveyAnalytics() {
   // ── Data fetching ──────────────────────────────────────────
   const { data: allSurveys = [], isLoading: surveysLoading } = useQuery({
     queryKey: ['analytics-surveys'],
-    queryFn: () => base44.entities.Survey.list('-created_date', 1000),
+    queryFn: () => base44.entities.Survey.list('-created_date', 2000),
     enabled: !!currentUser,
   });
 
@@ -56,8 +56,8 @@ export default function FixedSurveyAnalytics() {
   const baseSurvey = useMemo(() =>
     allSurveys.find(s =>
       !isClassSurvey(s) &&
-      (s.title?.startsWith('שאלון "מה נשמע?"') ||
-       s.title?.startsWith('استبيان "كيف') ||
+      (s.title?.includes('מה נשמע') ||
+       s.title?.includes('كيف حالك') ||
        s.title?.startsWith('שאלון חזרה לשגרה') ||
        s.title?.startsWith('استبيان العودة'))
     ),
