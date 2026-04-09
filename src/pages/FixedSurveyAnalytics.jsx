@@ -52,12 +52,23 @@ export default function FixedSurveyAnalytics() {
     enabled: classSurveys.length > 0,
   });
 
-  // Get questions from first class survey (they all share the same template)
-  const repId = classSurveys[0]?.id;
+  // Get questions from the BASE (non-class) fixed survey — it has the full template
+  const baseSurvey = useMemo(() =>
+    allSurveys.find(s =>
+      !isClassSurvey(s) &&
+      (s.title?.startsWith('שאלון "מה נשמע?"') ||
+       s.title?.startsWith('استبيان "كيف') ||
+       s.title?.startsWith('שאלון חזרה לשגרה') ||
+       s.title?.startsWith('استبيان العودة'))
+    ),
+    [allSurveys]
+  );
+  // Fallback: use first class survey if no base found
+  const questionSourceId = baseSurvey?.id || classSurveys[0]?.id;
   const { data: sampleQuestions = [] } = useQuery({
-    queryKey: ['analytics-questions', repId],
-    queryFn: () => base44.entities.SurveyQuestion.filter({ survey_id: repId }, 'order_index'),
-    enabled: !!repId,
+    queryKey: ['analytics-questions', questionSourceId],
+    queryFn: () => base44.entities.SurveyQuestion.filter({ survey_id: questionSourceId }, 'order_index'),
+    enabled: !!questionSourceId,
   });
   const scaleQuestions = sampleQuestions.filter(q =>
     q.question_type === 'scale_5' || q.question_type === 'scale_7' || q.question_type === 'bottom_line'

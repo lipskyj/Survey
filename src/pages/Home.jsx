@@ -4,7 +4,7 @@ import { createPageUrl } from '@/utils';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { motion } from 'framer-motion';
-import { Plus, FileText, Edit3, CheckCircle2, Settings, Layers, BookOpen } from 'lucide-react';
+import { Plus, FileText, Edit3, CheckCircle2, Settings, Layers, BookOpen, BarChart2 } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import OnboardingCarousel from '@/components/OnboardingCarousel';
@@ -197,6 +197,31 @@ export default function Home() {
                     </div>
                     <div className="text-3xl sm:text-4xl font-black text-purple-600">
                       {candidateSurveys.length}
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </Link>
+          </motion.div>
+        )}
+
+        {/* Analytics Dashboard — only for admins */}
+        {currentUser?.role === 'admin' && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: showOnboarding ? 0 : 0.38 }}
+          >
+            <Link to={createPageUrl('FixedSurveyAnalytics')}>
+              <Card className="bg-gradient-to-br from-purple-600 to-[#6B2D4A] border-0 shadow-lg hover:shadow-xl transition-all rounded-3xl group cursor-pointer">
+                <CardContent className="p-6 sm:p-8">
+                  <div className="flex items-center gap-4 sm:gap-5">
+                    <div className="w-14 h-14 sm:w-16 sm:h-16 bg-white/20 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform">
+                      <BarChart2 className="w-7 h-7 sm:w-8 sm:h-8 text-white" />
+                    </div>
+                    <div>
+                      <h3 className="text-xl sm:text-2xl font-black text-white mb-1">לוח בקרה — מה נשמע?</h3>
+                      <p className="text-white/80 text-sm sm:text-base font-medium">ניתוח תוצאות כלל הכיתות</p>
                     </div>
                   </div>
                 </CardContent>

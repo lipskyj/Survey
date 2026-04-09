@@ -9,7 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { motion } from 'framer-motion';
 import { 
   ChevronRight, Edit2, Trash2, Plus, GripVertical,
-  Save, FileText, Loader2, Globe, BookOpen, Link2
+  Save, FileText, Loader2, Globe, BookOpen, Link2, BarChart2
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
@@ -467,21 +467,27 @@ export default function FixedSurveySetup() {
       </div>
 
       <div className="max-w-2xl mx-auto px-4 py-6 space-y-6">
-        {/* Class Link Button */}
-        <Card className="bg-gradient-to-l from-blue-50 to-indigo-50 border-blue-200">
-          <CardContent className="p-4 flex items-center justify-between">
-            <div>
-              <p className="font-semibold text-blue-900">יצירת קישור לכיתה</p>
-              <p className="text-sm text-blue-600">כל כיתה מקבלת קישור נפרד עם תוצאות נפרדות</p>
-            </div>
-            <Link to={createPageUrl('FixedSurveyClassLink') + `?surveyId=${activeId}`}>
-              <Button className="bg-blue-600 hover:bg-blue-700 text-white gap-2">
-                <Link2 className="w-4 h-4" />
-                צור קישור
-              </Button>
-            </Link>
-          </CardContent>
-        </Card>
+        {/* Action Buttons Row */}
+        <div className="grid grid-cols-2 gap-3">
+          <Link to={createPageUrl('FixedSurveyClassLink') + `?surveyId=${activeId}`} className="block">
+            <Card className="bg-gradient-to-l from-blue-50 to-indigo-50 border-blue-200 h-full cursor-pointer hover:shadow-md transition-shadow">
+              <CardContent className="p-4 flex flex-col items-center text-center gap-2">
+                <Link2 className="w-6 h-6 text-blue-600" />
+                <p className="font-semibold text-blue-900 text-sm">קישורי כיתה</p>
+                <p className="text-xs text-blue-600">צור קישור לכל כיתה</p>
+              </CardContent>
+            </Card>
+          </Link>
+          <Link to={createPageUrl('FixedSurveyAnalytics')} className="block">
+            <Card className="bg-gradient-to-l from-purple-50 to-pink-50 border-purple-200 h-full cursor-pointer hover:shadow-md transition-shadow">
+              <CardContent className="p-4 flex flex-col items-center text-center gap-2">
+                <BarChart2 className="w-6 h-6 text-purple-600" />
+                <p className="font-semibold text-purple-900 text-sm">לוח בקרה</p>
+                <p className="text-xs text-purple-600">ניתוח תוצאות כלל הכיתות</p>
+              </CardContent>
+            </Card>
+          </Link>
+        </div>
 
         {/* Intro Section */}
         <Card className="bg-white border-0 shadow-sm">
