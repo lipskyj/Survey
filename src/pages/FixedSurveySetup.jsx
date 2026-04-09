@@ -19,25 +19,199 @@ const FIXED_SURVEY_SLUG_PREFIX = 'fixed-return-';
 
 const FIXED_SURVEY_TEMPLATE = {
   he: {
-    title: 'שאלון חזרה לשגרה',
-    intro: 'שלום! אנחנו שמחים שחזרת. אנא ענה/י על כמה שאלות קצרות כדי שנוכל להבין איך אתה/את מרגיש/ה.',
+    title: 'שאלון "מה נשמע?" – חזרה ממלחמת שאגת הארי',
+    intro: `תלמידים ותלמידות יקרים,
+
+אנחנו חוזרים לבית הספר אחרי תקופה לא פשוטה, וחשוב לנו להבין איך אתם מרגישים ומה יכול לעזור לכם לחזור ללמידה בצורה טובה.
+השאלון קצר והמטרה שלו היא לעזור לנו להתאים את הלמידה וההתנהלות בבית הספר למה שאתם באמת צריכים בתקופה הזו.
+נשמח שתענו בכנות — זה יעזור לנו לעזור לכם.
+
+תודה, צוות ביה"ס`,
     questions: [
-      { prompt_hebrew: 'איך אתה/את מרגיש/ה עם החזרה לשגרה?', question_type: 'scale_5', kit_domain: 'belonging', order_index: 0 },
-      { prompt_hebrew: 'באיזו מידה אתה/את מוכן/ה ללמידה?', question_type: 'scale_5', kit_domain: 'relevance', order_index: 1 },
-      { prompt_hebrew: 'האם קיבלת את התמיכה שהיית זקוק/ה לה?', question_type: 'scale_5', kit_domain: 'belonging', order_index: 2 },
-      { prompt_hebrew: 'מה עזר לך יותר בחזרה לשגרה?', question_type: 'open_text', kit_domain: 'none', order_index: 3 },
-      { prompt_hebrew: 'האם יש משהו שהיית רוצה/ת לשתף?', question_type: 'open_text', kit_domain: 'none', order_index: 4 },
+      {
+        prompt_hebrew: 'חשוב לי לסיים את השנה הזו בצורה טובה.',
+        question_type: 'scale_5',
+        kit_domain: 'relevance',
+        order_index: 0,
+        scale_labels: { low: 'בכלל לא', high: 'במידה רבה מאד' }
+      },
+      {
+        prompt_hebrew: 'אני מאמין/ה שאני מסוגל/ת להצליח בלמידה בחודשים שנשארו.',
+        question_type: 'scale_5',
+        kit_domain: 'skills',
+        order_index: 1,
+        scale_labels: { low: 'בכלל לא', high: 'במידה רבה מאד' }
+      },
+      {
+        prompt_hebrew: 'אני מבין/ה מה מצופה ממני לימודית בתקופה הקרובה.',
+        question_type: 'scale_5',
+        kit_domain: 'relevance',
+        order_index: 2,
+        scale_labels: { low: 'בכלל לא', high: 'במידה רבה מאד' }
+      },
+      {
+        prompt_hebrew: 'יש בבית הספר מבוגר שאני יכולה לפנות אליו כשקשה לי.',
+        question_type: 'scale_5',
+        kit_domain: 'belonging',
+        order_index: 3,
+        scale_labels: { low: 'בכלל לא', high: 'במידה רבה מאד' }
+      },
+      {
+        prompt_hebrew: 'אני מרגיש/ה שאני עדיין לחוץ/ה, עצבני/ת או מוצף/ת.',
+        question_type: 'scale_5',
+        kit_domain: 'belonging',
+        order_index: 4,
+        scale_labels: { low: 'בכלל לא', high: 'במידה רבה מאד' }
+      },
+      {
+        prompt_hebrew: 'חזרה לשגרת למידה אחרי מלחמה ממושכת היא מאתגרת. אילו אתגרים את/ה מזהה אצלך בתקופה זו? ציין/ני את 3 האתגרים המרכזיים עבורך.',
+        question_type: 'multi_choice',
+        kit_domain: 'none',
+        order_index: 5,
+        choices: [
+          { value: 'concentration', label: 'קושי להתרכז' },
+          { value: 'fatigue', label: 'עייפות / חוסר אנרגיה' },
+          { value: 'stress', label: 'לחץ או מתח רגשי' },
+          { value: 'academic_gap', label: 'פער לימודי שנוצר' },
+          { value: 'overload', label: 'עומס משימות' },
+          { value: 'routine', label: 'קושי לחזור לשגרה' },
+          { value: 'time_management', label: 'קושי בניהול זמן' },
+          { value: 'home', label: 'עניינים בבית / במשפחה' },
+          { value: 'social', label: 'קושי חברתי' },
+          { value: 'motivation', label: 'חוסר מוטיבציה' },
+          { value: 'other', label: 'משהו אחר' }
+        ]
+      },
+      {
+        prompt_hebrew: 'מה הכי יעזור לך ללמוד טוב יותר עד סוף השנה? אפשר לבחור עד 3.',
+        question_type: 'multi_choice',
+        kit_domain: 'none',
+        order_index: 6,
+        choices: [
+          { value: 'clear_schedule', label: 'סדר ברור וידוע מראש' },
+          { value: 'less_load', label: 'הפחתת עומס' },
+          { value: 'catch_up', label: 'עזרה בהשלמת חומר' },
+          { value: 'personal_consideration', label: 'יותר התחשבות במצב האישי' },
+          { value: 'group_learning', label: 'למידה בקבוצות' },
+          { value: 'fun_time', label: 'זמן כיף עם חברים' },
+          { value: 'short_tasks', label: 'משימות קצרות וברורות' },
+          { value: 'encouragement', label: 'חיזוק ועידוד מהמורים' },
+          { value: 'class_time', label: 'יותר זמן לעבודה בכיתה' },
+          { value: 'personal_talk', label: 'שיחות אישיות עם מחנכ/ת או מורה' },
+          { value: 'relaxation', label: 'טכניקות להירגע' },
+          { value: 'other', label: 'משהו אחר' }
+        ]
+      },
+      {
+        prompt_hebrew: 'מה הכי חשוב שהמחנכ/ת או הצוות ידעו עליך עכשיו כדי לעזור לך להצליח?',
+        question_type: 'open_text',
+        kit_domain: 'none',
+        order_index: 7
+      },
+      {
+        prompt_hebrew: 'מה לדעתך בית הספר צריך לעשות בחודשיים הקרובים כדי לעזור לתלמידים?',
+        question_type: 'open_text',
+        kit_domain: 'none',
+        order_index: 8
+      },
     ]
   },
   ar: {
-    title: 'استبيان العودة إلى الروتين',
-    intro: 'مرحباً! يسعدنا عودتك. يرجى الإجابة على بعض الأسئلة القصيرة حتى نتمكن من فهم كيف تشعر.',
+    title: 'استبيان "كيف حالك؟" – العودة بعد الحرب',
+    intro: `الطلاب والطالبات الأعزاء،
+
+نعود إلى المدرسة بعد فترة صعبة، ومن المهم لنا أن نفهم كيف تشعرون وما الذي يمكن أن يساعدكم على العودة إلى التعلم بشكل جيد.
+الاستبيان قصير وهدفه مساعدتنا في تكييف التعليم والسير اليومي في المدرسة وفق ما تحتاجونه فعلاً في هذه الفترة.
+يسعدنا أن تجيبوا بصدق — هذا سيساعدنا في مساعدتكم.
+
+شكراً، طاقم المدرسة`,
     questions: [
-      { prompt_hebrew: 'كيف تشعر بشأن العودة إلى الروتين؟', question_type: 'scale_5', kit_domain: 'belonging', order_index: 0 },
-      { prompt_hebrew: 'إلى أي مدى أنت مستعد/ة للتعلم؟', question_type: 'scale_5', kit_domain: 'relevance', order_index: 1 },
-      { prompt_hebrew: 'هل حصلت على الدعم الذي كنت بحاجة إليه؟', question_type: 'scale_5', kit_domain: 'belonging', order_index: 2 },
-      { prompt_hebrew: 'ما الذي ساعدك أكثر في العودة إلى الروتين؟', question_type: 'open_text', kit_domain: 'none', order_index: 3 },
-      { prompt_hebrew: 'هل هناك شيء تود مشاركته؟', question_type: 'open_text', kit_domain: 'none', order_index: 4 },
+      {
+        prompt_hebrew: 'من المهم لي إنهاء هذه السنة بشكل جيد.',
+        question_type: 'scale_5',
+        kit_domain: 'relevance',
+        order_index: 0,
+        scale_labels: { low: 'لا أبداً', high: 'بدرجة كبيرة جداً' }
+      },
+      {
+        prompt_hebrew: 'أؤمن بأنني قادر/ة على النجاح في التعلم في الأشهر المتبقية.',
+        question_type: 'scale_5',
+        kit_domain: 'skills',
+        order_index: 1,
+        scale_labels: { low: 'لا أبداً', high: 'بدرجة كبيرة جداً' }
+      },
+      {
+        prompt_hebrew: 'أفهم ما هو متوقع مني دراسياً في الفترة القادمة.',
+        question_type: 'scale_5',
+        kit_domain: 'relevance',
+        order_index: 2,
+        scale_labels: { low: 'لا أبداً', high: 'بدرجة كبيرة جداً' }
+      },
+      {
+        prompt_hebrew: 'يوجد في المدرسة بالغ يمكنني التوجه إليه عندما أجد صعوبة.',
+        question_type: 'scale_5',
+        kit_domain: 'belonging',
+        order_index: 3,
+        scale_labels: { low: 'لا أبداً', high: 'بدرجة كبيرة جداً' }
+      },
+      {
+        prompt_hebrew: 'أشعر أنني لا أزال متوتر/ة، عصبي/ة أو مرهق/ة.',
+        question_type: 'scale_5',
+        kit_domain: 'belonging',
+        order_index: 4,
+        scale_labels: { low: 'لا أبداً', high: 'بدرجة كبيرة جداً' }
+      },
+      {
+        prompt_hebrew: 'العودة إلى روتين التعلم بعد حرب طويلة أمر صعب. ما هي التحديات التي تواجهها في هذه الفترة؟ اختر/ي 3 تحديات رئيسية.',
+        question_type: 'multi_choice',
+        kit_domain: 'none',
+        order_index: 5,
+        choices: [
+          { value: 'concentration', label: 'صعوبة في التركيز' },
+          { value: 'fatigue', label: 'التعب / نقص الطاقة' },
+          { value: 'stress', label: 'ضغط أو توتر عاطفي' },
+          { value: 'academic_gap', label: 'فجوة دراسية تكونت' },
+          { value: 'overload', label: 'ضغط المهام' },
+          { value: 'routine', label: 'صعوبة العودة إلى الروتين' },
+          { value: 'time_management', label: 'صعوبة في إدارة الوقت' },
+          { value: 'home', label: 'أمور في البيت / الأسرة' },
+          { value: 'social', label: 'صعوبة اجتماعية' },
+          { value: 'motivation', label: 'نقص في الدافعية' },
+          { value: 'other', label: 'شيء آخر' }
+        ]
+      },
+      {
+        prompt_hebrew: 'ما الذي سيساعدك أكثر على التعلم حتى نهاية السنة؟ يمكنك اختيار حتى 3.',
+        question_type: 'multi_choice',
+        kit_domain: 'none',
+        order_index: 6,
+        choices: [
+          { value: 'clear_schedule', label: 'جدول واضح ومعروف مسبقاً' },
+          { value: 'less_load', label: 'تخفيف الضغط' },
+          { value: 'catch_up', label: 'مساعدة في استكمال المادة' },
+          { value: 'personal_consideration', label: 'مراعاة أكثر للوضع الشخصي' },
+          { value: 'group_learning', label: 'التعلم في مجموعات' },
+          { value: 'fun_time', label: 'وقت ممتع مع الأصدقاء' },
+          { value: 'short_tasks', label: 'مهام قصيرة وواضحة' },
+          { value: 'encouragement', label: 'تعزيز وتشجيع من المعلمين' },
+          { value: 'class_time', label: 'وقت أكثر للعمل في الصف' },
+          { value: 'personal_talk', label: 'محادثات شخصية مع المعلم/ة أو المربي/ة' },
+          { value: 'relaxation', label: 'تقنيات للاسترخاء' },
+          { value: 'other', label: 'شيء آخر' }
+        ]
+      },
+      {
+        prompt_hebrew: 'ما الأهم الذي يجب أن يعرفه المعلم/ة أو الطاقم عنك الآن لمساعدتك على النجاح؟',
+        question_type: 'open_text',
+        kit_domain: 'none',
+        order_index: 7
+      },
+      {
+        prompt_hebrew: 'برأيك، ماذا يجب أن تفعل المدرسة في الشهرين القادمين لمساعدة الطلاب؟',
+        question_type: 'open_text',
+        kit_domain: 'none',
+        order_index: 8
+      },
     ]
   }
 };
@@ -72,7 +246,13 @@ export default function FixedSurveySetup() {
     enabled: !!currentUser,
   });
 
-  const fixedSurveys = existingSurveys.filter(s => s.title?.startsWith('שאלון חזרה לשגרה') || s.title?.startsWith('استبيان العودة'));
+  const fixedSurveys = existingSurveys.filter(s =>
+    s.title?.startsWith('שאלון "מה נשמע?"') ||
+    s.title?.startsWith('شالון حزרה') ||
+    s.title?.startsWith('استبيان "كيف') ||
+    s.title?.startsWith('שאלון חזרה לשגרה') ||
+    s.title?.startsWith('استبيان العودة')
+  );
 
   const currentFixedSurvey = fixedSurveys.find(s =>
     selectedLanguage === 'he' ? s.language === 'hebrew' : s.language === 'arabic'
