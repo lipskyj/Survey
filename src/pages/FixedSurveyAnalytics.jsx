@@ -75,6 +75,7 @@ export default function FixedSurveyAnalytics() {
   const scaleQuestions = sampleQuestions.filter(q =>
     q.question_type === 'scale_5' || q.question_type === 'scale_7' || q.question_type === 'bottom_line'
   );
+  const allQuestions = sampleQuestions; // all types, sorted by order_index
 
   // ── Enriched + filtered ────────────────────────────────────
   const enrichedAll = useMemo(() =>
@@ -109,8 +110,8 @@ export default function FixedSurveyAnalytics() {
   );
 
   const questionStats = useMemo(() =>
-    computeQuestionStats(scaleQuestions, filteredResponses),
-    [scaleQuestions, filteredResponses]
+    computeQuestionStats(allQuestions, filteredResponses),
+    [allQuestions, filteredResponses]
   );
 
   const isLoading = surveysLoading || responsesLoading;

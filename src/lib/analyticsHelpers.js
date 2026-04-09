@@ -26,11 +26,8 @@ export function getAnswerValues(responses, questionId, orderIndex) {
       // First try exact question_id match
       const exact = answers.filter(a => a.question_id === questionId);
       if (exact.length > 0) return exact;
-      // Fallback: match by order_index stored in the answer, or by position
+      // Fallback: match by order_index position
       if (orderIndex !== undefined) {
-        const byOrderIndex = answers.filter(a => a.order_index === orderIndex || a.order_index === String(orderIndex));
-        if (byOrderIndex.length > 0) return byOrderIndex;
-        // Last resort: positional match
         const byPos = answers.filter((_, i) => i === orderIndex);
         return byPos;
       }
@@ -81,9 +78,44 @@ export function aggregateBy(enrichedClasses, keyFn, scaleQuestions) {
   });
 }
 
-// Compute per-question stats across all responses
-export function computeQuestionStats(scaleQuestions, allResponses) {
-  return scaleQuestions.map((q) => {
+// Compute per-question stats across all responses (all question types)
+export function computeQuestionStats(questions, allResponses) {
+  return questions.map((q) => {
+    // Open text
+    if (q.question_type === 'open_text') {
+      const texts = allResponses.flatMap(r => {
+        const answers = r.answers || r.data?.answers || [];
+        const a = answers.find(ans => ans.question_id === q.id) || answers[q.order_index];
+        return a?.value ? [a.value] : [];
+      });
+      return { questionId: q.id, label: q.prompt_hebrew, questionType: 'open_text', texts, n: texts.length };
+    }
+
+    // Multi / single choice
+    if (q.question_type === 'multi_choice' || q.question_type === 'single_choice') {
+      const choiceCounts = {};
+      (q.choices || []).forEach(c => { choiceCounts[c.label || c.value] = 0; });
+      let n = 0;
+      allResponses.forEach(r => {
+        const answers = r.answers || r.data?.answers || [];
+        const a = answers.find(ans => ans.question_id === q.id) || answers[q.order_index];
+        if (!a?.value) return;
+        n++;
+        let selected;
+        try { selected = JSON.parse(a.value); } catch { selected = a.value.split(','); }
+        if (!Array.isArray(selected)) selected = [selected];
+        selected.forEach(v => {
+          const key = v.trim();
+          choiceCounts[key] = (choiceCounts[key] || 0) + 1;
+        });
+      });
+      const choices = Object.entries(choiceCounts)
+        .map(([label, count]) => ({ label, count }))
+        .sort((a, b) => b.count - a.count);
+      return { questionId: q.id, label: q.prompt_hebrew, questionType: q.question_type, choices, n };
+    }
+
+    // Scale / bottom_line
     const vals = getAnswerValues(allResponses, q.id, q.order_index);
     const max = q.question_type === 'scale_7' ? 7 : 5;
     const dist = Array.from({ length: max }, (_, i) => i + 1).map(v => ({
