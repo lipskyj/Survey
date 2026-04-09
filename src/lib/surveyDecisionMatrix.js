@@ -1,4 +1,4 @@
-{
+const surveyDecisionMatrix = {
   "_meta": {
     "description": "Decision matrix for AI survey generation. For each builder step and each answer option, defines DO rules (what the LLM must do) and DONT rules (what the LLM must never do) when generating questions.",
     "version": "1.0",
@@ -716,4 +716,6 @@
       ]
     }
   }
-}
+};
+
+export default surveyDecisionMatrix;

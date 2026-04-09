@@ -77,6 +77,8 @@ import SurveyLanguage from './pages/SurveyLanguage';
 import SurveyManagement from './pages/SurveyManagement';
 import SurveyLength from './pages/SurveyLength';
 import SurveyType from './pages/SurveyType';
+import FixedSurveySetup from './pages/FixedSurveySetup';
+import FixedSurveyClassLink from './pages/FixedSurveyClassLink';
 import __Layout from './Layout.jsx';
 
 
@@ -111,6 +113,8 @@ export const PAGES = {
     "SurveyManagement": SurveyManagement,
     "SurveyLength": SurveyLength,
     "SurveyType": SurveyType,
+    "FixedSurveySetup": FixedSurveySetup,
+    "FixedSurveyClassLink": FixedSurveyClassLink,
 }
 
 export const pagesConfig = {
