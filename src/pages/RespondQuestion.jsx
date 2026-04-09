@@ -2,11 +2,6 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
-
-async function publicApi(action, params = {}) {
-  const res = await base44.functions.invoke('publicSurvey', { action, ...params });
-  return res.data.data;
-}
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { motion, AnimatePresence } from 'framer-motion';
@@ -35,18 +30,18 @@ export default function RespondQuestion() {
       setResponseId(r);
       setCurrentIndex(q);
 
-      // Load survey
-      const surveys = await publicApi('getSurveyBySlug', { slug: s });
+      // Load survey by slug
+      const surveys = await base44.entities.Survey.filter({ share_slug: s });
       if (surveys.length > 0) {
         setSurvey(surveys[0]);
         
         // Load questions
-        const qs = await publicApi('getQuestions', { survey_id: surveys[0].id });
+        const qs = await base44.entities.SurveyQuestion.filter({ survey_id: surveys[0].id }, 'order_index');
         setQuestions(qs);
 
         // Load existing answers
         if (r) {
-          const responses = await publicApi('getResponse', { id: r });
+          const responses = await base44.entities.SurveyResponse.filter({ id: r });
           if (responses.length > 0 && responses[0].answers) {
             const existingAnswers = {};
             responses[0].answers.forEach(a => {
@@ -84,7 +79,7 @@ export default function RespondQuestion() {
       };
     });
 
-    await publicApi('updateResponse', { id: responseId, data: { answers: answersArray } });
+    await base44.entities.SurveyResponse.update(responseId, { answers: answersArray });
   };
 
   const handleNext = async () => {
@@ -96,10 +91,17 @@ export default function RespondQuestion() {
       navigate(createPageUrl('RespondQuestion') + `?s=${slug}&r=${responseId}&q=${currentIndex + 1}`, { replace: true });
     } else {
       // Complete survey
-      await publicApi('updateResponse', { id: responseId, data: { is_complete: true, completed_at: new Date().toISOString() } });
+      await base44.entities.SurveyResponse.update(responseId, {
+        is_complete: true,
+        completed_at: new Date().toISOString()
+      });
       
       // Update survey response count
-      await publicApi('updateSurveyCount', { survey_id: survey.id });
+      if (survey) {
+        await base44.entities.Survey.update(survey.id, {
+          responses_count: (survey.responses_count || 0) + 1
+        });
+      }
       
       navigate(createPageUrl('RespondComplete') + `?s=${slug}`);
     }
@@ -114,7 +116,6 @@ export default function RespondQuestion() {
     }
   };
 
-  // Swipe handling
   const handleTouchStart = useCallback((e) => {
     e.currentTarget.dataset.touchStartX = e.touches[0].clientX;
   }, []);

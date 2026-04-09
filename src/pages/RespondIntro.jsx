@@ -2,11 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
-
-async function publicApi(action, params = {}) {
-  const res = await base44.functions.invoke('publicSurvey', { action, ...params });
-  return res.data.data;
-}
 import { Button } from "@/components/ui/button";
 import { motion } from 'framer-motion';
 import { ChevronLeft, Loader2, Lock, FileX, ClipboardCheck } from 'lucide-react';
@@ -29,24 +24,19 @@ export default function RespondIntro() {
         return;
       }
 
-      try {
-        const surveys = await publicApi('getSurveyBySlug', { slug });
-        
-        if (surveys.length === 0) {
-          setError('not_found');
-        } else if (surveys[0].status === 'draft') {
-          setError('not_published');
-        } else if (surveys[0].status === 'closed') {
-          setError('closed');
-          setSurvey(surveys[0]);
-        } else {
-          setSurvey(surveys[0]);
-          // Generate unique session ID for each response (allows multiple responses from same device)
-          const newSessionId = `resp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}_${Math.random().toString(36).substr(2, 4)}`;
-          setSessionId(newSessionId);
-        }
-      } catch (err) {
-        setError('error');
+      const surveys = await base44.entities.Survey.filter({ share_slug: slug });
+      
+      if (surveys.length === 0) {
+        setError('not_found');
+      } else if (surveys[0].status === 'draft') {
+        setError('not_published');
+      } else if (surveys[0].status === 'closed') {
+        setError('closed');
+        setSurvey(surveys[0]);
+      } else {
+        setSurvey(surveys[0]);
+        const newSessionId = `resp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}_${Math.random().toString(36).substr(2, 4)}`;
+        setSessionId(newSessionId);
       }
       
       setIsLoading(false);
@@ -56,22 +46,15 @@ export default function RespondIntro() {
   }, []);
 
   const handleStart = async () => {
-    // Create response record
-    try {
-      const response = await publicApi('createResponse', {
-        data: {
-          survey_id: survey.id,
-          session_id: sessionId,
-          started_at: new Date().toISOString(),
-          answers: [],
-          is_complete: false
-        }
-      });
-      
-      navigate(createPageUrl('RespondQuestion') + `?s=${survey.share_slug}&r=${response.id}&q=0`);
-    } catch (err) {
-      console.error('Error creating response:', err);
-    }
+    const response = await base44.entities.SurveyResponse.create({
+      survey_id: survey.id,
+      session_id: sessionId,
+      started_at: new Date().toISOString(),
+      answers: [],
+      is_complete: false
+    });
+    
+    navigate(createPageUrl('RespondQuestion') + `?s=${survey.share_slug}&r=${response.id}&q=0`);
   };
 
   if (isLoading) {
@@ -82,7 +65,6 @@ export default function RespondIntro() {
     );
   }
 
-  // Error states
   if (error === 'not_found') {
     return (
       <div className="min-h-screen flex items-center justify-center p-4">
@@ -136,7 +118,6 @@ export default function RespondIntro() {
           animate={{ opacity: 1, y: 0 }}
           className="max-w-md"
         >
-          {/* Logo */}
           <div className="w-16 h-16 bg-[#E85A24] rounded-full flex items-center justify-center mx-auto mb-8">
             <span className="text-white font-bold text-2xl">ע</span>
           </div>
@@ -145,14 +126,12 @@ export default function RespondIntro() {
             סקר משוב
           </h1>
 
-          {/* Intro Text */}
           <div className="bg-white rounded-2xl p-6 shadow-sm mb-8">
             <p className="text-gray-600 text-lg leading-relaxed whitespace-pre-wrap">
               {survey?.intro_text || 'נשמח לשמוע את דעתך! הסקר קצר ואנונימי.'}
             </p>
           </div>
 
-          {/* Privacy Note */}
           <div className={`${survey?.is_anonymous !== false ? 'bg-green-50' : 'bg-blue-50'} rounded-xl p-4 mb-8`}>
             <div className="flex items-center gap-3">
               <Lock className={`w-5 h-5 ${survey?.is_anonymous !== false ? 'text-green-600' : 'text-blue-600'} flex-shrink-0`} />
@@ -164,7 +143,6 @@ export default function RespondIntro() {
             </div>
           </div>
 
-          {/* Start Button */}
           <Button
             onClick={handleStart}
             className="w-full py-6 bg-[#E85A24] hover:bg-[#D14A1A] text-white text-lg font-medium rounded-xl shadow-lg shadow-orange-200"
@@ -175,7 +153,6 @@ export default function RespondIntro() {
         </motion.div>
       </div>
 
-      {/* Footer */}
       <div className="p-4 text-center">
         <p className="text-xs text-gray-400">
           מופעל על ידי עתיד סקרים
