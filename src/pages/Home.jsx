@@ -63,36 +63,11 @@ export default function Home() {
 
       {/* Main Action Cards */}
       <div className="grid gap-4 sm:gap-6">
-        {/* Create New Survey */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: showOnboarding ? 0 : 0.1 }}
-        >
-          <Link to={createPageUrl('SurveyLanguage')}>
-            <Card className="bg-gradient-to-br from-[#E85A24] to-[#D14A1A] border-0 shadow-lg hover:shadow-xl transition-all rounded-3xl group cursor-pointer">
-              <CardContent className="p-8 sm:p-10">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-4 sm:gap-6">
-                    <div className="w-16 h-16 sm:w-20 sm:h-20 bg-white/20 rounded-3xl flex items-center justify-center group-hover:scale-110 transition-transform">
-                      <Plus className="w-8 h-8 sm:w-10 sm:h-10 text-white" />
-                    </div>
-                    <div>
-                      <h2 className="text-2xl sm:text-3xl font-black text-white mb-1">סקר חדש</h2>
-                      <p className="text-white/90 text-sm sm:text-base font-medium">צור סקר חכם בדקות</p>
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </Link>
-        </motion.div>
-
         {/* Fixed Survey — Return to Routine */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: showOnboarding ? 0 : 0.15 }}
+          transition={{ delay: showOnboarding ? 0 : 0.1 }}
         >
           <Link to={createPageUrl('FixedSurveySetup')}>
             <Card className="bg-gradient-to-br from-[#1E3A6E] to-[#2952A3] border-0 shadow-lg hover:shadow-xl transition-all rounded-3xl group cursor-pointer">
@@ -105,6 +80,31 @@ export default function Home() {
                     <div>
                       <h2 className="text-2xl sm:text-3xl font-black text-white mb-1">שאלון חזרה לשגרה</h2>
                       <p className="text-white/90 text-sm sm:text-base font-medium">שאלון קבוע לכל הכיתות</p>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </Link>
+        </motion.div>
+
+        {/* Create New Survey */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: showOnboarding ? 0 : 0.15 }}
+        >
+          <Link to={createPageUrl('SurveyLanguage')}>
+            <Card className="bg-gradient-to-br from-[#E85A24] to-[#D14A1A] border-0 shadow-lg hover:shadow-xl transition-all rounded-3xl group cursor-pointer">
+              <CardContent className="p-8 sm:p-10">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-4 sm:gap-6">
+                    <div className="w-16 h-16 sm:w-20 sm:h-20 bg-white/20 rounded-3xl flex items-center justify-center group-hover:scale-110 transition-transform">
+                      <Plus className="w-8 h-8 sm:w-10 sm:h-10 text-white" />
+                    </div>
+                    <div>
+                      <h2 className="text-2xl sm:text-3xl font-black text-white mb-1">סקר חדש</h2>
+                      <p className="text-white/90 text-sm sm:text-base font-medium">צור סקר חכם בדקות</p>
                     </div>
                   </div>
                 </div>
