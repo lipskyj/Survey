@@ -13,10 +13,11 @@ export default function SchoolSetupModal({ open, onDone }) {
 
   const handleSave = async () => {
     if (!selected) return;
+    const schoolValue = selected === '__none__' ? 'none' : selected;
     setSaving(true);
-    await base44.auth.updateMe({ school: selected });
+    await base44.auth.updateMe({ school: schoolValue });
     setSaving(false);
-    onDone(selected);
+    onDone(schoolValue);
   };
 
   if (!open) return null;
@@ -35,6 +36,7 @@ export default function SchoolSetupModal({ open, onDone }) {
             <SelectValue placeholder="בחר בית ספר..." />
           </SelectTrigger>
           <SelectContent>
+            <SelectItem value="__none__">ללא שיוך (מטה / יחידה כללית)</SelectItem>
             {schools.map(s => (
               <SelectItem key={s} value={s}>{s}</SelectItem>
             ))}

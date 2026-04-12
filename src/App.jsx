@@ -8,6 +8,7 @@ import PageNotFound from './lib/PageNotFound';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 import SchoolAdminDashboard from './pages/SchoolAdminDashboard';
+import UserProfile from './pages/UserProfile';
 import PersonalDashboard from './pages/PersonalDashboard';
 import ManageSchoolAdmins from './pages/ManageSchoolAdmins';
 
@@ -64,6 +65,7 @@ const AuthenticatedApp = () => {
       <Route path="/SchoolAdminDashboard" element={<LayoutWrapper currentPageName="SchoolAdminDashboard"><SchoolAdminDashboard /></LayoutWrapper>} />
       <Route path="/ManageSchoolAdmins" element={<LayoutWrapper currentPageName="ManageSchoolAdmins"><ManageSchoolAdmins /></LayoutWrapper>} />
       <Route path="/PersonalDashboard" element={<LayoutWrapper currentPageName="PersonalDashboard"><PersonalDashboard /></LayoutWrapper>} />
+      <Route path="/UserProfile" element={<LayoutWrapper currentPageName="UserProfile"><UserProfile /></LayoutWrapper>} />
       <Route path="*" element={<PageNotFound />} />
     </Routes>
   );

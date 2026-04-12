@@ -20,7 +20,7 @@ export default function Home() {
   useEffect(() => {
     base44.auth.me().then(u => {
       setCurrentUser(u);
-      if (u.role !== 'admin' && !u.school) {
+      if (u.role !== 'admin' && u.role !== 'network_admin' && u.school === undefined) {
         setShowSchoolSetup(true);
       }
       // Show welcome modal once per user

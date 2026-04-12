@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from './utils';
-import { Home, LogOut, MessageSquarePlus } from 'lucide-react';
+import { Home, LogOut, MessageSquarePlus, UserCircle } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { Button } from '@/components/ui/button';
 import FeedbackModal from '@/components/FeedbackModal';
@@ -88,6 +88,10 @@ export default function Layout({ children, currentPageName }) {
                   <Home className="w-4 h-4" />
                   בית
                 </Link>
+                <Link to={createPageUrl('UserProfile')} className="px-5 py-2.5 rounded-full text-[#6B2D4A] hover:bg-gray-50 transition-all font-medium flex items-center gap-2">
+                  <UserCircle className="w-4 h-4" />
+                  הפרופיל שלי
+                </Link>
                 <Button
                   variant="ghost"
                   size="sm"
@@ -122,6 +126,10 @@ export default function Layout({ children, currentPageName }) {
             <Link to={createPageUrl('Home')} className="flex flex-col items-center justify-center gap-1.5 text-gray-400 hover:text-[#E85A24] transition-colors min-w-[72px]">
               <Home className="w-6 h-6" />
               <span className="text-xs font-medium">בית</span>
+            </Link>
+            <Link to={createPageUrl('UserProfile')} className="flex flex-col items-center justify-center gap-1.5 text-gray-400 hover:text-[#E85A24] transition-colors min-w-[72px]">
+              <UserCircle className="w-6 h-6" />
+              <span className="text-xs font-medium">פרופיל</span>
             </Link>
             <button
               onClick={() => setShowFeedback(true)}

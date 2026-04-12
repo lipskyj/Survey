@@ -35,7 +35,7 @@ export default function SurveyManagement() {
   const { data: allSurveys = [], isLoading } = useQuery({
     queryKey: ['surveys', currentUser?.email, currentUser?.role],
     queryFn: async () => {
-      if (currentUser.role === 'admin') {
+      if (currentUser.role === 'admin' || currentUser.role === 'network_admin') {
         return base44.entities.Survey.list('-created_date', 500);
       }
       return base44.entities.Survey.filter({ created_by: currentUser.email, status: { $in: ['draft', 'published', 'closed', 'candidate'] } }, '-created_date');
@@ -180,7 +180,7 @@ export default function SurveyManagement() {
                           <BarChart3 className="w-4 h-4" />
                           {survey.responses_count || 0} תגובות
                         </span>
-                        {currentUser?.role === 'admin' && survey.created_by && (
+                        {(currentUser?.role === 'admin' || currentUser?.role === 'network_admin') && survey.created_by && (
                           <span className="text-xs bg-purple-50 text-purple-600 px-2 py-0.5 rounded-full">
                             {survey.created_by}
                           </span>
