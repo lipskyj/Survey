@@ -1,13 +1,15 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from './utils';
-import { Home, LogOut, MessageSquarePlus, UserCircle } from 'lucide-react';
+import { Home, LogOut, MessageSquarePlus, UserCircle, HelpCircle } from 'lucide-react';
+import OnboardingCarousel from '@/components/OnboardingCarousel';
 import { base44 } from '@/api/base44Client';
 import { Button } from '@/components/ui/button';
 import FeedbackModal from '@/components/FeedbackModal';
 
 export default function Layout({ children, currentPageName }) {
   const [showFeedback, setShowFeedback] = useState(false);
+  const [showHowItWorks, setShowHowItWorks] = useState(false);
   const isRespondentFlow = ['RespondIntro', 'RespondQuestion', 'RespondComplete'].includes(currentPageName);
 
   // Auth guard: redirect to login for all non-respondent pages
@@ -92,6 +94,10 @@ export default function Layout({ children, currentPageName }) {
                   <UserCircle className="w-4 h-4" />
                   הפרופיל שלי
                 </Link>
+                <Button variant="ghost" size="sm" onClick={() => setShowHowItWorks(true)} className="text-gray-500 hover:text-[#E85A24] flex items-center gap-2">
+                  <HelpCircle className="w-4 h-4" />
+                  איך זה עובד
+                </Button>
                 <Button
                   variant="ghost"
                   size="sm"
@@ -149,6 +155,7 @@ export default function Layout({ children, currentPageName }) {
         </nav>
       )}
       <FeedbackModal open={showFeedback} onClose={() => setShowFeedback(false)} />
+      {showHowItWorks && <OnboardingCarousel asModal onDismiss={() => setShowHowItWorks(false)} />}
     </div>
   );
 }

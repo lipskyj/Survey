@@ -12,7 +12,7 @@ import OnboardingCarousel from '@/components/OnboardingCarousel';
 import WelcomeModal from '@/components/WelcomeModal';
 
 export default function Home() {
-  const [showOnboarding, setShowOnboarding] = useState(false);
+  const [showOnboarding, setShowOnboarding] = useState(false); // kept for compat but not auto-shown
   const [currentUser, setCurrentUser] = useState(null);
   const [showSchoolSetup, setShowSchoolSetup] = useState(false);
   const [showWelcome, setShowWelcome] = useState(false);
@@ -52,9 +52,7 @@ export default function Home() {
     const key = `hasSeenOnboarding_${currentUser.email}`;
     const hasSeenOnboarding = localStorage.getItem(key);
     const visibleSurveys = allSurveys.filter(s => s.status !== 'candidate');
-    if (!hasSeenOnboarding && visibleSurveys.length === 0) {
-      setShowOnboarding(true);
-    }
+    // No longer auto-shown — triggered from header button instead
   }, [allSurveys, currentUser]);
 
   const handleDismissOnboarding = () => {
@@ -78,15 +76,8 @@ export default function Home() {
           setShowWelcome(false);
         }}
       />
-      {/* Onboarding Carousel */}
       {showOnboarding && (
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="mb-8"
-        >
-          <OnboardingCarousel onDismiss={handleDismissOnboarding} />
-        </motion.div>
+        <OnboardingCarousel asModal onDismiss={handleDismissOnboarding} />
       )}
 
       {/* Main Action Cards */}
