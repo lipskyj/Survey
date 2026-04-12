@@ -233,6 +233,33 @@ export default function Home() {
           </motion.div>
         )}
 
+        {/* Personal Dashboard — for regular teachers */}
+        {currentUser && currentUser.role !== 'admin' && currentUser.role !== 'school_admin' && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: showOnboarding ? 0 : 0.38 }}
+          >
+            <Link to={createPageUrl('PersonalDashboard')}>
+              <Card className="bg-white border border-gray-100 shadow-sm hover:shadow-md transition-all rounded-3xl group cursor-pointer">
+                <CardContent className="p-6 sm:p-8">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-4 sm:gap-5">
+                      <div className="w-14 h-14 sm:w-16 sm:h-16 bg-[#1E3A6E]/10 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform">
+                        <BarChart2 className="w-7 h-7 sm:w-8 sm:h-8 text-[#1E3A6E]" />
+                      </div>
+                      <div>
+                        <h3 className="text-xl sm:text-2xl font-black text-[#6B2D4A] mb-1">לוח בקרה אישי</h3>
+                        <p className="text-gray-500 text-sm sm:text-base font-medium">תוצאות וסטטיסטיקות של הסקרים שלי</p>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </Link>
+          </motion.div>
+        )}
+
         {/* School Admin Dashboard */}
         {currentUser?.role === 'school_admin' && (
           <motion.div
