@@ -9,18 +9,24 @@ import { Plus, FileText, Edit3, CheckCircle2, Settings, Layers, BookOpen, BarCha
 import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import OnboardingCarousel from '@/components/OnboardingCarousel';
+import WelcomeModal from '@/components/WelcomeModal';
 
 export default function Home() {
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
   const [showSchoolSetup, setShowSchoolSetup] = useState(false);
+  const [showWelcome, setShowWelcome] = useState(false);
 
   useEffect(() => {
     base44.auth.me().then(u => {
       setCurrentUser(u);
-      // Show school setup if not admin and no school set
       if (u.role !== 'admin' && !u.school) {
         setShowSchoolSetup(true);
+      }
+      // Show welcome modal once per user
+      const key = `hasSeenWelcome_${u.email}`;
+      if (!localStorage.getItem(key)) {
+        setShowWelcome(true);
       }
     }).catch(() => {});
   }, []);
@@ -63,6 +69,13 @@ export default function Home() {
         onDone={(school) => {
           setCurrentUser(prev => ({ ...prev, school }));
           setShowSchoolSetup(false);
+        }}
+      />
+      <WelcomeModal
+        open={showWelcome}
+        onClose={() => {
+          localStorage.setItem(`hasSeenWelcome_${currentUser?.email}`, 'true');
+          setShowWelcome(false);
         }}
       />
       {/* Onboarding Carousel */}
