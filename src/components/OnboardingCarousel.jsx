@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, ChevronRight, X, FileEdit, Sparkles, Share2 } from 'lucide-react';
+import { ChevronLeft, ChevronRight, X, FileEdit, Sparkles, Share2, BarChart2 } from 'lucide-react';
 
 const ONBOARDING_STEPS = [
   {
@@ -18,9 +18,15 @@ const ONBOARDING_STEPS = [
   },
   {
     icon: Share2,
-    title: 'שתף וקבל תוצאות',
-    description: 'שלח לקהל היעד וקבל תובנות חכמות בזמן אמת',
+    title: 'שתף עם הקהל',
+    description: 'שלח קישור לתלמידים, הורים או צוות — מכל מכשיר, בכל זמן',
     color: 'bg-orange-50 text-[#E85A24]'
+  },
+  {
+    icon: BarChart2,
+    title: 'קבל תוצאות והפק מסקנות',
+    description: 'צפה בנתונים בזמן אמת וקבל תובנות AI חכמות להמשך הפעילות',
+    color: 'bg-green-50 text-green-600'
   }
 ];
 
