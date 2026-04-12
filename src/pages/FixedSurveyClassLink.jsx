@@ -29,6 +29,7 @@ export default function FixedSurveyClassLink() {
   const [selectedGrade, setSelectedGrade] = useState('');
   const [selectedNumber, setSelectedNumber] = useState('');
   const [selectedSchool, setSelectedSchool] = useState('');
+  const [userSchool, setUserSchool] = useState(null); // pre-filled from profile
   const [copiedSlug, setCopiedSlug] = useState(null);
   const [showQRFor, setShowQRFor] = useState(null);
 
@@ -36,6 +37,13 @@ export default function FixedSurveyClassLink() {
     const params = new URLSearchParams(window.location.search);
     const id = params.get('surveyId');
     if (id) setSurveyId(id);
+    // Pre-fill school from user profile
+    base44.auth.me().then(u => {
+      if (u?.school) {
+        setUserSchool(u.school);
+        setSelectedSchool(u.school);
+      }
+    }).catch(() => {});
   }, []);
 
   // Get the base (template) survey
@@ -208,6 +216,12 @@ export default function FixedSurveyClassLink() {
               </div>
 
               {/* School */}
+              {userSchool ? (
+                <div className="bg-blue-50 border border-blue-200 rounded-lg px-3 py-2.5 text-sm flex items-center gap-2">
+                  <School className="w-4 h-4 text-blue-500 shrink-0" />
+                  <span className="text-blue-800 font-medium">{userSchool}</span>
+                </div>
+              ) : (
               <Select value={selectedSchool} onValueChange={setSelectedSchool} dir="rtl">
                 <SelectTrigger className="w-full">
                   <SelectValue placeholder="בחר/י בית ספר" />
@@ -218,6 +232,7 @@ export default function FixedSurveyClassLink() {
                   ))}
                 </SelectContent>
               </Select>
+              )}
 
               {canCreate && (
                 <div className="text-sm text-gray-500 bg-gray-50 rounded-lg px-3 py-2">

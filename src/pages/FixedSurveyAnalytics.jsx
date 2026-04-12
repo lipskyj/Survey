@@ -127,6 +127,22 @@ export default function FixedSurveyAnalytics() {
     [enrichedAll]
   );
 
+  // Access guard — admin only
+  if (currentUser && currentUser.role !== 'admin') {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center text-center px-6" dir="rtl">
+        <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+          <BarChart2 className="w-8 h-8 text-red-400" />
+        </div>
+        <h2 className="text-xl font-bold text-gray-800 mb-2">אין גישה</h2>
+        <p className="text-gray-500 mb-6">לוח הבקרה הכלל-ארצי זמין למנהל הראשי בלבד.</p>
+        <Link to={createPageUrl('Home')}>
+          <Button className="bg-[#E85A24] hover:bg-[#D14A1A]">חזרה לדף הבית</Button>
+        </Link>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
