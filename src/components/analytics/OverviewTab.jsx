@@ -8,8 +8,12 @@ import { Card, CardContent } from '@/components/ui/card';
 export default function OverviewTab({ enrichedClasses, questionStats, allResponses }) {
   const totalResponses = allResponses.length;
   const totalClasses = enrichedClasses.length;
-  const schools = new Set(enrichedClasses.map(c => c.meta?.school).filter(Boolean)).size;
-  const grades = new Set(enrichedClasses.map(c => c.meta?.grade).filter(Boolean)).size;
+  const classesWithResponses = enrichedClasses.filter(c => c.responses && c.responses.length > 0).length;
+  const allSchools = enrichedClasses.map(c => c.meta?.school).filter(Boolean);
+  const schools = new Set(allSchools).size;
+  const schoolsWithResponses = new Set(
+    enrichedClasses.filter(c => c.responses && c.responses.length > 0).map(c => c.meta?.school).filter(Boolean)
+  ).size;
 
   const overallAvg = questionStats.length
     ? (questionStats.filter(q => q.avg).reduce((s, q) => s + q.avg, 0) / questionStats.filter(q => q.avg).length)
@@ -26,14 +30,16 @@ export default function OverviewTab({ enrichedClasses, questionStats, allRespons
           icon={<Users className="w-5 h-5" />}
         />
         <StatCard
-          label="כיתות משתתפות"
+          label="כיתות עם לינק"
           value={totalClasses}
+          sub={classesWithResponses > 0 ? `${classesWithResponses} הגיבו` : 'אין תגובות עדיין'}
           color="text-blue-600"
           icon={<BookOpen className="w-5 h-5" />}
         />
         <StatCard
-          label="בתי ספר"
+          label="בתי ספר עם לינק"
           value={schools}
+          sub={schoolsWithResponses > 0 ? `${schoolsWithResponses} הגיבו` : 'אין תגובות עדיין'}
           color="text-[#6B2D4A]"
           icon={<School className="w-5 h-5" />}
         />
