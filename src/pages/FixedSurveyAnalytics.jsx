@@ -128,7 +128,7 @@ export default function FixedSurveyAnalytics() {
   );
 
   // Access guard — admin only
-  if (currentUser && currentUser.role !== 'admin') {
+  if (currentUser && currentUser.role !== 'admin' && currentUser.role !== 'network_admin') {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center text-center px-6" dir="rtl">
         <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">

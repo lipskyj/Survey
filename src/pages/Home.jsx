@@ -287,8 +287,8 @@ export default function Home() {
           </motion.div>
         )}
 
-        {/* Analytics Dashboard — only for admins */}
-        {currentUser?.role === 'admin' && (
+        {/* Analytics Dashboard — for admins and network_admins */}
+        {(currentUser?.role === 'admin' || currentUser?.role === 'network_admin') && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}

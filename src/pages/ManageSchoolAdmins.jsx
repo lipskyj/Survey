@@ -4,7 +4,7 @@ import { base44 } from '@/api/base44Client';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ArrowRight, Shield, User } from 'lucide-react';
+import { ArrowRight, Shield, User, Globe } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { SCHOOLS_LIST } from '@/lib/schoolsList';
@@ -50,8 +50,8 @@ export default function ManageSchoolAdmins() {
               <CardContent className="p-4">
                 <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
                   <div className="flex items-center gap-3 flex-1 min-w-0">
-                    <div className={`w-9 h-9 rounded-full flex items-center justify-center shrink-0 ${u.role === 'school_admin' ? 'bg-[#1E3A6E]/10' : 'bg-gray-100'}`}>
-                      {u.role === 'school_admin' ? <Shield className="w-4 h-4 text-[#1E3A6E]" /> : <User className="w-4 h-4 text-gray-500" />}
+                    <div className={`w-9 h-9 rounded-full flex items-center justify-center shrink-0 ${u.role === 'network_admin' ? 'bg-purple-100' : u.role === 'school_admin' ? 'bg-[#1E3A6E]/10' : 'bg-gray-100'}`}>
+                      {u.role === 'network_admin' ? <Globe className="w-4 h-4 text-purple-600" /> : u.role === 'school_admin' ? <Shield className="w-4 h-4 text-[#1E3A6E]" /> : <User className="w-4 h-4 text-gray-500" />}
                     </div>
                     <div className="min-w-0">
                       <p className="font-semibold text-gray-800 truncate">{u.full_name || u.email}</p>
@@ -76,7 +76,16 @@ export default function ManageSchoolAdmins() {
                       </SelectContent>
                     </Select>
 
-                    {/* Role toggle */}
+                    {/* Role buttons */}
+                    <Button
+                      size="sm"
+                      variant={u.role === 'network_admin' ? 'default' : 'outline'}
+                      className={u.role === 'network_admin' ? 'bg-purple-600 text-white h-8 text-xs' : 'h-8 text-xs text-purple-600 border-purple-300'}
+                      disabled={saving === u.id}
+                      onClick={() => updateUser(u.id, { role: u.role === 'network_admin' ? 'user' : 'network_admin' })}
+                    >
+                      {u.role === 'network_admin' ? 'אדמין רשת ✓' : 'אדמין רשת'}
+                    </Button>
                     <Button
                       size="sm"
                       variant={u.role === 'school_admin' ? 'default' : 'outline'}
