@@ -192,20 +192,22 @@ export default function SurveyManagement() {
                       {survey.status === 'published' && (
                         <>
                           <Button
-                            variant="ghost"
-                            size="icon"
+                            variant="outline"
+                            size="sm"
                             onClick={() => copyLink(survey)}
-                            className="text-gray-500"
+                            className="text-gray-600 gap-1.5"
                           >
-                            <Share2 className="w-4 h-4" />
+                            <Copy className="w-4 h-4" />
+                            העתק קישור
                           </Button>
                           <Link to={createPageUrl('ResultsOverview') + `?surveyId=${survey.id}`}>
                             <Button
-                              variant="ghost"
-                              size="icon"
-                              className="text-gray-500"
+                              variant="outline"
+                              size="sm"
+                              className="text-[#6B2D4A] border-[#6B2D4A] gap-1.5"
                             >
                               <BarChart3 className="w-4 h-4" />
+                              תוצאות וניתוח
                             </Button>
                           </Link>
                         </>
