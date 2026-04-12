@@ -478,12 +478,12 @@ export default function FixedSurveySetup() {
               </CardContent>
             </Card>
           </Link>
-          <Link to={createPageUrl('FixedSurveyAnalytics')} className="block">
+          <Link to={currentUser?.role === 'admin' ? createPageUrl('FixedSurveyAnalytics') : createPageUrl('PersonalDashboard')} className="block">
             <Card className="bg-gradient-to-l from-purple-50 to-pink-50 border-purple-200 h-full cursor-pointer hover:shadow-md transition-shadow">
               <CardContent className="p-4 flex flex-col items-center text-center gap-2">
                 <BarChart2 className="w-6 h-6 text-purple-600" />
                 <p className="font-semibold text-purple-900 text-sm">לוח בקרה</p>
-                <p className="text-xs text-purple-600">ניתוח תוצאות כלל הכיתות</p>
+                <p className="text-xs text-purple-600">ניתוח תוצאות הכיתות שלי</p>
               </CardContent>
             </Card>
           </Link>
