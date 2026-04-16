@@ -105,7 +105,7 @@ export function computeQuestionStats(questions, allResponses) {
         try { selected = JSON.parse(a.value); } catch { selected = a.value.split(','); }
         if (!Array.isArray(selected)) selected = [selected];
         selected.forEach(v => {
-          const key = v.trim();
+          const key = String(v).trim();
           choiceCounts[key] = (choiceCounts[key] || 0) + 1;
         });
       });
