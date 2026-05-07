@@ -55,7 +55,7 @@ export default function GradeRange() {
       if (returnTo) {
         navigate(createPageUrl(returnTo) + `?surveyId=${surveyId}`);
       } else {
-        navigate(createPageUrl('SurveyType') + `?surveyId=${surveyId}`);
+        navigate(createPageUrl('BackgroundQuestions') + `?surveyId=${surveyId}`);
       }
     } catch (error) {
       toast.error('שגיאה בשמירה');

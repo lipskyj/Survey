@@ -50,7 +50,7 @@ export default function BackgroundQuestions() {
   };
 
   const handleBack = () => {
-    navigate(createPageUrl('SurveyType') + `?surveyId=${surveyId}`);
+    navigate(createPageUrl('GradeRange') + `?surveyId=${surveyId}`);
   };
 
   const handleSaveDraft = async () => {

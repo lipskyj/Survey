@@ -7,7 +7,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { motion } from 'framer-motion';
 import { 
   ChevronLeft, Edit2, FileText, Users, School, 
-  Calendar, Target, Sparkles, CheckCircle, Home, Shield, Layers, Star, Hash
+  Calendar, Target, Sparkles, CheckCircle, Home, Layers, Star, Hash
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -125,12 +125,6 @@ export default function ProfileSummary() {
       label: 'שכבות גיל', 
       value: getGradeLabel(),
       step: 'GradeRange'
-    },
-    {
-      icon: Shield,
-      label: 'אנונימיות',
-      value: survey.is_anonymous === false ? 'שמי (עם שם)' : 'אנונימי',
-      step: 'SurveyType'
     },
     ...(getBackgroundQuestions() ? [{
       icon: Users,
