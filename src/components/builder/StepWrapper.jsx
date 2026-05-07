@@ -15,12 +15,14 @@ export default function StepWrapper({
   onSaveDraft,
   isNextDisabled = false,
   isLoading = false,
-  nextLabel = "הבא",
+  nextLabel,
   showBack = true,
   showSaveDraft = true,
   direction = 1
 }) {
   const touchStartRef = useRef(null);
+  const isReturnMode = new URLSearchParams(window.location.search).get('returnTo') === 'ProfileSummary';
+  const resolvedNextLabel = nextLabel ?? (isReturnMode ? 'שמור וחזור' : 'הבא');
 
   // Swipe gesture handling
   const handleTouchStart = useCallback((e) => {
@@ -138,7 +140,7 @@ export default function StepWrapper({
               <Loader2 className="w-5 h-5 animate-spin" />
             ) : (
               <>
-                {nextLabel}
+                {resolvedNextLabel}
                 <ChevronLeft className="w-5 h-5" />
               </>
             )}
