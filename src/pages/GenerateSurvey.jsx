@@ -248,6 +248,7 @@ Do not wrap in SURVEY_JSON, SURVEY_CONTENT, or any other key. Only scale_questio
   let orderIndex = 0;
   const questionsToCreate = [];
 
+  const isArabic = survey.language === 'arabic';
   const bgQuestions = survey.background_questions || {};
   if (survey.is_anonymous === false) {
     questionsToCreate.push({ survey_id: newSurveyId, order_index: orderIndex++, question_type: 'open_text', kit_domain: 'none',
@@ -281,8 +282,6 @@ Do not wrap in SURVEY_JSON, SURVEY_CONTENT, or any other key. Only scale_questio
       is_required: true, choices: relevantChoices.length > 0 ? relevantChoices : [{ value: 'z1', label: 'ז1' }], is_generated: true });
   }
 
-  const isArabic = survey.language === 'arabic';
-
   if (bgQuestions.include_gender) {
     questionsToCreate.push({ survey_id: newSurveyId, order_index: orderIndex++, question_type: 'single_choice', kit_domain: 'none',
       prompt_hebrew: isArabic ? 'ما جنسك؟' : 'מה המגדר שלך?',
@@ -313,8 +312,8 @@ Do not wrap in SURVEY_JSON, SURVEY_CONTENT, or any other key. Only scale_questio
     questionsToCreate.push({ survey_id: newSurveyId, order_index: orderIndex++, question_type: 'open_text', kit_domain: 'none', prompt_hebrew: q.prompt, is_required: false, is_generated: true });
   }
 
-  const langKey = isArabic ? 'ar' : 'he';
-  const bottomLineText = bottomLinePrompts[langKey][survey.audience] || bottomLinePrompts[langKey].students;
+  const bottomLineLangKey = isArabic ? 'ar' : 'he';
+  const bottomLineText = bottomLinePrompts[bottomLineLangKey][survey.audience] || bottomLinePrompts[bottomLineLangKey].students;
   const bottomLineChoices = isArabic
     ? [{ value: 'yes', label: 'نعم، بالتأكيد' }, { value: 'maybe', label: 'ربما' }, { value: 'no', label: 'لا' }]
     : [{ value: 'yes', label: 'כן, בהחלט' }, { value: 'maybe', label: 'אולי' }, { value: 'no', label: 'לא' }];
@@ -503,7 +502,7 @@ export default function GenerateSurvey() {
 
               <div className="space-y-3 mb-8 text-right">
                 {[
-                  { num: '1', text: 'המערכת מייצרת 3 גרסאות סקר במקביל, כל אחת עם מתודולוגיה שונה' },
+                  { num: '1', text: `המערכת מייצרת ${activePrompts.length} גרסאות סקר בזו אחר זו, כל אחת עם מתודולוגיה שונה` },
                   { num: '2', text: 'אתה צופה בכל גרסה בנפרד, קורא את השאלות ומדרג' },
                   { num: '3', text: 'בסוף בוחר את הגרסה שאהבת לפרסום' },
                 ].map(step => (
