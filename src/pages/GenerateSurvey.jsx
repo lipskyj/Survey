@@ -14,10 +14,18 @@ const eventTypeLabels = { single_event: 'אירוע חד פעמי', ongoing_prog
 const gradeLabels = { middle: 'חטיבת ביניים (ז׳-ט׳)', high: 'תיכון (י׳-י״ב)', college: 'מכללה (י״ג-י״ד)' };
 const contentFocusLabels = { pedagogical: 'לימודי-פדגוגי', social_emotional: 'חברתי-רגשי', values: 'ערכי', organizational: 'ארגוני-לוגיסטי', community: 'קהילתי' };
 const bottomLinePrompts = {
-  students: 'האם היית ממליץ/ה לחברים להשתתף בפעילות כזו?',
-  parents: 'האם הייתם רוצים שילדכם ישתתף בפעילויות דומות בעתיד?',
-  teachers: 'האם הייתם ממליצים להמשיך את הפעילות הזו?',
-  management: 'האם יש ערך מוסף לפעילות זו בהשוואה למשאבים המושקעים?'
+  he: {
+    students: 'האם היית ממליץ/ה לחברים להשתתף בפעילות כזו?',
+    parents: 'האם הייתם רוצים שילדכם ישתתף בפעילויות דומות בעתיד?',
+    teachers: 'האם הייתם ממליצים להמשיך את הפעילות הזו?',
+    management: 'האם יש ערך מוסף לפעילות זו בהשוואה למשאבים המושקעים?'
+  },
+  ar: {
+    students: 'هل توصي أصدقاءك بالمشاركة في نشاط كهذا؟',
+    parents: 'هل تودون أن يشارك أطفالكم في أنشطة مشابهة في المستقبل؟',
+    teachers: 'هل توصون بالاستمرار في هذا النشاط؟',
+    management: 'هل يوجد قيمة مضافة لهذا النشاط مقارنةً بالموارد المستثمرة؟'
+  }
 };
 
 function buildPromptFromSurvey(promptTemplate, survey) {
@@ -94,6 +102,11 @@ function buildPromptFromSurvey(promptTemplate, survey) {
 
   // Append intake JSON for structured prompts
   customPrompt += `\n\n---\nSURVEY INTAKE (JSON):\n${surveyIntakeJson}`;
+
+  // If Arabic, add explicit language instruction
+  if (survey.language === 'arabic') {
+    customPrompt += `\n\n⚠️ CRITICAL LANGUAGE INSTRUCTION: The survey language is ARABIC. You MUST write ALL question texts, scale labels, and open question prompts in Arabic only. Do NOT use Hebrew.`;
+  }
 
   return customPrompt;
 }
@@ -237,7 +250,9 @@ Do not wrap in SURVEY_JSON, SURVEY_CONTENT, or any other key. Only scale_questio
 
   const bgQuestions = survey.background_questions || {};
   if (survey.is_anonymous === false) {
-    questionsToCreate.push({ survey_id: newSurveyId, order_index: orderIndex++, question_type: 'open_text', kit_domain: 'none', prompt_hebrew: 'מה שמך?', is_required: true, is_generated: true });
+    questionsToCreate.push({ survey_id: newSurveyId, order_index: orderIndex++, question_type: 'open_text', kit_domain: 'none',
+      prompt_hebrew: isArabic ? 'ما اسمك؟' : 'מה שמך?',
+      is_required: true, is_generated: true });
   }
 
   if (bgQuestions.include_class) {
@@ -259,19 +274,35 @@ Do not wrap in SURVEY_JSON, SURVEY_CONTENT, or any other key. Only scale_questio
       ]
     };
     const relevantChoices = selectedGradeRanges.flatMap(range => gradeChoicesMap[range] || []);
-    questionsToCreate.push({ survey_id: newSurveyId, order_index: orderIndex++, question_type: 'single_choice', kit_domain: 'none', prompt_hebrew: survey.audience === 'parents' ? 'באיזו כיתה ילדך/ילדתך?' : 'באיזו כיתה את/ה?', is_required: true, choices: relevantChoices.length > 0 ? relevantChoices : [{ value: 'z1', label: 'ז1' }], is_generated: true });
+    questionsToCreate.push({ survey_id: newSurveyId, order_index: orderIndex++, question_type: 'single_choice', kit_domain: 'none',
+      prompt_hebrew: isArabic
+        ? (survey.audience === 'parents' ? 'في أي صف ابنك/ابنتك؟' : 'في أي صف أنت؟')
+        : (survey.audience === 'parents' ? 'באיזו כיתה ילדך/ילדתך?' : 'באיזו כיתה את/ה?'),
+      is_required: true, choices: relevantChoices.length > 0 ? relevantChoices : [{ value: 'z1', label: 'ז1' }], is_generated: true });
   }
 
+  const isArabic = survey.language === 'arabic';
+
   if (bgQuestions.include_gender) {
-    questionsToCreate.push({ survey_id: newSurveyId, order_index: orderIndex++, question_type: 'single_choice', kit_domain: 'none', prompt_hebrew: 'מה המגדר שלך?', is_required: true, choices: [{ value: 'male', label: 'זכר' }, { value: 'female', label: 'נקבה' }, { value: 'other', label: 'אחר' }], is_generated: true });
+    questionsToCreate.push({ survey_id: newSurveyId, order_index: orderIndex++, question_type: 'single_choice', kit_domain: 'none',
+      prompt_hebrew: isArabic ? 'ما جنسك؟' : 'מה המגדר שלך?',
+      is_required: true,
+      choices: isArabic
+        ? [{ value: 'male', label: 'ذكر' }, { value: 'female', label: 'أنثى' }, { value: 'other', label: 'آخر' }]
+        : [{ value: 'male', label: 'זכר' }, { value: 'female', label: 'נקבה' }, { value: 'other', label: 'אחר' }],
+      is_generated: true });
   }
 
   if (bgQuestions.include_subject) {
-    questionsToCreate.push({ survey_id: newSurveyId, order_index: orderIndex++, question_type: 'open_text', kit_domain: 'none', prompt_hebrew: 'מה המקצוע/ות שאת/ה מלמד/ת?', is_required: true, is_generated: true });
+    questionsToCreate.push({ survey_id: newSurveyId, order_index: orderIndex++, question_type: 'open_text', kit_domain: 'none',
+      prompt_hebrew: isArabic ? 'ما المادة/المواد التي تدرّسها؟' : 'מה המקצוע/ות שאת/ה מלמד/ת?',
+      is_required: true, is_generated: true });
   }
 
   if (bgQuestions.include_role) {
-    questionsToCreate.push({ survey_id: newSurveyId, order_index: orderIndex++, question_type: 'open_text', kit_domain: 'none', prompt_hebrew: 'מה תפקידך בהנהלה?', is_required: true, is_generated: true });
+    questionsToCreate.push({ survey_id: newSurveyId, order_index: orderIndex++, question_type: 'open_text', kit_domain: 'none',
+      prompt_hebrew: isArabic ? 'ما دورك في الإدارة؟' : 'מה תפקידך בהנהלה?',
+      is_required: true, is_generated: true });
   }
 
   for (const q of scaleQuestions) {
@@ -282,13 +313,21 @@ Do not wrap in SURVEY_JSON, SURVEY_CONTENT, or any other key. Only scale_questio
     questionsToCreate.push({ survey_id: newSurveyId, order_index: orderIndex++, question_type: 'open_text', kit_domain: 'none', prompt_hebrew: q.prompt, is_required: false, is_generated: true });
   }
 
-  questionsToCreate.push({ survey_id: newSurveyId, order_index: orderIndex++, question_type: 'bottom_line', kit_domain: 'none', prompt_hebrew: bottomLinePrompts[survey.audience] || bottomLinePrompts.students, is_required: true, choices: [{ value: 'yes', label: 'כן, בהחלט' }, { value: 'maybe', label: 'אולי' }, { value: 'no', label: 'לא' }], is_generated: true });
+  const langKey = isArabic ? 'ar' : 'he';
+  const bottomLineText = bottomLinePrompts[langKey][survey.audience] || bottomLinePrompts[langKey].students;
+  const bottomLineChoices = isArabic
+    ? [{ value: 'yes', label: 'نعم، بالتأكيد' }, { value: 'maybe', label: 'ربما' }, { value: 'no', label: 'لا' }]
+    : [{ value: 'yes', label: 'כן, בהחלט' }, { value: 'maybe', label: 'אולי' }, { value: 'no', label: 'לא' }];
+  questionsToCreate.push({ survey_id: newSurveyId, order_index: orderIndex++, question_type: 'bottom_line', kit_domain: 'none', prompt_hebrew: bottomLineText, is_required: true, choices: bottomLineChoices, is_generated: true });
 
   await base44.entities.SurveyQuestion.bulkCreate(questionsToCreate);
 
   const isAnon = survey.is_anonymous !== false;
+  const introPrompt = isArabic
+    ? `اكتب فقرة افتتاحية قصيرة (2-3 جمل) باللغة العربية لاستبيان تغذية راجعة حول: ${survey.activity_description}. ودية، تشرح هدف الاستبيان${isAnon ? '، وتؤكد أن الإجابات مجهولة الهوية' : '، واذكر أن الاستبيان اسمي (غير مجهول)'}. الجمهور: ${audienceLabels[survey.audience] || survey.audience}`
+    : `כתוב פסקת פתיחה קצרה (2-3 משפטים) לסקר משוב על: ${survey.activity_description}. ידידותית, מסבירה מטרת הסקר${isAnon ? ', מבטיחה שהתשובות אנונימיות' : ', ציין שהסקר הוא נוכחות שמית (לא אנונימי)'}. קהל: ${audienceLabels[survey.audience] || survey.audience}`;
   const introResponse = await base44.integrations.Core.InvokeLLM({
-    prompt: `כתוב פסקת פתיחה קצרה (2-3 משפטים) לסקר משוב על: ${survey.activity_description}. ידידותית, מסבירה מטרת הסקר${isAnon ? ', מבטיחה שהתשובות אנונימיות' : ', ציין שהסקר הוא נוכחות שמית (לא אנונימי)'}. קהל: ${audienceLabels[survey.audience] || survey.audience}`,
+    prompt: introPrompt,
     response_json_schema: { type: "object", properties: { intro: { type: "string" } } }
   });
 
