@@ -102,10 +102,10 @@ export default function SurveyPreview({ surveyId }) {
 
           {(q.question_type === 'single_choice' || q.question_type === 'multi_choice' || q.question_type === 'bottom_line') && q.choices && (
             <CardContent className="pt-0">
-              <div className="space-y-2">
+              <div className={`space-y-2 ${q.choices.length > 8 ? 'max-h-64 overflow-y-auto pr-1' : ''}`}>
                 {q.choices.map((choice, i) => (
                   <div key={i} className="flex items-center gap-2 p-2 bg-gray-50 rounded">
-                    <div className={`w-4 h-4 border-2 border-gray-300 ${q.question_type === 'single_choice' || q.question_type === 'bottom_line' ? 'rounded-full' : 'rounded'}`} />
+                    <div className={`w-4 h-4 border-2 border-gray-300 flex-shrink-0 ${q.question_type === 'single_choice' || q.question_type === 'bottom_line' ? 'rounded-full' : 'rounded'}`} />
                     <span className="text-sm text-gray-700">{choice.label}</span>
                   </div>
                 ))}
