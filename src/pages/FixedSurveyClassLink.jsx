@@ -7,12 +7,13 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { motion, AnimatePresence } from 'framer-motion';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
 import {
   ChevronRight, Plus, Copy, Check, Trash2,
   ExternalLink, QrCode, Loader2, Users, BarChart2, School
 } from 'lucide-react';
 import { toast } from 'sonner';
-import { SCHOOLS_LIST, GRADE_LEVELS, CLASS_NUMBERS } from '@/lib/schoolsList';
+import { SCHOOLS_LIST } from '@/lib/schoolsList';
 
 function SimpleQRCode({ value, size = 160 }) {
   const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=${size}x${size}&data=${encodeURIComponent(value)}`;
@@ -26,8 +27,7 @@ function SimpleQRCode({ value, size = 160 }) {
 export default function FixedSurveyClassLink() {
   const queryClient = useQueryClient();
   const [surveyId, setSurveyId] = useState(null);
-  const [selectedGrade, setSelectedGrade] = useState('');
-  const [selectedNumber, setSelectedNumber] = useState('');
+  const [className, setClassName] = useState('');
   const [selectedSchool, setSelectedSchool] = useState('');
   const [userSchool, setUserSchool] = useState(null); // pre-filled from profile
   const [copiedSlug, setCopiedSlug] = useState(null);
@@ -79,14 +79,13 @@ export default function FixedSurveyClassLink() {
     return Array.from({ length: 8 }, () => chars.charAt(Math.floor(Math.random() * chars.length))).join('');
   };
 
-  const canCreate = selectedGrade && selectedNumber && selectedSchool;
-  const classLabel = canCreate ? `${selectedGrade}׳${selectedNumber}` : '';
-  const fullLabel = canCreate ? `${classLabel} — ${selectedSchool}` : '';
+  const canCreate = className.trim() && selectedSchool;
+  const fullLabel = canCreate ? `${className.trim()} — ${selectedSchool}` : '';
 
   const createClassLink = useMutation({
     mutationFn: async () => {
       const slug = generateSlug();
-      const classInfo = { grade: selectedGrade, number: selectedNumber, school: selectedSchool };
+      const classInfo = { grade: className.trim(), number: '', school: selectedSchool };
       // Create a copy of the survey for this class
       const classSurvey = await base44.entities.Survey.create({
         title: `${baseSurvey?.title} — ${fullLabel}`,
@@ -120,8 +119,7 @@ export default function FixedSurveyClassLink() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries(['class-surveys', surveyId]);
-      setSelectedGrade('');
-      setSelectedNumber('');
+      setClassName('');
       setSelectedSchool('');
       toast.success('קישור כיתה נוצר בהצלחה!');
     },
@@ -161,7 +159,7 @@ export default function FixedSurveyClassLink() {
 
   const getClassName = (survey) => {
     const meta = getClassMeta(survey);
-    if (meta) return `${meta.grade}׳${meta.number} — ${meta.school}`;
+    if (meta) return `${meta.grade}${meta.number ? `׳${meta.number}` : ''} — ${meta.school}`;
     const parts = survey.title?.split(' — ');
     return parts?.length > 1 ? parts.slice(1).join(' — ') : survey.title;
   };
@@ -189,31 +187,13 @@ export default function FixedSurveyClassLink() {
           <CardContent className="p-6">
             <h2 className="font-semibold text-[#6B2D4A] mb-4">יצירת קישור לכיתה חדשה</h2>
             <div className="space-y-3">
-              <div className="flex gap-3">
-                {/* Grade level */}
-                <Select value={selectedGrade} onValueChange={setSelectedGrade} dir="rtl">
-                  <SelectTrigger className="w-28">
-                    <SelectValue placeholder="שכבה" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {GRADE_LEVELS.map(g => (
-                      <SelectItem key={g} value={g}>{g}׳</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-
-                {/* Class number */}
-                <Select value={selectedNumber} onValueChange={setSelectedNumber} dir="rtl">
-                  <SelectTrigger className="w-24">
-                    <SelectValue placeholder="מספר" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {CLASS_NUMBERS.map(n => (
-                      <SelectItem key={n} value={n}>{n}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+              <Input
+                value={className}
+                onChange={e => setClassName(e.target.value)}
+                placeholder="שם הכיתה (לדוגמה: ז1, ח2, טמות...)"
+                dir="rtl"
+                className="w-full"
+              />
 
               {/* School */}
               {userSchool ? (
