@@ -260,26 +260,29 @@ Do not wrap in SURVEY_JSON, SURVEY_CONTENT, or any other key. Only scale_questio
     const selectedGradeRanges = survey.grade_range?.selected_grades || [];
     const gradeChoicesMap = {
       middle: [
-        { value: 'z1', label: 'ז1' }, { value: 'z2', label: 'ז2' }, { value: 'z3', label: 'ז3' }, { value: 'z4', label: 'ז4' }, { value: 'z5', label: 'ז5' },
-        { value: 'h1', label: 'ח1' }, { value: 'h2', label: 'ח2' }, { value: 'h3', label: 'ח3' }, { value: 'h4', label: 'ח4' }, { value: 'h5', label: 'ח5' },
-        { value: 't1', label: 'ט1' }, { value: 't2', label: 'ט2' }, { value: 't3', label: 'ט3' }
+        { value: 'z', label: 'ז׳' },
+        { value: 'h', label: 'ח׳' },
+        { value: 't', label: 'ט׳' }
       ],
       high: [
-        { value: 'y1', label: 'י1' }, { value: 'y2', label: 'י2' }, { value: 'y3', label: 'י3' }, { value: 'y4', label: 'י4' },
-        { value: 'ya1', label: 'יא1' }, { value: 'ya2', label: 'יא2' }, { value: 'ya3', label: 'יא3' }, { value: 'ya4', label: 'יא4' },
-        { value: 'yb1', label: 'יב1' }, { value: 'yb2', label: 'יב2' }, { value: 'yb3', label: 'יב3' }, { value: 'yb4', label: 'יב4' }
+        { value: 'y', label: 'י׳' },
+        { value: 'ya', label: 'יא׳' },
+        { value: 'yb', label: 'יב׳' }
       ],
       college: [
-        { value: 'yg1', label: 'יג1' }, { value: 'yg2', label: 'יג2' },
-        { value: 'yd1', label: 'יד1' }, { value: 'yd2', label: 'יד2' }
+        { value: 'yg', label: 'יג׳' },
+        { value: 'yd', label: 'יד׳' }
       ]
     };
     const relevantChoices = selectedGradeRanges.flatMap(range => gradeChoicesMap[range] || []);
     questionsToCreate.push({ survey_id: newSurveyId, order_index: orderIndex++, question_type: 'single_choice', kit_domain: 'none',
       prompt_hebrew: isArabic
         ? (survey.audience === 'parents' ? 'في أي صف ابنك/ابنتك؟' : 'في أي صف أنت؟')
-        : (survey.audience === 'parents' ? 'באיזו כיתה ילדך/ילדתך?' : 'באיזו כיתה את/ה?'),
-      is_required: true, choices: relevantChoices.length > 0 ? relevantChoices : [{ value: 'z1', label: 'ז1' }], is_generated: true });
+        : (survey.audience === 'parents' ? 'באיזו שכבה ילדך/ילדתך?' : 'באיזו שכבה את/ה?'),
+      is_required: true, choices: relevantChoices.length > 0 ? relevantChoices : [
+        { value: 'z', label: 'ז׳' }, { value: 'h', label: 'ח׳' }, { value: 't', label: 'ט׳' },
+        { value: 'y', label: 'י׳' }, { value: 'ya', label: 'יא׳' }, { value: 'yb', label: 'יב׳' }
+      ], is_generated: true });
   }
 
   if (bgQuestions.include_gender) {
