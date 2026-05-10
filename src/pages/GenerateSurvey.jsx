@@ -258,30 +258,51 @@ Do not wrap in SURVEY_JSON, SURVEY_CONTENT, or any other key. Only scale_questio
 
   if (bgQuestions.include_class) {
     const selectedGradeRanges = survey.grade_range?.selected_grades || [];
-    const makeChoices = (prefix, label, count = 9) =>
-      Array.from({ length: count }, (_, i) => ({ value: `${prefix}${i + 1}`, label: `${label}${i + 1}` }));
     const gradeChoicesMap = {
       middle: [
-        ...makeChoices('z', 'ז'),
-        ...makeChoices('h', 'ח'),
-        ...makeChoices('t', 'ט')
+        { value: 'z', label: "ז'" },
+        { value: 'h', label: "ח'" },
+        { value: 't', label: "ט'" }
       ],
       high: [
-        ...makeChoices('y', 'י'),
-        ...makeChoices('ya', 'יא'),
-        ...makeChoices('yb', 'יב')
+        { value: 'y', label: "י'" },
+        { value: 'ya', label: "יא'" },
+        { value: 'yb', label: "יב'" }
       ],
       college: [
-        ...makeChoices('yg', 'יג', 5),
-        ...makeChoices('yd', 'יד', 5)
+        { value: 'yg', label: "יג'" },
+        { value: 'yd', label: "יד'" }
       ]
     };
-    const relevantChoices = selectedGradeRanges.flatMap(range => gradeChoicesMap[range] || []);
-    questionsToCreate.push({ survey_id: newSurveyId, order_index: orderIndex++, question_type: 'single_choice', kit_domain: 'none',
+    const gradeChoices = selectedGradeRanges.flatMap(range => gradeChoicesMap[range] || []);
+    const fallbackGrades = gradeChoicesMap.middle;
+
+    const classNumberChoices = Array.from({ length: 9 }, (_, i) => ({
+      value: `${i + 1}`,
+      label: `${i + 1}`
+    }));
+
+    // Question 1: which grade level
+    questionsToCreate.push({
+      survey_id: newSurveyId, order_index: orderIndex++, question_type: 'single_choice', kit_domain: 'none',
       prompt_hebrew: isArabic
         ? (survey.audience === 'parents' ? 'في أي صف ابنك/ابنتك؟' : 'في أي صف أنت؟')
-        : (survey.audience === 'parents' ? 'באיזו כיתה ילדך/ילדתך?' : 'באיזו כיתה את/ה?'),
-      is_required: true, choices: relevantChoices.length > 0 ? relevantChoices : makeChoices('z', 'ז'), is_generated: true });
+        : (survey.audience === 'parents' ? 'באיזו שכבה ילדך/ילדתך?' : 'באיזו שכבה את/ה?'),
+      is_required: true,
+      choices: gradeChoices.length > 0 ? gradeChoices : fallbackGrades,
+      is_generated: true
+    });
+
+    // Question 2: which class number
+    questionsToCreate.push({
+      survey_id: newSurveyId, order_index: orderIndex++, question_type: 'single_choice', kit_domain: 'none',
+      prompt_hebrew: isArabic
+        ? (survey.audience === 'parents' ? 'ما رقم صف ابنك/ابنتك؟' : 'ما رقم صفك؟')
+        : (survey.audience === 'parents' ? 'מה מספר הכיתה של ילדך/ילדתך?' : 'מה מספר הכיתה שלך?'),
+      is_required: true,
+      choices: classNumberChoices,
+      is_generated: true
+    });
   }
 
   if (bgQuestions.include_gender) {
