@@ -1,0 +1,37 @@
+{
+  "name": "AdminPrompt",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Prompt name for identification"
+    },
+    "prompt_text": {
+      "type": "string",
+      "description": "The full prompt text"
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether this prompt is currently active"
+    },
+    "language": {
+      "type": "string",
+      "enum": [
+        "hebrew",
+        "arabic",
+        "both"
+      ],
+      "default": "both",
+      "description": "Which language this prompt is for"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Admin notes about this prompt"
+    }
+  },
+  "required": [
+    "name",
+    "prompt_text"
+  ]
+}

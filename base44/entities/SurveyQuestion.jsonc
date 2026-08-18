@@ -1,0 +1,83 @@
+{
+  "name": "SurveyQuestion",
+  "type": "object",
+  "properties": {
+    "survey_id": {
+      "type": "string",
+      "description": "Reference to parent survey"
+    },
+    "order_index": {
+      "type": "number",
+      "description": "Question order in survey"
+    },
+    "question_type": {
+      "type": "string",
+      "enum": [
+        "scale_5",
+        "scale_7",
+        "open_text",
+        "single_choice",
+        "multi_choice",
+        "bottom_line"
+      ],
+      "description": "Type of question"
+    },
+    "kit_domain": {
+      "type": "string",
+      "enum": [
+        "relevance",
+        "skills",
+        "delivery_quality",
+        "belonging",
+        "none"
+      ],
+      "description": "KIT domain mapping"
+    },
+    "prompt_hebrew": {
+      "type": "string",
+      "description": "Question text in Hebrew"
+    },
+    "is_required": {
+      "type": "boolean",
+      "default": true,
+      "description": "Whether answer is required"
+    },
+    "scale_labels": {
+      "type": "object",
+      "properties": {
+        "low": {
+          "type": "string"
+        },
+        "high": {
+          "type": "string"
+        }
+      },
+      "description": "Labels for scale endpoints"
+    },
+    "choices": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "value": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          }
+        }
+      },
+      "description": "Choice options for choice questions"
+    },
+    "is_generated": {
+      "type": "boolean",
+      "default": true,
+      "description": "Whether AI generated this question"
+    }
+  },
+  "required": [
+    "survey_id",
+    "question_type",
+    "prompt_hebrew"
+  ]
+}

@@ -1,0 +1,35 @@
+{
+  "name": "PromptFeedback",
+  "type": "object",
+  "properties": {
+    "survey_id": {
+      "type": "string",
+      "description": "Reference to the survey that was reviewed"
+    },
+    "prompt_name": {
+      "type": "string",
+      "description": "Name of the prompt used to generate this survey"
+    },
+    "stars": {
+      "type": "number",
+      "description": "Star rating 1-5"
+    },
+    "comment": {
+      "type": "string",
+      "description": "Open feedback from the user"
+    },
+    "audience": {
+      "type": "string",
+      "description": "Survey audience type for filtering"
+    },
+    "activity_description": {
+      "type": "string",
+      "description": "Brief activity description for context"
+    }
+  },
+  "required": [
+    "survey_id",
+    "prompt_name",
+    "stars"
+  ]
+}

@@ -1,0 +1,209 @@
+{
+  "name": "Survey",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string",
+      "description": "Survey title for admin reference"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "candidate",
+        "draft",
+        "published",
+        "closed"
+      ],
+      "default": "draft",
+      "description": "Survey lifecycle status. 'candidate' = AI-generated version not yet chosen by user."
+    },
+    "language": {
+      "type": "string",
+      "enum": [
+        "hebrew",
+        "arabic"
+      ],
+      "default": "hebrew",
+      "description": "Survey language"
+    },
+    "share_slug": {
+      "type": "string",
+      "description": "Unique human-friendly share slug"
+    },
+    "prompt_version": {
+      "type": "string",
+      "description": "Name of the prompt used to generate this survey"
+    },
+    "activity_description": {
+      "type": "string",
+      "description": "Step A1: Activity description"
+    },
+    "activity_file_url": {
+      "type": "string",
+      "description": "Step A1: Uploaded file with activity details (PDF, DOCX, etc.)"
+    },
+    "audience": {
+      "type": "string",
+      "enum": [
+        "students",
+        "parents",
+        "teachers",
+        "management"
+      ],
+      "description": "Step A2: Target audience"
+    },
+    "is_anonymous": {
+      "type": "boolean",
+      "default": true,
+      "description": "Step A4: Whether the survey is anonymous or named"
+    },
+    "background_questions": {
+      "type": "object",
+      "properties": {
+        "include_class": {
+          "type": "boolean",
+          "default": false
+        },
+        "include_gender": {
+          "type": "boolean",
+          "default": false
+        },
+        "include_subject": {
+          "type": "boolean",
+          "default": false
+        },
+        "include_role": {
+          "type": "boolean",
+          "default": false
+        }
+      },
+      "description": "Step A5: Which background questions to include"
+    },
+    "measurement_targets": {
+      "type": "object",
+      "properties": {
+        "selected_values": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "selected_knowledge": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "selected_skills": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "description": "Step A9: Values, knowledge and skills to measure"
+    },
+    "grade_range": {
+      "type": "object",
+      "properties": {
+        "selected_grades": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "description": "Step A3: Grade range selection (multiple choice)"
+    },
+    "event_type": {
+      "type": "string",
+      "enum": [
+        "single_event",
+        "ongoing_program",
+        "annual_activity",
+        "special_project"
+      ],
+      "description": "Step A7: Event type"
+    },
+    "content_focus": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Step A8: Content focus domains (1-3 selections)"
+    },
+    "evaluation_goal": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Step A10: Evaluation goals (multiple selection)"
+    },
+    "success_definition": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": [
+            "suggested",
+            "custom",
+            "combined"
+          ]
+        },
+        "selected_ideas": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "custom_text": {
+          "type": "string"
+        }
+      },
+      "description": "Step A11: Success definition"
+    },
+    "questions_count": {
+      "type": "string",
+      "enum": [
+        "5",
+        "10",
+        "15",
+        "15plus"
+      ],
+      "default": "10",
+      "description": "Step A12: Desired number of scale questions in the survey"
+    },
+    "intro_text": {
+      "type": "string",
+      "description": "Survey introduction paragraph for respondents"
+    },
+    "published_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When survey was published"
+    },
+    "closed_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When survey was closed"
+    },
+    "responses_count": {
+      "type": "number",
+      "default": 0,
+      "description": "Cached count of responses"
+    },
+    "current_step": {
+      "type": "string",
+      "default": "A0",
+      "description": "Current builder step for draft restoration"
+    },
+    "last_autosave": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Last autosave timestamp"
+    }
+  },
+  "required": [
+    "status"
+  ]
+}

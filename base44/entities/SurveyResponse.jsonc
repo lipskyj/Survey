@@ -1,0 +1,71 @@
+{
+  "name": "SurveyResponse",
+  "type": "object",
+  "properties": {
+    "survey_id": {
+      "type": "string",
+      "description": "Reference to survey"
+    },
+    "session_id": {
+      "type": "string",
+      "description": "Anonymous session identifier"
+    },
+    "answers": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "question_id": {
+            "type": "string"
+          },
+          "question_type": {
+            "type": "string"
+          },
+          "value": {
+            "type": "string"
+          },
+          "numeric_value": {
+            "type": "number"
+          }
+        }
+      },
+      "description": "Array of answers"
+    },
+    "started_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When respondent started"
+    },
+    "completed_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When respondent completed"
+    },
+    "duration_seconds": {
+      "type": "number",
+      "description": "Time to complete in seconds"
+    },
+    "grade_reported": {
+      "type": "string",
+      "description": "Grade if collected from respondent"
+    },
+    "is_complete": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether survey was fully completed"
+    },
+    "device_type": {
+      "type": "string",
+      "enum": [
+        "mobile",
+        "tablet",
+        "desktop"
+      ],
+      "description": "Device used to respond"
+    }
+  },
+  "required": [
+    "survey_id",
+    "session_id"
+  ]
+}
